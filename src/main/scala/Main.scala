@@ -24,14 +24,23 @@ object Main {
       |  </head>
       |  <Scene>
       |    <WorldInfo title='Cylinder.x3d'/>
-      |    <Background skyColor='1 1 1'/>
-      |    <Viewpoint description='Book View' orientation='-1 0 0 0.68' position='0 2.9 4.83'/>
-      |    <Shape>
-      |      <Cylinder radius='0.2' top='false'/>
-      |      <Appearance>
-      |        <Material/>
-      |      </Appearance>
-      |    </Shape>
+      |    <Background skyColor='0.1 0.1 0.5'/>
+      |    <Transform translation='0 0 0'>
+      |      <Shape bboxCenter='0, 0.1, 0'>
+      |        <Cylinder radius='0.01'/>
+      |        <Appearance>
+      |          <Material diffuseColor='1 0 0'/>
+      |        </Appearance>
+      |      </Shape>
+      |    </Transform>
+      |    <Transform translation='0.5 0 0'>
+      |      <Shape bboxCenter='0, 0.1, 0'>
+      |        <Cylinder radius='0.01'/>
+      |        <Appearance>
+      |          <Material diffuseColor='0 1 0'/>
+      |        </Appearance>
+      |      </Shape>
+      |    </Transform>
       |  </Scene>
       |</X3D>""".stripMargin
   }
@@ -42,7 +51,7 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    val id = "002"
+    val id = "003"
     
     
     val outdir = System.getenv("OUTDIR")
