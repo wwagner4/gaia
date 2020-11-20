@@ -18,7 +18,7 @@ case class Cylinder(pos: Position) extends Shapable {
     s"""
        |<Transform translation='${pos.x}, ${pos.y}, ${pos.z}'>
        |   <Shape>
-       |     <Cylinder radius='0.1'/>
+       |     <Cylinder radius='0.005'/>
        |     <Appearance>
        |       <Material diffuseColor='$r $g $b'/>
        |     </Appearance>
@@ -33,14 +33,14 @@ object Main {
 
 
   def cylCyl(xoff: Double, yoff: Double) = (0 to 180)
-    .map(i => i / 30.0)
+    .map(i => i / 36.0)
     .map { t => Cylinder(Position(math.sin(t) + xoff, 0.0, math.cos(t) + yoff)) }
 
   def ranOff: Double = {
     Random.nextInt(300) / 30.0 - 15.0
   }
 
-  val shapables = (0 to 20)
+  val shapables = (0 to 25)
     .flatMap { _ => cylCyl(ranOff, ranOff) }
 
   val disp = shapables.map(x => x.toShape).mkString("\n")
