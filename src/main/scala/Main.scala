@@ -9,12 +9,12 @@ object Main {
 
 
   def main(args: Array[String]): Unit = {
-    val backColor = Xml.Color.darkBlue
+    val backColor = X3d.Color.darkBlue
     val id = "006"
     val outfileName = s"gaia_$id.x3d"
     val outfile = Util.outpath.resolve(outfileName)
     val shapables = Util.randomDistribute01(Util.experimental01(backColor) _)
-    val xml = Xml.createXml(shapables, outfileName, backColor)
+    val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
   }
 }
@@ -25,39 +25,34 @@ object Util {
 
   lazy val outpath: Path = {
     val outdir = System.getenv("OUTDIR")
-    if outdir == null
-      throw IllegalArgumentException("Environment variable OUTDIR must be defined")
+    if (outdir == null) throw IllegalArgumentException("Environment variable OUTDIR must be defined")
     val result = Path.of(outdir)
-    if !Files.exists(result)
-      throw IllegalArgumentException(s"${result} must exist")
+    if (!Files.exists(result)) throw IllegalArgumentException(s"Directory ${result} must exist")
     result
   }
 
-  def experimental01(backColor: Xml.Color)(xoff: Double, yoff: Double, zoff: Double): Seq[Xml.Shapable] = {
+  def experimental01(backColor: X3d.Color)(xoff: Double, yoff: Double, zoff: Double): Seq[X3d.Shapable] =
     (0 to 200)
       .map(i => i / 50.0)
       .map { t =>
-        val pos = Xml.Position(math.sin(t) + xoff, math.cos(t) + yoff, zoff)
-        Xml.Line(pos, Xml.Color.random, backColor)
+        val pos = X3d.Vec(math.sin(t) + xoff, math.cos(t) + yoff, zoff)
+        X3d.Line(pos, X3d.Color.random, backColor)
       }
-  }
 
 
-  def writeString(outfile: Path, string: String): Unit = {
+  def writeString(outfile: Path, string: String): Unit =
     Files.writeString(outfile, string)
     println(s"wrote x3d to $outfile")
-  }
 
 
-  def randomDistribute01(shape: (Double, Double, Double) => Seq[Xml.Shapable]): Seq[Xml.Shapable] = {
+  def randomDistribute01(shape: (Double, Double, Double) => Seq[X3d.Shapable]): Seq[X3d.Shapable] =
     (0 to 4)
       .flatMap { _ => shape(Util.ranOff(3), Util.ranOff(4), 0) }
-  }
 }
 
-object Xml {
+object X3d {
 
-  case class Position(x: Double, y: Double, z: Double) {
+  case class Vec(x: Double, y: Double, z: Double) {
     def display = s"$x, $y, $z"
   }
 
@@ -96,10 +91,10 @@ object Xml {
     def toShape: String
   }
 
-  case class Cylinder(pos: Position, color: Color) extends Shapable {
+  case class Cylinder(translation: Vec, color: Color) extends Shapable {
     def toShape = {
       s"""
-         |<Transform translation='${pos.display}'>
+         |<Transform translation='${translation.display}'>
          |   <Shape>
          |     <Cylinder radius='0.01'/>
          |     <Appearance>
@@ -111,13 +106,10 @@ object Xml {
     }
   }
 
-  case class Line(pos: Position, startColor: Color, endColor: Color) extends Shapable {
+  case class Line(translation: Vec, startColor: Color, endColor: Color) extends Shapable {
     def toShape = {
-      val r = Random.nextDouble()
-      val g = Random.nextDouble()
-      val b = Random.nextDouble()
       s"""
-         |<Transform translation='${pos.display}'>
+         |<Transform translation='${translation.display}'>
          |   <Shape>
          |   <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
          |      <Color color='${startColor.display} ${endColor.display}'/>
@@ -136,18 +128,7 @@ object Xml {
        |<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "https://www.web3d.org/specifications/x3d-3.3.dtd">
        |<X3D profile='Interchange' version='3.3' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-3.3.xsd'>
        |  <head>
-       |    <meta content='CylinderExample.x3d' name='title'/>
-       |    <meta content='Cylinder geometric primitive node.' name='description'/>
-       |    <meta content='Leonard Daly and Don Brutzman' name='creator'/>
-       |    <meta content='1 January 2007' name='created'/>
-       |    <meta content='14 June 2020' name='modified'/>
-       |    <meta content='http://X3dGraphics.com' name='reference'/>
-       |    <meta content='https://www.web3d.org/x3d/content/examples/X3dResources.html' name='reference'/>
-       |    <meta content='Copyright Don Brutzman and Leonard Daly 2007' name='rights'/>
-       |    <meta content='X3D book, X3D graphics, X3D-Edit, http://www.x3dGraphics.com' name='subject'/>
-       |    <meta content='http://X3dGraphics.com/examples/X3dForWebAuthors/Chapter02GeometryPrimitives/CylinderExample.x3d' name='identifier'/>
-       |    <meta content='X3D-Edit 3.3, https://savage.nps.edu/X3D-Edit' name='generator'/>
-       |    <meta content='../license.html' name='license'/>
+       |    <meta content='http://entelijan.net' name='reference'/>
        |  </head>
        |  <Scene>
        |    <WorldInfo title='$title'/>
