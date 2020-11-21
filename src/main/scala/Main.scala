@@ -8,20 +8,70 @@ trait Shapable {
   def toShape: String
 }
 
-case class Position(x: Double, y: Double, z: Double)
+case class Position(x: Double, y: Double, z: Double) {
+  def display = s"$x, $y, $z"
+}
 
-case class Cylinder(pos: Position) extends Shapable {
+case class Color(r: Double, g: Double, b: Double) {
+  def display = s"$r $g $b"
+}
+
+object Color {
+
+  def random: Color = {
+    val r = Random.nextDouble()
+    val g = Random.nextDouble()
+    val b = Random.nextDouble()
+    Color(r, g, b)
+  }
+
+  def red = Color(1, 0, 0)
+
+  def yellow = Color(1, 1, 0)
+
+  def orange = Color(1, 0.5, 0)
+
+  def green = Color(0, 1, 0)
+
+  def blue = Color(0, 0, 1)
+
+  def darkBlue = Color(0.1, 0.1, 0.2)
+
+  def white = Color(0, 0, 0)
+
+  def black = Color(1, 1, 1)
+
+}
+
+
+case class Cylinder(pos: Position, color: Color) extends Shapable {
+  def toShape = {
+    val c = Color.random
+    s"""
+       |<Transform translation='${pos.x}, ${pos.y}, ${pos.z}'>
+       |   <Shape>
+       |     <Cylinder radius='0.01'/>
+       |     <Appearance>
+       |       <Material diffuseColor='${c.display}'/>
+       |     </Appearance>
+       |   </Shape>
+       |</Transform>
+       |""".stripMargin
+  }
+}
+
+case class Line(pos: Position, startColor: Color, endColor: Color) extends Shapable {
   def toShape = {
     val r = Random.nextDouble()
     val g = Random.nextDouble()
     val b = Random.nextDouble()
     s"""
-       |<Transform translation='${pos.x}, ${pos.y}, ${pos.z}'>
+       |<Transform translation='${pos.display}'>
        |   <Shape>
-       |     <Cylinder radius='0.005'/>
-       |     <Appearance>
-       |       <Material diffuseColor='$r $g $b'/>
-       |     </Appearance>
+       |   <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
+       |      <Color color='${startColor.display} ${endColor.display}'/>
+       |      <Coordinate point='0 0 0  1 0 0'/>
+       |   </IndexedLineSet>
        |   </Shape>
        |</Transform>
        |""".stripMargin
@@ -31,16 +81,20 @@ case class Cylinder(pos: Position) extends Shapable {
 
 object Main {
 
+  val backColor = Color.darkBlue
 
-  def cylCyl(xoff: Double, yoff: Double) = (0 to 180)
+  def cylCyl(xoff: Double, yoff: Double) = (0 to 500)
     .map(i => i / 36.0)
-    .map { t => Cylinder(Position(math.sin(t) + xoff, 0.0, math.cos(t) + yoff)) }
+    .map { t =>
+      val pos = Position(math.sin(t) + xoff, t * 0.1, math.cos(t) + yoff)
+      Line(pos, Color.yellow, backColor)
+    }
 
   def ranOff: Double = {
-    Random.nextInt(300) / 30.0 - 15.0
+    (Random.nextInt(300) / 300.0 - 0.5) * 10
   }
 
-  val shapables = (0 to 25)
+  val shapables = (0 to 4)
     .flatMap { _ => cylCyl(ranOff, ranOff) }
 
   val disp = shapables.map(x => x.toShape).mkString("\n")
@@ -65,7 +119,7 @@ object Main {
        |  </head>
        |  <Scene>
        |    <WorldInfo title='Cylinder.x3d'/>
-       |    <Background skyColor='0.1 0.1 0.2'/>
+       |    <Background skyColor='${backColor.display}'/>
        |    $disp
        |  </Scene>
        |</X3D>""".stripMargin
@@ -77,7 +131,7 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    val id = "003"
+    val id = "005"
 
 
     val outdir = System.getenv("OUTDIR")
