@@ -9,10 +9,10 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val backColor = X3d.Color.darkBlue
-    val id = "007"
+    val id = "008"
     val outfileName = s"gaia_$id.x3d"
     val outfile = Util.outpath.resolve(outfileName)
-    val shapables = Util.experimental02()
+    val shapables = Util.drawFadingLines(backColor)
     val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
   }
@@ -30,41 +30,44 @@ object Util {
     result
   }
 
-  def experimental01(backColor: X3d.Color): Seq[X3d.Shapable] = {
-    def ranDist(shape: (X3d.Vec) => Seq[X3d.Shapable]): Seq[X3d.Shapable] = {
+  def drawFadingLines(backColor: X3d.Color): Seq[X3d.Shapable] = {
+    
+    import X3d._
+    
+    def ranDist(shape: (Vec) => Seq[Shapable]): Seq[Shapable] = {
       (0 to 10)
         .flatMap { _ =>
-          val off = X3d.Vec(ranOff(10), ranOff(10), ranOff(10))
+          val off = Vec(ranOff(0.1), ranOff(10), ranOff(10))
           shape(off)
         }
     }
 
-    def elem(off: X3d.Vec): Seq[X3d.Shapable] = {
-      val c = X3d.Color.random
-      val f = 15 + Random.nextDouble() * 30
-      (1 to 200)
+    def lines(off: Vec): Seq[Shapable] = {
+      val c = Color.white
+      val f = 0.5
+      (1 to 20)
         .map(i => i / f)
         .map { t =>
           val scaling = (0.1 + t)
-          val pos = X3d.Vec(math.sin(t) + off.x, math.cos(t) + off.y, math.cos(t) + off.z)
-          X3d.Line(startColor = c, endColor = backColor, translation = pos, scaling = scaling)
+          val pos = Vec(off.x, math.sin(t) + off.y, math.cos(t) + off.z)
+          Line(startColor = c, endColor = backColor, translation = pos, scaling = 10)
         }
     }
 
-    ranDist(elem)
+    ranDist(lines)
   }
 
-  def experimental02(): Seq[X3d.Shapable] = {
-
+  def drawCylinderRotation(): Seq[X3d.Shapable] = {
+    
     import X3d._
 
-    def elem(color: Color, off: Vec): Seq[X3d.Shapable] = {
-      (1 to 10)
+    def cylinders(color: Color, off: Vec): Seq[X3d.Shapable] = {
+      (1 to 30)
         .map(i => i * 0.1)
         .map { t =>
           val pos = Vec(off.x + t, off.y, off.z)
-          val rot = Vec(0.3 * t, 0, 0)
-          X3d.Cylinder(translation = pos, color = color, radius = 0.03, height = 0.7, rotaion = rot)
+          val rot = Vec(0.5 * t, 0, 0)
+          X3d.Cylinder(translation = pos, color = color, radius = 0.01, height = 1.7, rotaion = rot)
         }
 
     }
@@ -76,7 +79,7 @@ object Util {
       (Color.green, Vec(0, 0, 1)),
       (Color.blue, Vec(1, 1, 1)),
     )
-    offs.flatMap { case (color, off) => elem(color, off) }
+    offs.flatMap { case (color, off) => cylinders(color, off) }
   }
 
   def writeString(outfile: Path, string: String): Unit =
@@ -123,9 +126,9 @@ object X3d {
 
     def darkBlue = Color(0.1, 0.1, 0.2)
 
-    def white = Color(0, 0, 0)
+    def black = Color(0, 0, 0)
 
-    def black = Color(1, 1, 1)
+    def white = Color(1, 1, 1)
 
   }
 
@@ -135,17 +138,20 @@ object X3d {
 
   case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
     def toShape = {
+      val fromCenter = Vec(height / 2, 0, 0)
       s"""
+         |<Transform translation='${translation.strNoComma}'>
          |<Transform rotation='1 0 0 ${rotaion.x}'>
          |<Transform rotation='0 1 0 ${rotaion.y}'>
          |<Transform rotation='0 0 1 ${rotaion.z}'>
-         |<Transform translation='${translation.strNoComma}'>
+         |<Transform translation='${fromCenter.strNoComma}'>
          |  <Shape>
          |     <Cylinder radius='$radius' height='$height'/>
          |     <Appearance>
          |       <Material diffuseColor='${color.strNoComma}'/>
          |     </Appearance>
          |   </Shape>
+         |</Transform>
          |</Transform>
          |</Transform>
          |</Transform>
