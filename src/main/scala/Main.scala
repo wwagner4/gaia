@@ -1,6 +1,5 @@
 import java.nio.file.{Files, Path}
 
-
 import scala.io._
 import scala.util.Random
 
@@ -10,10 +9,10 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val backColor = X3d.Color.darkBlue
-    val id = "006"
+    val id = "007"
     val outfileName = s"gaia_$id.x3d"
     val outfile = Util.outpath.resolve(outfileName)
-    val shapables = Util.randomDistribute01(Util.experimental01(backColor) _)
+    val shapables = Util.experimental02()
     val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
   }
@@ -31,33 +30,67 @@ object Util {
     result
   }
 
-  def experimental01(backColor: X3d.Color)(xoff: Double, yoff: Double, zoff: Double): Seq[X3d.Shapable] = {
-    val c = X3d.Color.random
-    val f = 15 + Random.nextDouble() * 30
-    (1 to 200)
-      .map(i => i / f)
-      .map { t =>
-        val scaling = (0.1 + t)
-        val pos = X3d.Vec(math.sin(t) + xoff, math.cos(t) + yoff, math.cos(t) + zoff)
-        X3d.Line(startColor = c, endColor = backColor, translation = pos, scaling = scaling)
-      }
+  def experimental01(backColor: X3d.Color): Seq[X3d.Shapable] = {
+    def ranDist(shape: (X3d.Vec) => Seq[X3d.Shapable]): Seq[X3d.Shapable] = {
+      (0 to 10)
+        .flatMap { _ =>
+          val off = X3d.Vec(ranOff(10), ranOff(10), ranOff(10))
+          shape(off)
+        }
+    }
+
+    def elem(off: X3d.Vec): Seq[X3d.Shapable] = {
+      val c = X3d.Color.random
+      val f = 15 + Random.nextDouble() * 30
+      (1 to 200)
+        .map(i => i / f)
+        .map { t =>
+          val scaling = (0.1 + t)
+          val pos = X3d.Vec(math.sin(t) + off.x, math.cos(t) + off.y, math.cos(t) + off.z)
+          X3d.Line(startColor = c, endColor = backColor, translation = pos, scaling = scaling)
+        }
+    }
+
+    ranDist(elem)
   }
 
+  def experimental02(): Seq[X3d.Shapable] = {
+    
+    import X3d._
+
+    def elem(color: Color, off: Vec): Seq[X3d.Shapable] = {
+      (1 to 10)
+        .map(i => i * 1.0)
+        .map { t =>
+          val pos = Vec(off.x + t, off.y , off.z)
+          val rot = Vec(0.1 * t, 0, 0)
+          X3d.Cylinder(translation = pos, color = color, radius = 0.1, rotaion = rot)
+        }
+
+    }
+
+    val offs = Seq(
+      (Color.orange, Vec(0, 0, 0)),
+      (Color.yellow, Vec(1, 0, 0)),
+      (Color.red, Vec(0, 1, 0)),
+      (Color.green, Vec(0, 0, 1)),
+      (Color.blue, Vec(1, 1, 1)),
+    )
+    offs.flatMap{case (color, off) => elem(color, off)}
+  }
 
   def writeString(outfile: Path, string: String): Unit =
     Files.writeString(outfile, string)
     println(s"wrote x3d to $outfile")
 
 
-  def randomDistribute01(shape: (Double, Double, Double) => Seq[X3d.Shapable]): Seq[X3d.Shapable] =
-    (0 to 10)
-      .flatMap { _ => shape(Util.ranOff(10), Util.ranOff(10), Util.ranOff(100)) }
 }
 
 object X3d {
 
   case class Vec(x: Double, y: Double, z: Double) {
-    def display = s"$x, $y, $z"
+    def strComma = s"$x, $y, $z"
+    def strNoComma = s"$x $y $z"
   }
 
   object Vec {
@@ -65,7 +98,7 @@ object X3d {
   }
 
   case class Color(r: Double, g: Double, b: Double) {
-    def display = s"$r $g $b"
+    def strNoComma = s"$r $g $b"
   }
 
   object Color {
@@ -99,16 +132,22 @@ object X3d {
     def toShape: String
   }
 
-  case class Cylinder(translation: Vec, color: Color) extends Shapable {
+  case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
     def toShape = {
       s"""
-         |<Transform translation='${translation.display}'>
-         |   <Shape>
-         |     <Cylinder radius='0.01'/>
+         |<Transform rotation='1 0 0 ${rotaion.x}'>
+         |<Transform rotation='0 1 0 ${rotaion.y}'>
+         |<Transform rotation='0 0 1 ${rotaion.z}'>
+         |<Transform translation='${translation.strNoComma}'>
+         |  <Shape>
+         |     <Cylinder radius='$radius'/>
          |     <Appearance>
-         |       <Material diffuseColor='${color.display}'/>
+         |       <Material diffuseColor='${color.strNoComma}'/>
          |     </Appearance>
          |   </Shape>
+         |</Transform>
+         |</Transform>
+         |</Transform>
          |</Transform>
          |""".stripMargin
     }
@@ -118,10 +157,10 @@ object X3d {
     def toShape = {
       s"""
          |<Transform scale='${scaling}, 1, 1'>
-         |   <Transform translation='${translation.display}'>
+         |   <Transform translation='${translation.strComma}'>
          |      <Shape>
          |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
-         |            <Color color='${startColor.display} ${endColor.display}'/>
+         |            <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
          |            <Coordinate point='0 0 0  1 0 0'/>
          |         </IndexedLineSet>
          |      </Shape>
@@ -133,7 +172,7 @@ object X3d {
 
   def createXml(shapables: Seq[Shapable], title: String, backColor: Color): String = {
 
-    val theDisp = shapables.map(_.toShape).mkString("\n")
+    val shapablesStr = shapables.map(_.toShape).mkString("\n")
     s"""<?xml version="1.0" encoding="UTF-8"?>
        |<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "https://www.web3d.org/specifications/x3d-3.3.dtd">
        |<X3D profile='Interchange' version='3.3' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-3.3.xsd'>
@@ -142,8 +181,8 @@ object X3d {
        |  </head>
        |  <Scene>
        |    <WorldInfo title='$title'/>
-       |    <Background skyColor='${backColor.display}'/>
-       |    $theDisp
+       |    <Background skyColor='${backColor.strNoComma}'/>
+       |    $shapablesStr
        |  </Scene>
        |</X3D>""".stripMargin
   }
