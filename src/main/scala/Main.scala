@@ -31,13 +31,17 @@ object Util {
     result
   }
 
-  def experimental01(backColor: X3d.Color)(xoff: Double, yoff: Double, zoff: Double): Seq[X3d.Shapable] =
-    (0 to 200)
-      .map(i => i / 50.0)
+  def experimental01(backColor: X3d.Color)(xoff: Double, yoff: Double, zoff: Double): Seq[X3d.Shapable] = {
+    val c = X3d.Color.random
+    val f = 15 + Random.nextDouble() * 30
+    (1 to 200)
+      .map(i => i / f)
       .map { t =>
-        val pos = X3d.Vec(math.sin(t) + xoff, math.cos(t) + yoff, zoff)
-        X3d.Line(pos, X3d.Color.random, backColor)
+        val scaling = (0.1 + t)
+        val pos = X3d.Vec(math.sin(t) + xoff, math.cos(t) + yoff, math.cos(t) + zoff)
+        X3d.Line(startColor = c, endColor = backColor, translation = pos, scaling = scaling)
       }
+  }
 
 
   def writeString(outfile: Path, string: String): Unit =
@@ -46,14 +50,18 @@ object Util {
 
 
   def randomDistribute01(shape: (Double, Double, Double) => Seq[X3d.Shapable]): Seq[X3d.Shapable] =
-    (0 to 4)
-      .flatMap { _ => shape(Util.ranOff(3), Util.ranOff(4), 0) }
+    (0 to 10)
+      .flatMap { _ => shape(Util.ranOff(10), Util.ranOff(10), Util.ranOff(100)) }
 }
 
 object X3d {
 
   case class Vec(x: Double, y: Double, z: Double) {
     def display = s"$x, $y, $z"
+  }
+
+  object Vec {
+    def zero = Vec(0.0, 0.0, 0.0)
   }
 
   case class Color(r: Double, g: Double, b: Double) {
@@ -106,16 +114,18 @@ object X3d {
     }
   }
 
-  case class Line(translation: Vec, startColor: Color, endColor: Color) extends Shapable {
+  case class Line(startColor: Color = Color.white, endColor: Color = Color.yellow, translation: Vec = Vec.zero, scaling: Double = 1.0) extends Shapable {
     def toShape = {
       s"""
-         |<Transform translation='${translation.display}'>
-         |   <Shape>
-         |   <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
-         |      <Color color='${startColor.display} ${endColor.display}'/>
-         |      <Coordinate point='0 0 0  1 0 0'/>
-         |   </IndexedLineSet>
-         |   </Shape>
+         |<Transform scale='${scaling}, 1, 1'>
+         |   <Transform translation='${translation.display}'>
+         |      <Shape>
+         |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
+         |            <Color color='${startColor.display} ${endColor.display}'/>
+         |            <Coordinate point='0 0 0  1 0 0'/>
+         |         </IndexedLineSet>
+         |      </Shape>
+         |   </Transform>
          |</Transform>
          |""".stripMargin
     }
