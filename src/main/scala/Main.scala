@@ -55,16 +55,16 @@ object Util {
   }
 
   def experimental02(): Seq[X3d.Shapable] = {
-    
+
     import X3d._
 
     def elem(color: Color, off: Vec): Seq[X3d.Shapable] = {
       (1 to 10)
-        .map(i => i * 1.0)
+        .map(i => i * 0.1)
         .map { t =>
-          val pos = Vec(off.x + t, off.y , off.z)
-          val rot = Vec(0.1 * t, 0, 0)
-          X3d.Cylinder(translation = pos, color = color, radius = 0.1, rotaion = rot)
+          val pos = Vec(off.x + t, off.y, off.z)
+          val rot = Vec(0.3 * t, 0, 0)
+          X3d.Cylinder(translation = pos, color = color, radius = 0.03, height = 0.7, rotaion = rot)
         }
 
     }
@@ -76,7 +76,7 @@ object Util {
       (Color.green, Vec(0, 0, 1)),
       (Color.blue, Vec(1, 1, 1)),
     )
-    offs.flatMap{case (color, off) => elem(color, off)}
+    offs.flatMap { case (color, off) => elem(color, off) }
   }
 
   def writeString(outfile: Path, string: String): Unit =
@@ -90,6 +90,7 @@ object X3d {
 
   case class Vec(x: Double, y: Double, z: Double) {
     def strComma = s"$x, $y, $z"
+
     def strNoComma = s"$x $y $z"
   }
 
@@ -132,7 +133,7 @@ object X3d {
     def toShape: String
   }
 
-  case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
+  case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
     def toShape = {
       s"""
          |<Transform rotation='1 0 0 ${rotaion.x}'>
@@ -140,7 +141,7 @@ object X3d {
          |<Transform rotation='0 0 1 ${rotaion.z}'>
          |<Transform translation='${translation.strNoComma}'>
          |  <Shape>
-         |     <Cylinder radius='$radius'/>
+         |     <Cylinder radius='$radius' height='$height'/>
          |     <Appearance>
          |       <Material diffuseColor='${color.strNoComma}'/>
          |     </Appearance>
