@@ -9,10 +9,10 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val backColor = X3d.Color.darkBlue
-    val id = "008"
+    val id = "009"
     val outfileName = s"gaia_$id.x3d"
     val outfile = Util.outpath.resolve(outfileName)
-    val shapables = Util.drawFadingLines(backColor)
+    val shapables = Util.drawLinesRotation(backColor)
     val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
   }
@@ -31,9 +31,9 @@ object Util {
   }
 
   def drawFadingLines(backColor: X3d.Color): Seq[X3d.Shapable] = {
-    
+
     import X3d._
-    
+
     def ranDist(shape: (Vec) => Seq[Shapable]): Seq[Shapable] = {
       (0 to 10)
         .flatMap { _ =>
@@ -58,7 +58,7 @@ object Util {
   }
 
   def drawCylinderRotation(): Seq[X3d.Shapable] = {
-    
+
     import X3d._
 
     def cylinders(color: Color, off: Vec): Seq[X3d.Shapable] = {
@@ -69,7 +69,6 @@ object Util {
           val rot = Vec(0.5 * t, 0, 0)
           X3d.Cylinder(translation = pos, color = color, radius = 0.01, height = 1.7, rotaion = rot)
         }
-
     }
 
     val offs = Seq(
@@ -79,7 +78,35 @@ object Util {
       (Color.green, Vec(0, 0, 1)),
       (Color.blue, Vec(1, 1, 1)),
     )
-    offs.flatMap { case (color, off) => cylinders(color, off) }
+    offs.flatMap { case (c, off) => cylinders(c, off) }
+  }
+
+  def drawLinesRotation(bgColor: X3d.Color): Seq[X3d.Shapable] = {
+
+    import X3d._
+
+    def lines(color: Color, off: Vec): Seq[X3d.Shapable] = {
+      (0 to 500)
+        .map(i => i * 0.1)
+        .map { t =>
+          val color = Color.random
+          val pos = Vec(off.x, off.y, off.z)
+          val rot = Vec(Util.ranOff(6.3), 0, Util.ranOff(6.3))
+          X3d.Line(translation = pos, rotaion = rot, startColor = Color.white, endColor = bgColor, scaling = 20.0  + Util.ranOff(2))
+        }
+
+    }
+
+    (0 to 20)
+      .map {
+        t =>
+          val c = Color.random
+          val offx = Util.ranOff(20)
+          val offy = Util.ranOff(20)
+          val offz = Util.ranOff(20)
+          (c, Vec(offx, offy, offz))
+      }
+      .flatMap { case (color, off) => lines(color, off) }
   }
 
   def writeString(outfile: Path, string: String): Unit =
@@ -136,15 +163,15 @@ object X3d {
     def toShape: String
   }
 
-  case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
+  case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0,
+                      rotaion: Vec = Vec.zero) extends Shapable {
     def toShape = {
-      val fromCenter = Vec(height / 2, 0, 0)
+      val fromCenter = height / 2.0
       s"""
          |<Transform translation='${translation.strNoComma}'>
-         |<Transform rotation='1 0 0 ${rotaion.x}'>
-         |<Transform rotation='0 1 0 ${rotaion.y}'>
-         |<Transform rotation='0 0 1 ${rotaion.z}'>
-         |<Transform translation='${fromCenter.strNoComma}'>
+         |<Transform rotation='1 0 0 ${rotaion.x}' center='0, ${fromCenter}, 0'>
+         |<Transform rotation='0 1 0 ${rotaion.y}' center='0, ${fromCenter}, 0'>
+         |<Transform rotation='0 0 1 ${rotaion.z}' center='0, ${fromCenter}, 0'>
          |  <Shape>
          |     <Cylinder radius='$radius' height='$height'/>
          |     <Appearance>
@@ -155,22 +182,28 @@ object X3d {
          |</Transform>
          |</Transform>
          |</Transform>
-         |</Transform>
          |""".stripMargin
     }
   }
 
-  case class Line(startColor: Color = Color.white, endColor: Color = Color.yellow, translation: Vec = Vec.zero, scaling: Double = 1.0) extends Shapable {
+  case class Line(startColor: Color = Color.white, endColor: Color = Color.yellow, translation: Vec = Vec.zero,
+                  scaling: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
     def toShape = {
       s"""
-         |<Transform scale='${scaling}, 1, 1'>
+         |<Transform scale='${scaling}, ${scaling}, ${scaling}'>
          |   <Transform translation='${translation.strComma}'>
+         |   <Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
+         |   <Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
+         |   <Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
          |      <Shape>
          |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
          |            <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
          |            <Coordinate point='0 0 0  1 0 0'/>
          |         </IndexedLineSet>
          |      </Shape>
+         |   </Transform>
+         |   </Transform>
+         |   </Transform>
          |   </Transform>
          |</Transform>
          |""".stripMargin
