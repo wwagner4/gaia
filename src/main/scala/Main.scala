@@ -12,7 +12,7 @@ object Main {
     val id = "010"
     val outfileName = s"gaia_$id.x3d"
     val outfile = Util.outpath.resolve(outfileName)
-    val shapables = Util.drawLinesSimple()
+    val shapables = Util.drawLinesSimpleScale()
     val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
   }
@@ -109,27 +109,56 @@ object Util {
       .flatMap { case (color, off) => lines(color, off) }
   }
 
-  def drawLinesSimple(): Seq[X3d.Shapable] = {
+  def drawLinesSimpleRot(): Seq[X3d.Shapable] = {
 
     import X3d._
 
     def lines(off: Vec): Seq[X3d.Shapable] = {
-      (0 to 50)
-        .map(i => i * 0.1)
+      (0 to 300)
+        .map(i => i * 0.01)
         .map { t =>
           val pos = Vec(off.x, off.y + t, off.z)
-          val rot = Vec(0, 0, 0)
+          val rot = Vec(0, Util.ranOff(7), 0)
           X3d.Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.orange,
-            scaling = 20.0)
+            scaling = 50.0)
         }
 
     }
 
     val offs = Seq(
+      Vec(-2, 0, 0),
+      Vec(-2, 0, 2),
+      Vec(-2, 0, 4),
+      Vec(2, 0, 0),
+      Vec(2, 0, 2),
+      Vec(2, 0, 4),
       Vec(0, 0, 0),
-      Vec(0, 0, 1),
       Vec(0, 0, 2),
+      Vec(0, 0, 4),
     )
+
+    offs.flatMap(o => lines(o))
+  }
+
+  def drawLinesSimpleScale(): Seq[X3d.Shapable] = {
+
+    import X3d._
+
+    def lines(off: Vec): Seq[X3d.Shapable] = {
+      (0 to 60)
+        .map(i => i * 0.1)
+        .map { t =>
+          val pos = Vec(off.x, off.y, off.z)
+          val rot = Vec(Util.ranOff(7), 0, Util.ranOff(7))
+          X3d.Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.darkRed,
+            scaling = 1 + t * 0.01)
+        }
+
+    }
+
+
+    val offs = (1 to 10)
+      .map(_ => Vec(Util.ranOff(3), Util.ranOff(3), Util.ranOff(3)))
 
     offs.flatMap(o => lines(o))
   }
@@ -167,6 +196,8 @@ object X3d {
     }
 
     def red = Color(1, 0, 0)
+
+    def darkRed = Color(0.5, 0, 0)
 
     def yellow = Color(1, 1, 0)
 
@@ -215,21 +246,21 @@ object X3d {
                   scaling: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
     def toShape = {
       s"""
+         |<Transform translation='${translation.strComma}'>
          |<Transform scale='${scaling}, ${scaling}, ${scaling}'>
-         |   <Transform translation='${translation.strComma}'>
-         |   <Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
-         |   <Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
-         |   <Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
+         |<Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
+         |<Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
+         |<Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
          |      <Shape>
          |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
          |            <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
          |            <Coordinate point='0 0 0  1 0 0'/>
          |         </IndexedLineSet>
          |      </Shape>
-         |   </Transform>
-         |   </Transform>
-         |   </Transform>
-         |   </Transform>
+         |</Transform>
+         |</Transform>
+         |</Transform>
+         |</Transform>
          |</Transform>
          |""".stripMargin
     }
