@@ -9,10 +9,10 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val backColor = X3d.Color.darkBlue
-    val id = "009"
+    val id = "010"
     val outfileName = s"gaia_$id.x3d"
     val outfile = Util.outpath.resolve(outfileName)
-    val shapables = Util.drawLinesRotation(backColor)
+    val shapables = Util.drawLinesSimple()
     val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
   }
@@ -92,7 +92,7 @@ object Util {
           val color = Color.random
           val pos = Vec(off.x, off.y, off.z)
           val rot = Vec(Util.ranOff(6.3), 0, Util.ranOff(6.3))
-          X3d.Line(translation = pos, rotaion = rot, startColor = Color.white, endColor = bgColor, scaling = 20.0  + Util.ranOff(2))
+          X3d.Line(translation = pos, rotaion = rot, startColor = Color.white, endColor = bgColor, scaling = 20.0 + Util.ranOff(2))
         }
 
     }
@@ -107,6 +107,31 @@ object Util {
           (c, Vec(offx, offy, offz))
       }
       .flatMap { case (color, off) => lines(color, off) }
+  }
+
+  def drawLinesSimple(): Seq[X3d.Shapable] = {
+
+    import X3d._
+
+    def lines(off: Vec): Seq[X3d.Shapable] = {
+      (0 to 50)
+        .map(i => i * 0.1)
+        .map { t =>
+          val pos = Vec(off.x, off.y + t, off.z)
+          val rot = Vec(0, 0, 0)
+          X3d.Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.orange,
+            scaling = 20.0)
+        }
+
+    }
+
+    val offs = Seq(
+      Vec(0, 0, 0),
+      Vec(0, 0, 1),
+      Vec(0, 0, 2),
+    )
+
+    offs.flatMap(o => lines(o))
   }
 
   def writeString(outfile: Path, string: String): Unit =
