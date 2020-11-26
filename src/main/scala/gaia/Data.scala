@@ -4,19 +4,18 @@ import java.net.URL
 import java.nio.file.Files
 import java.util.zip.GZIPInputStream
 
-case class FileNameMd5(
-                        md5sum: String,
-                        fname: String,
-                      )
-
-case class Star(
-                 ra: Double, // 5
-                 dec: Double, // 7
-                 parallax: Double, // 9
-               )
-
-
 object Data {
+
+  case class FileNameMd5(
+                          md5sum: String,
+                          fname: String,
+                        )
+
+  case class Star(
+                   ra: Double, // 5
+                   dec: Double, // 7
+                   parallax: Double, // 9
+                 )
 
   def readMeta(): Unit = {
     stars()
@@ -38,7 +37,9 @@ object Data {
 
   def toStar(a: Array[String]): Option[Star] = {
     try {
-      Some(Star(a(5).toDouble, a(7).toDouble, a(9).toDouble))
+      val p = a(9).toDouble
+      if (p < 0) return None 
+      Some(Star(a(5).toDouble, a(7).toDouble, p))
     } catch {
       case _: Exception => None
     }
@@ -49,7 +50,7 @@ object Data {
       .map(_.split(","))
       .flatMap(toStar)
       .zipWithIndex
-      .foreach { case (star, i) => println("%10d - %10.4f %10.4f %10.7f".format(i, star.ra, star.dec, star.parallax)) }
+      .foreach { case (star, i) => println("%10d - %.14f %.14f %.16f".format(i, star.ra, star.dec, star.parallax)) }
   }
 
   private def topLines(): Seq[String] = {
