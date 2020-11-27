@@ -1,8 +1,9 @@
 package gaia
 
+import java.io.{BufferedOutputStream, BufferedWriter, FileOutputStream, OutputStreamWriter, PrintWriter}
 import java.net.URL
 import java.nio.file.Files
-import java.util.zip.GZIPInputStream
+import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 object Data {
 
@@ -15,10 +16,35 @@ object Data {
                    ra: Double, // 5
                    dec: Double, // 7
                    parallax: Double, // 9
+                   pmra: Double, // 12
+                   pmdec: Double, // 14
+                   radialVelocity: Double // 66
                  )
 
-  def readMeta(): Unit = {
-    stars()
+  def dataTest(): Unit = {
+    writeIter(starsIter)
+  }
+
+  def writeIter(iter: Iterator[String]): Unit = {
+    val dataFile = Util.outpath.resolve("data_source_all.csv.gz")
+    val os = FileOutputStream(dataFile.toFile)
+    val go = GZIPOutputStream(os)
+    val osw = OutputStreamWriter(go)
+    val bw = BufferedWriter(osw)
+    val pw = PrintWriter(bw)
+    try {
+      iter.foreach(pw.println(_))
+      println(s"wrote to ${dataFile.toAbsolutePath}")
+    } finally {
+      pw.close()
+    }
+  }
+
+  def starsIter: Iterator[String] = {
+    allLines()
+      .map(_.split(","))
+      .flatMap(toStar)
+      .map { star => "%.14f,%.14f,%.16f,%.16f,%.16f,%.16f".format(star.ra, star.dec, star.parallax, star.pmdec, star.pmra, star.radialVelocity) }
   }
 
   def header(): Unit = {
@@ -38,19 +64,16 @@ object Data {
   def toStar(a: Array[String]): Option[Star] = {
     try {
       val p = a(9).toDouble
-      if (p < 0) return None 
-      Some(Star(a(5).toDouble, a(7).toDouble, p))
+      if (p < 0) {
+        // println("parallaxe < 0")
+        None
+      }
+      Some(Star(a(5).toDouble, a(7).toDouble, p, a(12).toDouble, a(14).toDouble, a(66).toDouble))
     } catch {
-      case _: Exception => None
+      case ex: Exception => 
+        // println(s"Exception ${ex.getMessage}")
+        None
     }
-  }
-  
-  def stars(): Unit = {
-    allLines()
-      .map(_.split(","))
-      .flatMap(toStar)
-      .zipWithIndex
-      .foreach { case (star, i) => println("%10d - %.14f %.14f %.16f".format(i, star.ra, star.dec, star.parallax)) }
   }
 
   private def topLines(): Seq[String] = {
