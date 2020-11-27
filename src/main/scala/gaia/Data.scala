@@ -26,7 +26,7 @@ object Data {
   }
 
   def writeIter(iter: Iterator[String]): Unit = {
-    val dataFile = Util.outpath.resolve("data_source_all.csv.gz")
+    val dataFile = Util.outpath(None).resolve("data_source_all.csv.gz")
     val os = FileOutputStream(dataFile.toFile)
     val go = GZIPOutputStream(os)
     val osw = OutputStreamWriter(go)
@@ -102,7 +102,6 @@ object Data {
     val is = this.getClass.getClassLoader.getResourceAsStream("MD5SUM.txt")
     scala.io.Source.fromInputStream(is)
       .getLines()
-      .take(1000)
       .map(line => line.split("\\s+"))
       .map(a => FileNameMd5(a(0).trim, a(1).trim))
       .filter(_.fname.startsWith("GaiaSource"))

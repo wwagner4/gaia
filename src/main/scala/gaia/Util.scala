@@ -6,10 +6,11 @@ import scala.util.Random
 
 object Util {
 
-  def draw(drawable: (X3d.Color) => Seq[X3d.Shapable], drawableId: String, id: Option[String] = None, backColor: X3d.Color = X3d.Color.darkBlue): Unit = {
+  def draw(drawable: (X3d.Color) => Seq[X3d.Shapable], drawableId: String, id: Option[String] = None, 
+           backColor: X3d.Color = X3d.Color.darkBlue, outPathStr: Option[String]): Unit = {
     val id1 = id.getOrElse(java.util.UUID.randomUUID().toString)
     val outfileName = s"gaia-$drawableId-$id1.x3d"
-    val outfile = Util.outpath.resolve(outfileName)
+    val outfile = Util.outpath(outPathStr).resolve(outfileName)
     val shapables = drawable(backColor)
     val xml = X3d.createXml(shapables, outfileName, backColor)
     Util.writeString(outfile, xml)
@@ -18,11 +19,16 @@ object Util {
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 
-  lazy val outpath: Path = {
-    val outdir = System.getenv("OUTDIR")
-    if (outdir == null) throw IllegalArgumentException("Environment variable OUTDIR must be defined")
-    val result = Path.of(outdir)
-    if (!Files.exists(result)) throw IllegalArgumentException(s"Directory ${result} must exist")
+  def outpath(outPathStr: Option[String]): Path = {
+
+    def defaultOutPath(): Path = {
+      val home = Path.of(System.getProperty("user.home"))
+      home.resolve(Path.of("gaia", "data", "out"))
+    }
+
+    val result = outPathStr.map(p => Path.of(p)).getOrElse(defaultOutPath())
+    if !Files.exists(result)
+      Files.createDirectories(result)
     result
   }
 
