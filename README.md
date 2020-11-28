@@ -106,6 +106,10 @@ Names of the csv file and their index
   93 - lum_percentile_upper
 ```
 
+## Fileinfos.
+There are 61234 Files on.  
+Every file contains about 10000 lines.
+
 ### Usage
 
 This is a normal sbt project, you can compile code with `sbt compile` and run it
