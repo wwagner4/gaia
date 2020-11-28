@@ -5,6 +5,7 @@ import java.net.URL
 import java.nio.file.{Files, Path}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import scala.collection.JavaConverters._
+import scala.language.implicitConversions
 
 object Data {
 
