@@ -4,6 +4,7 @@ import java.io._
 import java.net.URL
 import java.nio.file.{Files, Path}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
+import scala.collection.JavaConverters._
 
 object Data {
 
@@ -29,21 +30,47 @@ object Data {
                  )
 
   def dataTest(): Unit = {
-    downloadGrouped(600)
+    val outpath = Util.outpath(None)
+    val groupCount = 200
+    downloadGroupes(groupCount, outpath)
   }
 
-  def downloadGrouped(groupSize: Int): Unit = {
-    val nams = readFilnameMd5.toList
-    val groups: Seq[FileGroup] = nams.grouped(groupSize)
+  def downloadGroupes(groupCount: Int, outpath: Path): Unit = {
+
+    def readyIds: Seq[Int] = {
+      def toId(path: Path, groupCount: Int): Option[Int] = {
+        val fnamStr = s"""gaia.*group_(.*)_of_$groupCount.*"""
+        val fnamRegex = fnamStr.r
+        val theName = path.getFileName.toString
+        theName match {
+          case fnamRegex(id) => Some(id.toInt)
+          case _ => None
+        }
+      }
+
+      Files.list(outpath)
+        .iterator.asScala
+        .flatMap(p => toId(p, groupCount))
+        .toSeq
+    }
+
+    val rids = readyIds
+    val nams = readFilnameMd5.toSeq
+    val groupSize = (nams.size.toDouble / groupCount).ceil.toInt
+    nams
+      .grouped(groupSize)
       .zipWithIndex
       .toSeq
-      .map { case (nams, index) => FileGroup(index + 1, nams) }
-    val gsize = groups.size
-    groups.foreach { grp =>
-      val dataFile = Util.outpath(None).resolve(s"gaia_source_group_${grp.id}_of_$gsize.csv.gz")
-      //writeIter(outLineIter(nams.iterator), dataFile)
-      println(s"writing $dataFile of group $grp")
-    }
+      .map { case (gnams, index) => FileGroup(index + 1, gnams) }
+      .filter(g => !rids.contains(g.id))
+      .foreach { grp =>
+        val dataFile = outpath.resolve(s"gaia_source_group_${grp.id}_of_$groupCount.csv.gz")
+        val workFile = outpath.resolve(s"gaia_work.csv.gz")
+        println(s"writing $groupSize files to $workFile of group $grp")
+        writeIter(outLineIter(grp.fileNames.iterator, toStarFilter), workFile)
+        Files.copy(workFile, dataFile)
+        println(s"copied $workFile to $dataFile of group $grp")
+      }
 
   }
 
@@ -61,10 +88,10 @@ object Data {
     }
   }
 
-  def outLineIter(filenames: Iterator[FileNameMd5]): Iterator[String] = {
+  def outLineIter(filenames: Iterator[FileNameMd5], toStar: Array[String] => Option[Star]): Iterator[String] = {
     allLines(filenames)
       .map(_.split(","))
-      .flatMap(toStarZero)
+      .flatMap(toStar)
       .map { star => "%.14f,%.14f,%.16f,%.16f,%.16f,%.16f".format(star.ra, star.dec, star.parallax, star.pmdec, star.pmra, star.radialVelocity) }
   }
 
