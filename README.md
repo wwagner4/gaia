@@ -105,10 +105,23 @@ Names of the csv file and their index
   92 - lum_percentile_lower
   93 - lum_percentile_upper
 ```
-
+vim
 ## Fileinfos.
 There are 61234 Files on.  
 Every file contains about 10000 lines.
+
+### Docker
+```
+# build the imahe
+docker build -t gaia .
+
+# run the image 
+docker run -d --rm -v /root/gaia:/root/gaia/data/out  --name gaia gaia sbt "run dt"
+
+# see the logs
+docker run -d --rm -v /root/gaia:/root/gaia/data/out  --name gaia gaia sbt "run dt"
+```
+
 
 ### Usage
 
