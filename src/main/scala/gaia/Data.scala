@@ -8,7 +8,14 @@ import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 object Data {
-
+  
+  sealed trait DataResource
+  
+  object DataResource {
+    case class Http(url: URL) extends DataResource
+    case class File(path: Path) extends DataResource
+  }
+  
   case class FileNameMd5(
                           md5sum: String,
                           fname: String,
@@ -16,7 +23,7 @@ object Data {
 
   case class FileGroup(
                         id: Int,
-                        fileNames: Seq[FileNameMd5]
+                        fileNames: Seq[DataResource]
                       ) {
     override def toString: String = s"FileGroup(id:$id fileNames:${fileNames.size})"
   }
@@ -33,10 +40,10 @@ object Data {
   def dataTest(): Unit = {
     val outpath = Util.outpath(None)
     val groupCount = 200
-    downloadGroupes(groupCount, outpath)
+    downloadGrouped(groupCount, outpath)
   }
 
-  def downloadGroupes(groupCount: Int, outpath: Path): Unit = {
+  def downloadGrouped(groupCount: Int, outpath: Path): Unit = {
 
     def readyIds: Seq[Int] = {
       def toId(path: Path, groupCount: Int): Option[Int] = {
@@ -56,7 +63,12 @@ object Data {
     }
 
     val rids = readyIds
-    val nams = readFilnameMd5.toSeq
+    val nams = readFilnameMd5
+      // .take(210)
+      .map{fn =>
+        val urlStr = s"http://cdn.gea.esac.esa.int/Gaia/gdr2/gaia_source/csv/${fn.fname}"
+        DataResource.Http(URL(urlStr))}
+      .toSeq
     val groupSize = (nams.size.toDouble / groupCount).ceil.toInt
     nams
       .grouped(groupSize)
@@ -89,7 +101,7 @@ object Data {
     }
   }
 
-  def outLineIter(filenames: Iterator[FileNameMd5], toStar: Array[String] => Option[Star]): Iterator[String] = {
+  def outLineIter(filenames: Iterator[DataResource], toStar: Array[String] => Option[Star]): Iterator[String] = {
     allLines(filenames)
       .map(_.split(","))
       .flatMap(toStar)
@@ -99,7 +111,7 @@ object Data {
   def header(): Unit = {
     val fn = "GaiaSource_1000172165251650944_1000424567594791808.csv.gz"
     val urlStr = s"http://cdn.gea.esac.esa.int/Gaia/gdr2/gaia_source/csv/$fn"
-    println(urlStr)
+    println(s"downloading from $urlStr")
     val header = scala.io.Source.fromInputStream(GZIPInputStream(URL(urlStr).openStream()))
       .getLines()
       .take(1)
@@ -147,23 +159,27 @@ object Data {
   private def topLines(): Seq[String] = {
     val fn = "GaiaSource_1000172165251650944_1000424567594791808.csv.gz"
     val urlStr = s"http://cdn.gea.esac.esa.int/Gaia/gdr2/gaia_source/csv/$fn"
-    println(urlStr)
+    println(s"downloading from $urlStr")
     scala.io.Source.fromInputStream(GZIPInputStream(URL(urlStr).openStream()))
       .getLines()
       .filter(!_.startsWith("solu"))
       .toSeq
   }
 
-  def allLines(filenames: Iterator[FileNameMd5]): Iterator[String] = {
+  def allLines(filenames: Iterator[DataResource]): Iterator[String] = {
     filenames.flatMap(lines(_))
   }
 
-  def lines(fn: FileNameMd5): Iterator[String] = {
-    val urlStr = s"http://cdn.gea.esac.esa.int/Gaia/gdr2/gaia_source/csv/${fn.fname}"
-    println(urlStr)
-    scala.io.Source.fromInputStream(GZIPInputStream(URL(urlStr).openStream()))
-      .getLines()
-      .filter(!_.startsWith("solu"))
+  def lines(fn: DataResource): Iterator[String] = {
+    fn match {
+      case DataResource.Http(url) =>     
+        // val urlStr = s"http://cdn.gea.esac.esa.int/Gaia/gdr2/gaia_source/csv/${fn.fname}"
+        println(s"downloading from $url")
+        scala.io.Source.fromInputStream(GZIPInputStream(url.openStream()))
+          .getLines()
+          .filter(!_.startsWith("solu"))
+      case DataResource.File(path) => ???
+    }
   }
 
   def readFilnameMd5: Iterator[FileNameMd5] = {
