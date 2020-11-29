@@ -56,17 +56,48 @@ object Data {
   ).toMap
 
   def dataTest(): Unit = {
-    quickDownloadBasic
+    readBasic
   }
-  
+
   // Quickstart configurations
-  def quickDownloadBasic: Unit = downloadGrouped(downloadConfigs("BASIC"), Util.outpath(None))
+  def quickDownloadBasic: Unit = downloadGrouped(downloadConfigs("BASIC"), Util.outpath)
+
   def quickHeader: Unit = header()
 
+  def readBasic: Unit = {
+
+    def extractId(filePath: Path): Option[(Int, Path)] = {
+      val fnamRegex = """.*gaia.*group_(.*)_of.*""".r
+      filePath.toString match {
+        case fnamRegex(id) => Some((id.toInt, filePath))
+        case _ => None
+      }
+    }
+
+    val basicPath = Util.datapath.resolve("basic")
+    require(Files.exists(basicPath))
+
+    val len = Files.list(basicPath)
+      .iterator
+      .asScala
+      .toSeq
+      .flatMap(extractId)
+      .sortBy { case (nr, path) => nr }
+      .map { case (_, path) => path }
+      .map(DataResource.File(_))
+      .iterator
+      .flatMap(readLines)
+      .map(_.split(","))
+      .map(toStarBasic)
+      .size
+    
+    print(s"basic number of stars is ${len}")
+  }
+
   def downloadGrouped(downladConfig: DownloadConfig, outpath: Path): Unit = {
-    
+
     val groupCount = downladConfig.groupCount
-    
+
     def readyIds: Seq[Int] = {
       def toId(path: Path): Option[Int] = {
         val fnamStr = downladConfig.regex(groupCount)
@@ -113,11 +144,11 @@ object Data {
       }
 
   }
-  
+
   def fromStar(star: Star): String = {
     "%.14f,%.14f,%.16f,%.16f,%.16f,%.16f".format(
       star.ra, star.dec, star.parallax, star.pmdec, star.pmra, star.radialVelocity)
-  }  
+  }
 
   def readLines(data: DataResource): Iterator[String] = {
     data match {
@@ -127,7 +158,9 @@ object Data {
         scala.io.Source.fromInputStream(GZIPInputStream(url.openStream()))
           .getLines()
           .filter(!_.startsWith("solu"))
-      case DataResource.File(path) => ???
+      case DataResource.File(path) =>
+        scala.io.Source.fromInputStream(GZIPInputStream(FileInputStream(path.toFile)))
+          .getLines()
     }
   }
 
@@ -174,8 +207,12 @@ object Data {
     }
   }
 
+  def toStarBasic(a: Array[String]): Star = {
+      Star(a(0).toDouble, a(1).toDouble, a(2).toDouble, a(3).toDouble, a(4).toDouble, a(5).toDouble)
+  }
+
   def toStarZero(a: Array[String]): Option[Star] = {
-    
+
     val zeroStar = Star(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
     try {

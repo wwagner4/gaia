@@ -39,14 +39,14 @@ object Main {
     if (args.length == 1) {
       findCall(args(0)).map { c =>
         c.drawingType match
-          case DrawingType.DRAWING(dr) => Util.draw(dr, c.id, backColor = bgColor, outPathStr = None)
+          case DrawingType.DRAWING(dr) => Util.draw(dr, c.id, backColor = bgColor)
           case DrawingType.CALLABLE(ca) => ca()
       }.getOrElse(usage())
     }
     else if (args.length == 2) {
       findCall(args(0)).map { c =>
         c.drawingType match
-          case DrawingType.DRAWING(dr) => Util.draw(dr, c.id, id = Some(args(1)), backColor = bgColor, outPathStr = None)
+          case DrawingType.DRAWING(dr) => Util.draw(dr, c.id, id = Some(args(1)), backColor = bgColor)
           case DrawingType.CALLABLE(ca) => ca()
       }.getOrElse(usage())
     } else
