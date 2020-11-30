@@ -56,7 +56,7 @@ object Data {
   ).toMap
 
   def dataTest(): Unit = {
-    readBasic
+    quickBasicTop
   }
 
   // Quickstart configurations
@@ -64,7 +64,14 @@ object Data {
 
   def quickHeader: Unit = header()
 
-  def readBasic: Unit = {
+  def quickBasicSize: Unit = {
+    val size = readBasic.size
+    println(s"Size of basic is $size")
+  }
+
+  def quickBasicTop: Unit = readBasic.take(20).foreach(println(_))
+
+  def readBasic: Iterator[Star] = {
 
     def extractId(filePath: Path): Option[(Int, Path)] = {
       val fnamRegex = """.*gaia.*group_(.*)_of.*""".r
@@ -77,7 +84,7 @@ object Data {
     val basicPath = Util.datapath.resolve("basic")
     require(Files.exists(basicPath))
 
-    val len = Files.list(basicPath)
+    Files.list(basicPath)
       .iterator
       .asScala
       .toSeq
@@ -89,9 +96,6 @@ object Data {
       .flatMap(readLines)
       .map(_.split(","))
       .map(toStarBasic)
-      .size
-    
-    print(s"basic number of stars is ${len}")
   }
 
   def downloadGrouped(downladConfig: DownloadConfig, outpath: Path): Unit = {

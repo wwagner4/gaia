@@ -12,6 +12,7 @@ object Drawing1 {
       Files.createDirectories(imagePath)
     println(s"Image directory $imagePath exists")
     
+    
   }
 
 }
