@@ -31,7 +31,7 @@ object Main {
     GaiaDrawing("lsr", "lines simple rotating", DrawingType.DRAWING(Drawings.drawLinesSimpleRot)),
     GaiaDrawing("lss", "lines simple scale", DrawingType.DRAWING(Drawings.drawLinesSimpleScale)),
     GaiaDrawing("dt", "data test", DrawingType.CALLABLE(Data.dataTest)),
-    GaiaDrawing("i1", "image 1", DrawingType.CALLABLE(Drawing1.draw)),
+    GaiaDrawing("i1", "image 1", DrawingType.CALLABLE(Image1.draw)),
   )
 
   def main(args: Array[String]): Unit = {
