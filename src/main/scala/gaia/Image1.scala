@@ -14,7 +14,7 @@ histo: -60 -- 310. cnt / range / width. 20 / 370.0 / 18.5
 questions / TODOs :
 - how many parallaxes are negative ?
   71149 of 7183262 parallaxes are negative. This is 0.99 %
-- how to calculate distance
+- Distance is from 0.003287105433020794 to 2121788.010098382 kpc (kiloparsec)
 - what mean the meaned distance compared to the size of the milkiway and 
   relative to the location of the solarsystem in the milkiway?
 - move these informations to readme.
@@ -28,16 +28,20 @@ object Image1 {
 
     var ncnt = 0
     var cnt = 0
-    Data
+    val maxDist = Data
       .readBasic.map(s => s.parallax)
-      .foreach{p => 
-        cnt += 1
-        if (p <= 0) ncnt += 1         
-      }
-      val rel = "%.2f".format(100.0 * ncnt / cnt)
-      print(s"$ncnt of $cnt parallaxes are negative. This is $rel %")
+      .filter(_ > 0.0)
+      .map(1.0 / _)
+      .max
+    val minDist = Data
+      .readBasic.map(s => s.parallax)
+      .filter(_ > 0.0)
+      .map(1.0 / _)
+      .min
+
+      print(s"Distance is from $minDist to $maxDist kpc (kiloparsec)")
     
-    
+         
 
   }
   
