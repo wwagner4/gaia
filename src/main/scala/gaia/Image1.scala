@@ -13,26 +13,34 @@ histo: -60 -- 310. cnt / range / width. 20 / 370.0 / 18.5
 
 questions / TODOs :
 - how many parallaxes are negative ?
-- what means a negative parallaxe ?
+  71149 of 7183262 parallaxes are negative. This is 0.99 %
 - how to calculate distance
 - what mean the meaned distance compared to the size of the milkiway and 
   relative to the location of the solarsystem in the milkiway?
 - move these informations to readme.
  */
 
-class Counter(val id: Int) {
-  var cnt: Int = 0
-}
-
 object Image1 {
 
   def draw(): Unit = {
-
+    
     println("Drawing image 1")
 
+    var ncnt = 0
+    var cnt = 0
+    Data
+      .readBasic.map(s => s.parallax)
+      .foreach{p => 
+        cnt += 1
+        if (p <= 0) ncnt += 1         
+      }
+      val rel = "%.2f".format(100.0 * ncnt / cnt)
+      print(s"$ncnt of $cnt parallaxes are negative. This is $rel %")
+    
+    
 
   }
-
+  
   def prepare: Unit = {
     val imagePath = Util.datapath.resolve("image1")
     if !Files.exists(imagePath)
