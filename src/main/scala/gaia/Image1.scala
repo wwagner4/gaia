@@ -1,6 +1,10 @@
 package gaia
 
-import java.nio.file.Files
+import java.io._
+import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.{Files, Path}
+import java.util.Base64
+
 
 /*
 Dataanalyse basic
@@ -14,59 +18,81 @@ histo: -60 -- 310. cnt / range / width. 20 / 370.0 / 18.5
 questions / TODOs :
 - how many parallaxes are negative ?
   71149 of 7183262 parallaxes are negative. This is 0.99 %
-- Distance is from 0.003287105433020794 to 2121788.010098382 kpc (kiloparsec)
+- Distance is from 0.003_28710 to 2_121_788.01009 kpc (kiloparsec)
+- Diameter of the milkiway 30 kpc
+- Distance of the sun from the galactic center 8.6 kpc
+- How many starts are further away than 30 kpc ? 
+- From 7112113 stars 37598 (0.53 %) are further away than 30 kpc
 - what mean the meaned distance compared to the size of the milkiway and 
   relative to the location of the solarsystem in the milkiway?
 - move these informations to readme.
  */
 
+
 object Image1 {
 
   def draw(): Unit = {
-    
     println("Drawing image 1")
 
-    var ncnt = 0
-    var cnt = 0
-    val maxDist = Data
-      .readBasic.map(s => s.parallax)
-      .filter(_ > 0.0)
-      .map(1.0 / _)
-      .max
-    val minDist = Data
-      .readBasic.map(s => s.parallax)
-      .filter(_ > 0.0)
-      .map(1.0 / _)
-      .min
+    val stars = starsCached
 
-      print(s"Distance is from $minDist to $maxDist kpc (kiloparsec)")
-    
-         
 
+    stars.foreach(println(_))
   }
-  
-  def prepare: Unit = {
+
+  private def starsCached = {
+    val starsFile = workDir.resolve("stars_01.ser")
+    println(f"stars file: $starsFile")
+
+    if (Files.exists(starsFile)) {
+      dser(starsFile, classOf[Seq[Data.Star]])
+    }
+    else {
+      val stars = Data.readBasic
+        .filter(_.parallax > 0.0)
+        .map(s => (1.0 / s.parallax, s))
+        .filter(s => s._1 > 8 && s._1 < 8.01)
+        .map(_._2)
+        .toSeq
+      ser(stars, starsFile)
+      stars
+    }
+  }
+
+  def workDir: Path = {
     val imagePath = Util.datapath.resolve("image1")
     if !Files.exists(imagePath)
       Files.createDirectories(imagePath)
-    println(s"Image directory $imagePath exists")
+    imagePath
   }
 
-  def range: Unit = {
-    val size = 3_000_000
-    val dat = Data.readBasic.map(s => s.parallax).toSeq
-    val max = dat.max
-    val min = dat.min
-    println(s"min/max for $size. $min / $max")
-  }
-
-
-  def findHistoBorders: Unit = {
-    val cnts = 8 to 30
-    for (cnt <- cnts) {
-      val rng = 310.0 + 60
-      val width = rng / cnt
-      println(s"cnt / range / width. $cnt / $rng / $width")
+  def ser(value: Any, path: Path): Unit = {
+    def serialise(value: Any): String = {
+      val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
+      val oos = new ObjectOutputStream(stream)
+      oos.writeObject(value)
+      oos.close
+      new String(
+        Base64.getEncoder().encode(stream.toByteArray),
+        UTF_8
+      )
     }
+    val str = serialise(value)
+    Files.writeString(path, str)
   }
+
+  def dser[T](path: Path, clazz: Class[T]): T = {
+    def deserialise(str: String): Any = {
+      val bytes = Base64.getDecoder().decode(str.getBytes(UTF_8))
+      val ois = new ObjectInputStream(new ByteArrayInputStream(bytes))
+      val value = ois.readObject
+      ois.close
+      value
+    }
+    deserialise(Files.readString(path)).asInstanceOf[T]
+  }
+
+
+
+
 }
