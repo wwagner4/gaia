@@ -33,19 +33,43 @@ object Image1 {
 
   def draw(): Unit = {
     println("Drawing image 1")
+    val starsFile = workDir.resolve("stars_01.ser")
+    
+    starsCached(starsFile).foreach(println(_))
 
-    val stars = starsCached
-
-
-    stars.foreach(println(_))
   }
 
-  private def starsCached = {
-    val starsFile = workDir.resolve("stars_01.ser")
+  private def starsCached(starsFile: Path) = {
     println(f"stars file: $starsFile")
 
+    def ser(value: Any): Unit = {
+      def serialise(value: Any): String = {
+        val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
+        val oos = new ObjectOutputStream(stream)
+        oos.writeObject(value)
+        oos.close
+        new String(
+          Base64.getEncoder().encode(stream.toByteArray),
+          UTF_8
+        )
+      }
+      val str = serialise(value)
+      Files.writeString(starsFile, str)
+    }
+
+    def dser[T](clazz: Class[T]): T = {
+      def deserialise(str: String): Any = {
+        val bytes = Base64.getDecoder().decode(str.getBytes(UTF_8))
+        val ois = new ObjectInputStream(new ByteArrayInputStream(bytes))
+        val value = ois.readObject
+        ois.close
+        value
+      }
+      deserialise(Files.readString(starsFile)).asInstanceOf[T]
+    }
+
     if (Files.exists(starsFile)) {
-      dser(starsFile, classOf[Seq[Data.Star]])
+      dser(classOf[Seq[Data.Star]])
     }
     else {
       val stars = Data.readBasic
@@ -54,44 +78,17 @@ object Image1 {
         .filter(s => s._1 > 8 && s._1 < 8.01)
         .map(_._2)
         .toSeq
-      ser(stars, starsFile)
+      ser(stars)
       stars
     }
   }
 
-  def workDir: Path = {
+  private def workDir: Path = {
     val imagePath = Util.datapath.resolve("image1")
     if !Files.exists(imagePath)
       Files.createDirectories(imagePath)
     imagePath
   }
-
-  def ser(value: Any, path: Path): Unit = {
-    def serialise(value: Any): String = {
-      val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
-      val oos = new ObjectOutputStream(stream)
-      oos.writeObject(value)
-      oos.close
-      new String(
-        Base64.getEncoder().encode(stream.toByteArray),
-        UTF_8
-      )
-    }
-    val str = serialise(value)
-    Files.writeString(path, str)
-  }
-
-  def dser[T](path: Path, clazz: Class[T]): T = {
-    def deserialise(str: String): Any = {
-      val bytes = Base64.getDecoder().decode(str.getBytes(UTF_8))
-      val ois = new ObjectInputStream(new ByteArrayInputStream(bytes))
-      val value = ois.readObject
-      ois.close
-      value
-    }
-    deserialise(Files.readString(path)).asInstanceOf[T]
-  }
-
 
 
 
