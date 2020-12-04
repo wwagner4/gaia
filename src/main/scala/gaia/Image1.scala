@@ -33,12 +33,17 @@ questions / TODOs :
 
 object Image1 {
 
+  import X3d._
+
   def draw(): Unit = {
     println("Drawing image 1")
-
+    def draw(color: Color): Seq[Shapable] = {
+      Seq(Shapable.Cylinder(translation = Vec(0, 0, 0), color = Color.white))
   }
-  
-  def quickShowStars(): Unit ={
+    Util.draw(draw, "t1", id = Some("t1"), backColor = Color.blue)
+  }
+
+  def quickShowStars(): Unit = {
     val starsFile = workDir.resolve("stars_01.ser")
     starsCached(starsFile).foreach(println(_))
   }
@@ -57,6 +62,7 @@ object Image1 {
           UTF_8
         )
       }
+
       val str = serialise(value)
       Files.writeString(starsFile, str)
     }
@@ -69,6 +75,7 @@ object Image1 {
         ois.close
         value
       }
+
       deserialise(Files.readString(starsFile)).asInstanceOf[T]
     }
 
@@ -93,7 +100,6 @@ object Image1 {
       Files.createDirectories(imagePath)
     imagePath
   }
-
 
 
 }
