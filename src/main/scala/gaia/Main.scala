@@ -2,7 +2,7 @@ package gaia
 
 import java.nio.file.{Files, Path}
 
-import gaia.X3d.{Color, Line, Shapable, Vec}
+import gaia.X3d.{Color, Shapable, Vec}
 
 import scala.io._
 import scala.util.Random

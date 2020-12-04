@@ -51,51 +51,55 @@ object X3d {
     def toShape: String
   }
 
-  case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0,
-                      rotaion: Vec = Vec.zero) extends Shapable {
-    def toShape = {
-      val fromCenter = height / 2.0
-      s"""
-         |<Transform translation='${translation.strNoComma}'>
-         |<Transform rotation='1 0 0 ${rotaion.x}' center='0, ${fromCenter}, 0'>
-         |<Transform rotation='0 1 0 ${rotaion.y}' center='0, ${fromCenter}, 0'>
-         |<Transform rotation='0 0 1 ${rotaion.z}' center='0, ${fromCenter}, 0'>
-         |  <Shape>
-         |     <Cylinder radius='$radius' height='$height'/>
-         |     <Appearance>
-         |       <Material diffuseColor='${color.strNoComma}'/>
-         |     </Appearance>
-         |   </Shape>
-         |</Transform>
-         |</Transform>
-         |</Transform>
-         |</Transform>
-         |""".stripMargin
-    }
-  }
+  object Shapable {
 
-  case class Line(startColor: Color = Color.white, endColor: Color = Color.yellow, translation: Vec = Vec.zero,
-                  scaling: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
-    def toShape = {
-      s"""
-         |<Transform translation='${translation.strComma}'>
-         |<Transform scale='${scaling}, ${scaling}, ${scaling}'>
-         |<Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
-         |<Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
-         |<Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
-         |      <Shape>
-         |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
-         |            <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
-         |            <Coordinate point='0 0 0  1 0 0'/>
-         |         </IndexedLineSet>
-         |      </Shape>
-         |</Transform>
-         |</Transform>
-         |</Transform>
-         |</Transform>
-         |</Transform>
-         |""".stripMargin
+    case class Cylinder(translation: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0,
+                        rotaion: Vec = Vec.zero) extends Shapable {
+      def toShape = {
+        val fromCenter = height / 2.0
+        s"""
+           |<Transform translation='${translation.strNoComma}'>
+           |<Transform rotation='1 0 0 ${rotaion.x}' center='0, ${fromCenter}, 0'>
+           |<Transform rotation='0 1 0 ${rotaion.y}' center='0, ${fromCenter}, 0'>
+           |<Transform rotation='0 0 1 ${rotaion.z}' center='0, ${fromCenter}, 0'>
+           |  <Shape>
+           |     <Cylinder radius='$radius' height='$height'/>
+           |     <Appearance>
+           |       <Material diffuseColor='${color.strNoComma}'/>
+           |     </Appearance>
+           |   </Shape>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |""".stripMargin
+      }
     }
+
+    case class Line(startColor: Color = Color.white, endColor: Color = Color.yellow, translation: Vec = Vec.zero,
+                    scaling: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
+      def toShape = {
+        s"""
+           |<Transform translation='${translation.strComma}'>
+           |<Transform scale='${scaling}, ${scaling}, ${scaling}'>
+           |<Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
+           |<Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
+           |<Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
+           |      <Shape>
+           |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
+           |            <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
+           |            <Coordinate point='0 0 0  1 0 0'/>
+           |         </IndexedLineSet>
+           |      </Shape>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |""".stripMargin
+      }
+    }
+
   }
 
   def createXml(shapables: Seq[Shapable], title: String, backColor: Color): String = {

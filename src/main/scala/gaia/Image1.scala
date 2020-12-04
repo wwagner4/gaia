@@ -1,5 +1,7 @@
 package gaia
 
+import gaia.Data.Star
+
 import java.io._
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
@@ -33,13 +35,15 @@ object Image1 {
 
   def draw(): Unit = {
     println("Drawing image 1")
-    val starsFile = workDir.resolve("stars_01.ser")
-    
-    starsCached(starsFile).foreach(println(_))
 
   }
+  
+  def quickShowStars(): Unit ={
+    val starsFile = workDir.resolve("stars_01.ser")
+    starsCached(starsFile).foreach(println(_))
+  }
 
-  private def starsCached(starsFile: Path) = {
+  private def starsCached(starsFile: Path): Seq[Star] = {
     println(f"stars file: $starsFile")
 
     def ser(value: Any): Unit = {

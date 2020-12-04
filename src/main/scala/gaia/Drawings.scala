@@ -22,7 +22,7 @@ object Drawings {
         .map { t =>
           val scaling = (0.1 + t)
           val pos = Vec(off.x, math.sin(t) + off.y, math.cos(t) + off.z)
-          Line(startColor = c, endColor = backColor, translation = pos, scaling = 10)
+          Shapable.Line(startColor = c, endColor = backColor, translation = pos, scaling = 10)
         }
     }
 
@@ -38,7 +38,7 @@ object Drawings {
         .map { t =>
           val pos = Vec(off.x + t, off.y, off.z)
           val rot = Vec(0.5 * t, 0, 0)
-          Cylinder(translation = pos, color = color, radius = 0.01, height = 1.7, rotaion = rot)
+          Shapable.Cylinder(translation = pos, color = color, radius = 0.01, height = 1.7, rotaion = rot)
         }
     }
 
@@ -61,7 +61,7 @@ object Drawings {
           val color = Color.random
           val pos = Vec(off.x, off.y, off.z)
           val rot = Vec(Util.ranOff(6.3), 0, Util.ranOff(6.3))
-          Line(translation = pos, rotaion = rot, startColor = Color.white, endColor = bgColor, scaling = 20.0 + Util.ranOff(2))
+          Shapable.Line(translation = pos, rotaion = rot, startColor = Color.white, endColor = bgColor, scaling = 20.0 + Util.ranOff(2))
         }
 
     }
@@ -86,7 +86,7 @@ object Drawings {
         .map { t =>
           val pos = Vec(off.x, off.y + t, off.z)
           val rot = Vec(0, Util.ranOff(7), 0)
-          Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.orange,
+          Shapable.Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.orange,
             scaling = 50.0)
         }
 
@@ -115,7 +115,7 @@ object Drawings {
         .map { t =>
           val pos = Vec(off.x, off.y, off.z)
           val rot = Vec(Util.ranOff(7), 0, Util.ranOff(7))
-          Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.darkRed,
+          Shapable.Line(translation = pos, rotaion = rot, startColor = Color.yellow, endColor = Color.darkRed,
             scaling = 1 + t * 0.01)
         }
 
