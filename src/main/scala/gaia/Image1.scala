@@ -37,10 +37,13 @@ object Image1 {
 
   def draw(): Unit = {
     println("Drawing image 1")
+
     def draw(color: Color): Seq[Shapable] = {
-      Seq(Shapable.Cylinder(translation = Vec(0, 0, 0), color = Color.white))
-  }
-    Util.draw(draw, "t1", id = Some("t1"), backColor = Color.blue)
+      Seq(Shapable.Cylinder(translation = Vec(0, 0, 0), color = Color.red))
+    }
+
+    val imgFile = workDir.resolve("Image1.x3d")
+    Util.drawTo(imgFile, draw, backColor = Color.black)
   }
 
   def quickShowStars(): Unit = {

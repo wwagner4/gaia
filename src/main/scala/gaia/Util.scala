@@ -6,16 +6,11 @@ import scala.util.Random
 
 object Util {
 
-  def draw(drawable: (X3d.Color) => Seq[X3d.Shapable], drawableId: String, id: Option[String] = None, 
-           backColor: X3d.Color = X3d.Color.darkBlue): Unit = {
-    val id1 = id.getOrElse(java.util.UUID.randomUUID().toString)
-    val outfileName = s"gaia-$drawableId-$id1.x3d"
-    val outfile = Util.outpath.resolve(outfileName)
+  def drawTo(outfile: Path, drawable: X3d.Color => Seq[X3d.Shapable], backColor: X3d.Color) = {
     val shapables = drawable(backColor)
-    val xml = X3d.createXml(shapables, outfileName, backColor)
+    val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
     Util.writeString(outfile, xml)
   }
-
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 
