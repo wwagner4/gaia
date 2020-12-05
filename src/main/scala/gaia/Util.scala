@@ -1,8 +1,10 @@
 package gaia
 
+import java.io.PrintWriter
 import java.nio.file.{Files, Path}
-
 import scala.util.Random
+import scala.collection.JavaConverters._
+import scala.language.implicitConversions
 
 object Util {
 
@@ -34,5 +36,25 @@ object Util {
     println(s"wrote x3d to $outfile")
 
 
+  def toCsv[T](datas: Iterable[T], f: T => Iterable[String], filePath: Path): Unit = {
+    val bw = Files.newBufferedWriter(filePath)
+    val pw = PrintWriter(bw)
+    try {
+      for (data <- datas) {
+        val  line = f(data).mkString(",")
+        pw.println(line)
+      }
+    } finally {
+      bw.close
+    }
+  }
+  def fromCsv[T](f: Array[String] => T, filePath: Path): Iterable[T] = {
+    val br = Files.newBufferedReader(filePath)
+    try {
+      br.lines().iterator.asScala.map(line => f(line.split(","))).to(Iterable)
+    } finally {
+      br.close()
+    }
+  }
 }
 

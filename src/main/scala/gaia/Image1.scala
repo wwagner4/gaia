@@ -99,36 +99,16 @@ object Image1 {
   private def starsCached(starsFile: Path, filterStar: Star => Option[Star], reload: Boolean): Seq[Star] = {
     println(f"stars file: $starsFile")
 
-    def ser(value: Any): Unit = {
-      def serialise(value: Any): String = {
-        val stream: ByteArrayOutputStream = new ByteArrayOutputStream()
-        val oos = new ObjectOutputStream(stream)
-        oos.writeObject(value)
-        oos.close
-        new String(
-          Base64.getEncoder().encode(stream.toByteArray),
-          UTF_8
-        )
-      }
-
-      val str = serialise(value)
-      Files.writeString(starsFile, str)
+    def fromCsv(): Seq[Star] = {
+      ???
     }
 
-    def dser[T](clazz: Class[T]): T = {
-      def deserialise(str: String): Any = {
-        val bytes = Base64.getDecoder().decode(str.getBytes(UTF_8))
-        val ois = new ObjectInputStream(new ByteArrayInputStream(bytes))
-        val value = ois.readObject
-        ois.close
-        value
-      }
-
-      deserialise(Files.readString(starsFile)).asInstanceOf[T]
+    def toCsv(starts: Seq[Star]): Unit = {
+     ??? 
     }
 
     if (!reload && Files.exists(starsFile)) {
-      val stars = dser(classOf[Seq[Data.Star]])
+      val stars = fromCsv()
       println(s"filtered (cached) basic to ${stars.size} stars")
       stars
     }
@@ -136,7 +116,7 @@ object Image1 {
       val stars = Data.readBasic
         .flatMap(filterStar)
         .toSeq
-      ser(stars)
+      toCsv(stars)
       println(s"filtered basic to ${stars.size} stars")
       stars
     }
