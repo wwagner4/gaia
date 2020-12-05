@@ -44,10 +44,10 @@ object Image1 {
 
   def quickDraw01(): Unit = {
     println(s"drawing image1 quickDraw01")
-    
+
     val id = "01"
     val boxSize = 0.05
-    val starsFile = workDir.resolve(s"stars_${id}.ser")
+    val starsFile = workDir.resolve(s"stars_${id}.csv")
 
     def draw(bgColor: Color): Seq[Shapable] = {
       def filterBasic(star: Star): Option[Star] = {
@@ -59,7 +59,7 @@ object Image1 {
 
       val stars = starsCached(starsFile, filterBasic, reload = false)
         .map(toVec)
-        .map(v => Shapable.Box(translation = v, color = Color.orange, size = Vec(boxSize, boxSize, boxSize), solid = false))
+        .map(v => Shapable.Box(translation = v, color = Color.green, size = Vec(boxSize, boxSize, boxSize), solid = false))
       stars ++ drawCoordinates(7, bgColor)
     }
 
@@ -91,7 +91,7 @@ object Image1 {
     val dist = 1 / star.parallax
     val r = math.Pi / 180
     val x = math.cos(star.ra * r) * math.cos(star.dec * r) * dist
-    val y = math.sin(star.ra * r) * math.cos(star.dec * r) *dist
+    val y = math.sin(star.ra * r) * math.cos(star.dec * r) * dist
     val z = math.sin(star.dec * r) * dist
     Vec(x, y, z)
   }
@@ -100,11 +100,34 @@ object Image1 {
     println(f"stars file: $starsFile")
 
     def fromCsv(): Seq[Star] = {
-      ???
+      def convert(a: Array[String]): Star = {
+        Star(
+          ra = a(0).toDouble,
+          dec = a(1).toDouble,
+          parallax = a(2).toDouble,
+          pmra = a(3).toDouble,
+          pmdec = a(4).toDouble,
+          radialVelocity = a(5).toDouble,
+        )
+      }
+
+      Util.fromCsv(convert, starsFile).toSeq
     }
 
     def toCsv(starts: Seq[Star]): Unit = {
-     ??? 
+
+      def convert(s: Star): Iterable[String] = {
+        Seq(
+          s.ra.toString,
+          s.dec.toString,
+          s.parallax.toString,
+          s.pmra.toString,
+          s.pmdec.toString,
+          s.radialVelocity.toString,
+        )
+      }
+
+      Util.toCsv(starts, convert, starsFile)
     }
 
     if (!reload && Files.exists(starsFile)) {
@@ -121,7 +144,7 @@ object Image1 {
       stars
     }
   }
-  
+
   private def workDir: Path = {
     val imagePath = Util.datapath.resolve("image1")
     if !Files.exists(imagePath)
