@@ -43,24 +43,24 @@ object Image1 {
   }
 
   def quickDraw01(): Unit = {
+    println(s"drawing image1 quickDraw01")
     
     val id = "01"
-    println(s"drawing image1 $id")
-    
+    val boxSize = 0.05
+    val starsFile = workDir.resolve(s"stars_${id}.ser")
+
     def draw(bgColor: Color): Seq[Shapable] = {
       def filterBasic(star: Star): Option[Star] = {
         if (star.parallax <= 0) return None
         val dist = 1.0 / star.parallax
-        if (dist < 7 || dist > 7.01) return None
+        if (dist < 7 || dist > 7.02) return None
         return Some(star)
       }
 
-      val starsFile = workDir.resolve(s"stars_${id}.ser")
-
       val stars = starsCached(starsFile, filterBasic, reload = false)
         .map(toVec)
-        .map(v => Shapable.Cylinder(translation = v, radius = 0.1, height = 0.1, color = Color.red))
-      stars ++ drawCoordinates(10, bgColor)
+        .map(v => Shapable.Box(translation = v, color = Color.orange, size = Vec(boxSize, boxSize, boxSize), solid = false))
+      stars ++ drawCoordinates(7, bgColor)
     }
 
     val imgFile = workDir.resolve(s"image_$id.x3d")

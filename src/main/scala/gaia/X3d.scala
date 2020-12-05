@@ -8,10 +8,10 @@ object X3d {
     def strComma = s"$x, $y, $z"
 
     def strNoComma = s"$x $y $z"
-    
+
     def mul(factor: Double): Vec = Vec(x * factor, y * factor, z * factor)
 
-   }
+  }
 
   object Vec {
     def zero = Vec(0.0, 0.0, 0.0)
@@ -67,6 +67,28 @@ object X3d {
            |<Transform rotation='0 0 1 ${rotaion.z}' center='0, ${fromCenter}, 0'>
            |  <Shape>
            |     <Cylinder radius='$radius' height='$height'/>
+           |     <Appearance>
+           |       <Material diffuseColor='${color.strNoComma}'/>
+           |     </Appearance>
+           |   </Shape>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |""".stripMargin
+      }
+    }
+
+    case class Box(translation: Vec, rotaion: Vec = Vec.zero, color: Color = Color.orange, size: Vec = Vec(1, 1, 1), 
+                   solid: Boolean = true) extends Shapable {
+      def toShape = {
+        s"""
+           |<Transform translation='${translation.strNoComma}'>
+           |<Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
+           |<Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
+           |<Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
+           |  <Shape>
+           |     <Box size='${size.strNoComma}' solid='$solid'/>
            |     <Appearance>
            |       <Material diffuseColor='${color.strNoComma}'/>
            |     </Appearance>
