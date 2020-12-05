@@ -1,6 +1,9 @@
 package gaia
 
+import com.sun.imageio.plugins.common.BogusColorSpace
 import gaia.Data.Star
+import gaia.X3d.Shapable
+import gaia.X3d.Shapable.Line1
 
 import java.io._
 import java.nio.charset.StandardCharsets.UTF_8
@@ -37,13 +40,42 @@ object Image1 {
 
   def draw(): Unit = {
     println("Drawing image 1")
+    quickDrawSomething()
+  }
 
-    def draw(color: Color): Seq[Shapable] = {
-      Seq(Shapable.Cylinder(translation = Vec(0, 0, 0), color = Color.red))
+  def quickDrawSomething(): Unit = {
+    def draw(bgColor: Color): Seq[Shapable] = {
+      Seq(
+        Shapable.Cylinder(translation = Vec(1, 0, 0), radius = 0.1, height = 0.1, color = Color.red),
+        Shapable.Cylinder(translation = Vec(-1, 0, 0), radius = 0.1, height = 0.1, color = Color.red),
+        Shapable.Cylinder(translation = Vec(0, 1, 0), radius = 0.1, height = 0.1, color = Color.orange),
+        Shapable.Cylinder(translation = Vec(0, -1, 0), radius = 0.1, height = 0.1, color = Color.orange),
+        Shapable.Cylinder(translation = Vec(0, 0, -1), radius = 0.1, height = 0.1, color = Color.yellow),
+        Shapable.Cylinder(translation = Vec(0, 0, 1), radius = 0.1, height = 0.1, color = Color.yellow),
+      )
+      ++ drawCoordinates(1, bgColor)
     }
 
     val imgFile = workDir.resolve("Image1.x3d")
     Util.drawTo(imgFile, draw, backColor = Color.black)
+
+  }
+
+  def drawCoordinates(len: Double, bgColor: Color): Seq[Shapable] = {
+    def ends = Seq(
+      (Vec(1, 0, 0), Vec(-1, 0, 0), Color.red),
+      (Vec(0, 1, 0), Vec(0, -1, 0), Color.orange),
+      (Vec(0, 0, 1), Vec(0, 0, -1), Color.yellow),
+    )
+
+    def coord(e1: Vec, e2: Vec, color: Color): Seq[Line1] = {
+      Seq(
+        Shapable.Line1(end = e1.mul(len), startColor = color, endColor = bgColor),
+        Shapable.Line1(end = e2.mul(len), startColor = color, endColor = bgColor),
+      )
+    }
+
+    ends.flatMap {coord}
   }
 
   def quickShowStars(): Unit = {

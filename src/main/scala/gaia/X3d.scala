@@ -8,7 +8,10 @@ object X3d {
     def strComma = s"$x, $y, $z"
 
     def strNoComma = s"$x $y $z"
-  }
+    
+    def mul(factor: Double): Vec = Vec(x * factor, y * factor, z * factor)
+
+   }
 
   object Vec {
     def zero = Vec(0.0, 0.0, 0.0)
@@ -96,6 +99,20 @@ object X3d {
            |</Transform>
            |</Transform>
            |</Transform>
+           |""".stripMargin
+      }
+    }
+
+    case class Line1(start: Vec = Vec.zero, end: Vec = Vec(1, 0, 0), startColor: Color = Color.white,
+                     endColor: Color = Color.yellow) extends Shapable {
+      def toShape = {
+        s"""
+           |<Shape>
+           |<IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
+           |  <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
+           |  <Coordinate point='${start.strNoComma}  ${end.strNoComma}'/>
+           |</IndexedLineSet>
+           |</Shape>
            |""".stripMargin
       }
     }
