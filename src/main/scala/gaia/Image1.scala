@@ -39,24 +39,31 @@ object Image1 {
   import X3d._
 
   def draw(): Unit = {
-    println("Drawing image 1")
-    quickDrawSomething()
+    quickDraw01()
   }
 
-  def quickDrawSomething(): Unit = {
+  def quickDraw01(): Unit = {
+    
+    val id = "01"
+    println(s"drawing image1 $id")
+    
     def draw(bgColor: Color): Seq[Shapable] = {
-      Seq(
-        Shapable.Cylinder(translation = Vec(1, 0, 0), radius = 0.1, height = 0.1, color = Color.red),
-        Shapable.Cylinder(translation = Vec(-1, 0, 0), radius = 0.1, height = 0.1, color = Color.red),
-        Shapable.Cylinder(translation = Vec(0, 1, 0), radius = 0.1, height = 0.1, color = Color.orange),
-        Shapable.Cylinder(translation = Vec(0, -1, 0), radius = 0.1, height = 0.1, color = Color.orange),
-        Shapable.Cylinder(translation = Vec(0, 0, -1), radius = 0.1, height = 0.1, color = Color.yellow),
-        Shapable.Cylinder(translation = Vec(0, 0, 1), radius = 0.1, height = 0.1, color = Color.yellow),
-      )
-      ++ drawCoordinates(1, bgColor)
+      def filterBasic(star: Star): Option[Star] = {
+        if (star.parallax <= 0) return None
+        val dist = 1.0 / star.parallax
+        if (dist < 7 || dist > 7.01) return None
+        return Some(star)
+      }
+
+      val starsFile = workDir.resolve(s"stars_${id}.ser")
+
+      val stars = starsCached(starsFile, filterBasic, reload = false)
+        .map(toVec)
+        .map(v => Shapable.Cylinder(translation = v, radius = 0.1, height = 0.1, color = Color.red))
+      stars ++ drawCoordinates(10, bgColor)
     }
 
-    val imgFile = workDir.resolve("Image1.x3d")
+    val imgFile = workDir.resolve(s"image_$id.x3d")
     Util.drawTo(imgFile, draw, backColor = Color.black)
 
   }
@@ -75,15 +82,21 @@ object Image1 {
       )
     }
 
-    ends.flatMap {coord}
+    ends.flatMap {
+      coord
+    }
   }
 
-  def quickShowStars(): Unit = {
-    val starsFile = workDir.resolve("stars_01.ser")
-    starsCached(starsFile).foreach(println(_))
+  def toVec(star: Star): Vec = {
+    val dist = 1 / star.parallax
+    val r = math.Pi / 180
+    val x = math.cos(star.ra * r) * math.cos(star.dec * r) * dist
+    val y = math.sin(star.ra * r) * math.cos(star.dec * r) *dist
+    val z = math.sin(star.dec * r) * dist
+    Vec(x, y, z)
   }
 
-  private def starsCached(starsFile: Path): Seq[Star] = {
+  private def starsCached(starsFile: Path, filterStar: Star => Option[Star], reload: Boolean): Seq[Star] = {
     println(f"stars file: $starsFile")
 
     def ser(value: Any): Unit = {
@@ -114,21 +127,21 @@ object Image1 {
       deserialise(Files.readString(starsFile)).asInstanceOf[T]
     }
 
-    if (Files.exists(starsFile)) {
-      dser(classOf[Seq[Data.Star]])
+    if (!reload && Files.exists(starsFile)) {
+      val stars = dser(classOf[Seq[Data.Star]])
+      println(s"filtered (cached) basic to ${stars.size} stars")
+      stars
     }
     else {
       val stars = Data.readBasic
-        .filter(_.parallax > 0.0)
-        .map(s => (1.0 / s.parallax, s))
-        .filter(s => s._1 > 8 && s._1 < 8.01)
-        .map(_._2)
+        .flatMap(filterStar)
         .toSeq
       ser(stars)
+      println(s"filtered basic to ${stars.size} stars")
       stars
     }
   }
-
+  
   private def workDir: Path = {
     val imagePath = Util.datapath.resolve("image1")
     if !Files.exists(imagePath)
