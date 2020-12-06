@@ -1,5 +1,7 @@
 package gaia
 
+import gaia.Data.Star
+
 import scala.util.Random
 
 object X3d {
@@ -10,6 +12,8 @@ object X3d {
     def strNoComma = s"$x $y $z"
 
     def mul(factor: Double): Vec = Vec(x * factor, y * factor, z * factor)
+
+    def add(other: Vec): Vec = Vec(x + other.x, y + other.y, z + other.z)
 
   }
 
@@ -48,6 +52,11 @@ object X3d {
 
     def white = Color(1, 1, 1)
 
+    def gray(brightness: Double): Color = {
+      val b = math.max(math.min(1.0, brightness), 0.0)
+      Color(b, b, b)
+    }
+
   }
 
   trait Shapable {
@@ -79,7 +88,7 @@ object X3d {
       }
     }
 
-    case class Box(translation: Vec, rotaion: Vec = Vec.zero, color: Color = Color.orange, size: Vec = Vec(1, 1, 1), 
+    case class Box(translation: Vec, rotaion: Vec = Vec.zero, color: Color = Color.orange, size: Vec = Vec(1, 1, 1),
                    solid: Boolean = true) extends Shapable {
       def toShape = {
         s"""
@@ -101,32 +110,24 @@ object X3d {
       }
     }
 
-    case class Line(startColor: Color = Color.white, endColor: Color = Color.yellow, translation: Vec = Vec.zero,
-                    scaling: Double = 1.0, rotaion: Vec = Vec.zero) extends Shapable {
+    case class Sphere(translation: Vec, color: Color = Color.orange, radius: Double = 1.0,
+                      solid: Boolean = true) extends Shapable {
       def toShape = {
         s"""
-           |<Transform translation='${translation.strComma}'>
-           |<Transform scale='${scaling}, ${scaling}, ${scaling}'>
-           |<Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
-           |<Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
-           |<Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
-           |      <Shape>
-           |         <IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
-           |            <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
-           |            <Coordinate point='0 0 0  1 0 0'/>
-           |         </IndexedLineSet>
-           |      </Shape>
-           |</Transform>
-           |</Transform>
-           |</Transform>
-           |</Transform>
+           |<Transform translation='${translation.strNoComma}'>
+           |  <Shape>
+           |     <Sphere radius='${radius}' solid='$solid'/>
+           |     <Appearance>
+           |       <Material diffuseColor='${color.strNoComma}'/>
+           |     </Appearance>
+           |   </Shape>
            |</Transform>
            |""".stripMargin
       }
     }
 
-    case class Line1(start: Vec = Vec.zero, end: Vec = Vec(1, 0, 0), startColor: Color = Color.white,
-                     endColor: Color = Color.yellow) extends Shapable {
+    case class Line(start: Vec = Vec.zero, end: Vec = Vec(1, 0, 0), startColor: Color = Color.white,
+                    endColor: Color = Color.yellow) extends Shapable {
       def toShape = {
         s"""
            |<Shape>

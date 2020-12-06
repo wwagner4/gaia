@@ -55,7 +55,8 @@ object Data {
     )),
   ).toMap
 
-  def dataTest(): Unit = {
+  def dataTest(id: String): Unit = {
+    println(s"running $id")
     quickBasicTop
   }
 

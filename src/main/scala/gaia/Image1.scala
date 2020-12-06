@@ -3,7 +3,7 @@ package gaia
 import com.sun.imageio.plugins.common.BogusColorSpace
 import gaia.Data.Star
 import gaia.X3d.Shapable
-import gaia.X3d.Shapable.Line1
+import gaia.X3d.Shapable.Line
 
 import java.io._
 import java.nio.charset.StandardCharsets.UTF_8
@@ -38,16 +38,11 @@ object Image1 {
 
   import X3d._
 
-  def draw(): Unit = {
-    quickDraw01()
-  }
+  def shell7kpc(id: String): Unit = {
 
-  def quickDraw01(): Unit = {
-    println(s"drawing image1 quickDraw01")
-
-    val id = "01"
-    val boxSize = 0.05
-    val starsFile = workDir.resolve(s"stars_${id}.csv")
+    val shapeSize = 0.03
+    val cacheFile = workDir.resolve(s"cache_${id}.csv")
+    val imgFile = workDir.resolve(s"image1_$id.x3d")
 
     def draw(bgColor: Color): Seq[Shapable] = {
       def filterBasic(star: Star): Option[Star] = {
@@ -57,28 +52,31 @@ object Image1 {
         return Some(star)
       }
 
-      val stars = starsCached(starsFile, filterBasic, reload = false)
+      val galacicCenter = toVec(266.25, -28.94, 8)
+      val stars = starsFiltered(cacheFile, filterBasic)
         .map(toVec)
-        .map(v => Shapable.Box(translation = v, color = Color.green, size = Vec(boxSize, boxSize, boxSize), solid = false))
-      stars ++ drawCoordinates(7, bgColor)
+        .map(v => Shapable.Sphere(translation = v, color = Color.gray(0.5), radius = shapeSize, solid = false))
+      stars 
+      ++ drawCoordinates(2, bgColor) 
+      ++ drawCoordinates(2, bgColor, offset=galacicCenter)
     }
 
-    val imgFile = workDir.resolve(s"image_$id.x3d")
     Util.drawTo(imgFile, draw, backColor = Color.black)
+    println(s"Created image for $id at $imgFile")
 
   }
 
-  def drawCoordinates(len: Double, bgColor: Color): Seq[Shapable] = {
+  def drawCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     def ends = Seq(
-      (Vec(1, 0, 0), Vec(-1, 0, 0), Color.red),
-      (Vec(0, 1, 0), Vec(0, -1, 0), Color.orange),
-      (Vec(0, 0, 1), Vec(0, 0, -1), Color.yellow),
+      (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), Color.gray(0.3)),
+      (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), Color.gray(0.3)),
+      (Vec(0, 0, 1).mul(len).add(offset), Vec(0, 0, -1).mul(len).add(offset), Color.gray(0.3)),
     )
 
-    def coord(e1: Vec, e2: Vec, color: Color): Seq[Line1] = {
+    def coord(e1: Vec, e2: Vec, color: Color): Seq[Line] = {
       Seq(
-        Shapable.Line1(end = e1.mul(len), startColor = color, endColor = bgColor),
-        Shapable.Line1(end = e2.mul(len), startColor = color, endColor = bgColor),
+        Shapable.Line(start = offset, end = e1, startColor = color, endColor = bgColor),
+        Shapable.Line(start = offset, end = e2, startColor = color, endColor = bgColor),
       )
     }
 
@@ -89,15 +87,20 @@ object Image1 {
 
   def toVec(star: Star): Vec = {
     val dist = 1 / star.parallax
+    val ra = star.ra
+    val dec = star.dec
+    toVec(ra, dec, dist)
+  }
+
+  def toVec(ra: Double, dec: Double, dist: Double) = {
     val r = math.Pi / 180
-    val x = math.cos(star.ra * r) * math.cos(star.dec * r) * dist
-    val y = math.sin(star.ra * r) * math.cos(star.dec * r) * dist
-    val z = math.sin(star.dec * r) * dist
+    val x = math.cos(ra * r) * math.cos(dec * r) * dist
+    val y = math.sin(ra * r) * math.cos(dec * r) * dist
+    val z = math.sin(dec * r) * dist
     Vec(x, y, z)
   }
 
-  private def starsCached(starsFile: Path, filterStar: Star => Option[Star], reload: Boolean): Seq[Star] = {
-    println(f"stars file: $starsFile")
+  private def starsFiltered(cache: Path, filterStar: Star => Option[Star]): Seq[Star] = {
 
     def fromCsv(): Seq[Star] = {
       def convert(a: Array[String]): Star = {
@@ -111,7 +114,7 @@ object Image1 {
         )
       }
 
-      Util.fromCsv(convert, starsFile).toSeq
+      Util.fromCsv(convert, cache).toSeq
     }
 
     def toCsv(starts: Seq[Star]): Unit = {
@@ -127,15 +130,16 @@ object Image1 {
         )
       }
 
-      Util.toCsv(starts, convert, starsFile)
+      Util.toCsv(starts, convert, cache)
     }
 
-    if (!reload && Files.exists(starsFile)) {
+    if (Files.exists(cache)) {
       val stars = fromCsv()
       println(s"filtered (cached) basic to ${stars.size} stars")
       stars
     }
     else {
+      println(s"creating data from base and store in $cache")
       val stars = Data.readBasic
         .flatMap(filterStar)
         .toSeq
