@@ -5,72 +5,154 @@ import gaia.Data.Star
 import gaia.X3d.Shapable
 import gaia.X3d.Shapable.Line
 
-import java.io._
 import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Path._
 import java.nio.file.{Files, Path}
 import java.util.Base64
-
-
-/*
-Dataanalyse basic
-ra: 0 - 360
-dec: -90 +90
-parallaxe: -51.55414944640443 / 304.21902198647064
-
-explore parallaxe
-histo: -60 -- 310. cnt / range / width. 20 / 370.0 / 18.5
-
-questions / TODOs :
-- how many parallaxes are negative ?
-  71149 of 7183262 parallaxes are negative. This is 0.99 %
-- Distance is from 0.003_28710 to 2_121_788.01009 kpc (kiloparsec)
-- Diameter of the milkiway 30 kpc
-- Distance of the sun from the galactic center 8.6 kpc
-- How many starts are further away than 30 kpc ? 
-- From 7112113 stars 37598 (0.53 %) are further away than 30 kpc
-- what mean the meaned distance compared to the size of the milkiway and 
-  relative to the location of the solarsystem in the milkiway?
-- move these informations to readme.
- */
+import scala.util.Random
 
 
 object Image1 {
 
   import X3d._
 
-  def shell7kpc(id: String): Unit = {
-
-    val shapeSize = 0.03
-    val cacheFile = workDir.resolve(s"cache_${id}.csv")
-    val imgFile = workDir.resolve(s"image1_$id.x3d")
-
-    def draw(bgColor: Color): Seq[Shapable] = {
-      def filterBasic(star: Star): Option[Star] = {
-        if (star.parallax <= 0) return None
-        val dist = 1.0 / star.parallax
-        if (dist < 7 || dist > 7.02) return None
-        return Some(star)
-      }
-
-      val galacicCenter = toVec(266.25, -28.94, 8)
-      val stars = starsFiltered(cacheFile, filterBasic)
-        .map(toVec)
-        .map(v => Shapable.Sphere(translation = v, color = Color.gray(0.5), radius = shapeSize, solid = false))
-      stars 
-      ++ drawCoordinates(2, bgColor) 
-      ++ drawCoordinates(2, bgColor, offset=galacicCenter)
-    }
-
-    Util.drawTo(imgFile, draw, backColor = Color.black)
-    println(s"Created image for $id at $imgFile")
-
+  enum OutLocation {
+    case Work, Models
   }
 
-  def drawCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
+  case class ShellDef(
+                       shellId: String,
+                       startDist: Double,
+                       endDist: Double,
+                       starProb: Double,
+                       starsToShapable: (stars: Iterable[Star]) => Iterable[Shapable],
+                       transform: Star => Star = identity,
+                     )
+
+  def oneShellSpheres(id: String): Unit = {
+    val starsToShapable = shapabelsStarsToSperes(0.02, Color.gray(1.0))(_)
+    val min = 7.0
+    val max = 9.0
+    val starProb = 0.1
+    val bgc = Color.darkBlue
+    oneShell(id, bgc, min, max, starProb, starsToShapable, OutLocation.Work)
+  }
+
+  def oneShellPoints(id: String): Unit = {
+    val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
+    val min = 7.0
+    val max = 9.0
+    val starProb = 1.0
+    val bgc = Color.darkBlue
+    oneShell(id, bgc, min, max, starProb, starsToShapable, OutLocation.Work)
+  }
+
+  def shellsSphere(id: String): Unit = {
+
+    val shapeSize = 0.02
+    val shells = Seq(
+      ShellDef("05", 5.0, 5.2, 200 / 1000.0, shapabelsStarsToSperes(0.04, Color.darkRed)(_)),
+      ShellDef("08", 8.0, 8.2, 800 / 1000.0, shapabelsStarsToSperes(0.06, Color.orange)(_)),
+      ShellDef("11", 11.0, 11.2, 1000 / 1000.0, shapabelsStarsToSperes(0.08, Color.yellow)(_)),
+    )
+    val bgColor = Color.darkBlue
+
+    multiShells(id, shells, bgColor)
+  }
+
+  def shellsPoints(id: String): Unit = {
+
+    def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
+
+    val shapeSize = 0.02
+    val shells = Seq(
+      ShellDef("a", 5.0, 6.0, 400 / 1000.0, shapabelsStarsToPoints(Color.yellow)(_), equalDist(5.5)_),
+      ShellDef("b", 8.0, 9.0, 700 / 1000.0, shapabelsStarsToPoints(Color.orange)(_), equalDist(8)_),
+      ShellDef("c", 11.0, 12.0, 1000 / 1000.0, shapabelsStarsToPoints(Color.darkRed)(_), equalDist(10.5)_),
+    )
+    val bgColor = Color.darkBlue
+
+    multiShells(id, shells, bgColor)
+  }
+
+  private def oneShell(id: String, bgColor: Color, min: Double, max: Double, starProb: Double,
+                       starsToShapable: Iterable[Star] => Iterable[Shapable], outLocation: OutLocation) = {
+    def draw(bgColor: Color): Seq[Shapable] = {
+
+      val stars = filteredStars
+        .filter(filterShell(min, max, starProb)(_))
+      println(s"using ${stars.size} stars for image1 $id")
+      val galacicCenter = Util.toVec(266.25, -28.94, 8)
+      starsToShapable(stars).toSeq
+      ++ shapablesCoordinates(2, bgColor)
+      ++ shapablesCoordinates(4, bgColor, offset = galacicCenter)
+    }
+
+    val fnam = s"image1_$id.x3d"
+    val imgFile = filePath(outLocation, fnam)
+    X3d.drawTo(imgFile, draw, backColor = bgColor)
+    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
+  }
+
+
+  private def multiShells(id: String, shells: Seq[ShellDef], bgColor: Color) = {
+    def draw(bgColor: Color): Seq[Shapable] = {
+      val shapes = shells
+        .flatMap { shellDef =>
+          val stars = filteredStars
+            .filter(filterShell(shellDef.startDist, shellDef.endDist, shellDef.starProb)(_))
+            .map(shellDef.transform)
+          println(s"Using ${stars.size} stars in shell ${shellDef.shellId}")
+          shellDef.starsToShapable(stars)
+        }
+      val galacicCenter = Util.toVec(266.25, -28.94, 8)
+      shapes
+      ++ shapablesCoordinates(5, bgColor)
+      ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
+    }
+
+    val imgFile = image1Dir.resolve(s"image1_$id.x3d")
+    X3d.drawTo(imgFile, draw, backColor = bgColor)
+    println(s"Created image for $id at $imgFile")
+  }
+
+  private def filteredStars: Seq[Star] = {
+
+    def filterBasic(star: Star): Boolean = {
+      if (star.parallax <= 0) return false
+      if (Random.nextDouble() >= 0.2) return false
+      true
+    }
+
+    val cacheFile = image1Dir.resolve(s"cache_image1.csv")
+    starsFilteredAndCached(cacheFile, filterBasic)
+  }
+
+  private def filterShell(min: Double, max: Double, prob: Double)(star: Star): Boolean = {
+    if (star.parallax <= 0) return false
+    val dist = 1.0 / star.parallax
+    if (dist < min || dist > max) return false
+    if (Random.nextDouble() > prob) return false
+    return true
+  }
+
+  private def shapabelsStarsToSperes(radius: Double, color: Color)(stars: Iterable[Star]): Iterable[Shapable] = {
+    stars
+      .map(toVec)
+      .map(v => Shapable.Sphere(translation = v, color = color, radius = radius, solid = false))
+  }
+
+  private def shapabelsStarsToPoints(color: Color)(stars: Iterable[Star]): Iterable[Shapable] = {
+    val vecs = stars.map(toVec)
+    Seq(Shapable.PointSet(positions = vecs, color = color))
+  }
+
+
+  private def shapablesCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     def ends = Seq(
-      (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), Color.gray(0.3)),
-      (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), Color.gray(0.3)),
-      (Vec(0, 0, 1).mul(len).add(offset), Vec(0, 0, -1).mul(len).add(offset), Color.gray(0.3)),
+      (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), Color.gray(0.9)),
+      (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), Color.gray(0.9)),
+      (Vec(0, 0, 1).mul(len).add(offset), Vec(0, 0, -1).mul(len).add(offset), Color.gray(0.9)),
     )
 
     def coord(e1: Vec, e2: Vec, color: Color): Seq[Line] = {
@@ -85,22 +167,22 @@ object Image1 {
     }
   }
 
-  def toVec(star: Star): Vec = {
+  private def filePath(outLocation: OutLocation, fileName: String) = {
+    val imgFile = outLocation match {
+      case OutLocation.Work => image1Dir.resolve(fileName)
+      case OutLocation.Models => of("src", "main", "html", "models", fileName)
+    }
+    imgFile
+  }
+
+  private def toVec(star: Star): Vec = {
     val dist = 1 / star.parallax
     val ra = star.ra
     val dec = star.dec
-    toVec(ra, dec, dist)
+    Util.toVec(ra, dec, dist)
   }
 
-  def toVec(ra: Double, dec: Double, dist: Double) = {
-    val r = math.Pi / 180
-    val x = math.cos(ra * r) * math.cos(dec * r) * dist
-    val y = math.sin(ra * r) * math.cos(dec * r) * dist
-    val z = math.sin(dec * r) * dist
-    Vec(x, y, z)
-  }
-
-  private def starsFiltered(cache: Path, filterStar: Star => Option[Star]): Seq[Star] = {
+  private def starsFilteredAndCached(cache: Path, filterStar: Star => Boolean): Seq[Star] = {
 
     def fromCsv(): Seq[Star] = {
       def convert(a: Array[String]): Star = {
@@ -141,7 +223,7 @@ object Image1 {
     else {
       println(s"creating data from base and store in $cache")
       val stars = Data.readBasic
-        .flatMap(filterStar)
+        .filter(filterStar)
         .toSeq
       toCsv(stars)
       println(s"filtered basic to ${stars.size} stars")
@@ -149,12 +231,10 @@ object Image1 {
     }
   }
 
-  private def workDir: Path = {
+  lazy val image1Dir: Path = {
     val imagePath = Util.datapath.resolve("image1")
     if !Files.exists(imagePath)
       Files.createDirectories(imagePath)
     imagePath
   }
-
-
 }

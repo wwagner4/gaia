@@ -57,10 +57,62 @@ object Data {
 
   def dataTest(id: String): Unit = {
     println(s"running $id")
-    quickBasicTop
+  }
+
+  private def quickStarsPerShell = {
+    val shells = Seq(
+      (" 1 kpc", 1.0, 1.1),
+      (" 2 kpc", 2.0, 2.1),
+      (" 3 kpc", 3.0, 3.1),
+      (" 4 kpc", 4.0, 4.1),
+      (" 5 kpc", 5.0, 5.1),
+      (" 6 kpc", 6.0, 6.1),
+      (" 7 kpc", 7.0, 7.1),
+      (" 8 kpc", 8.0, 8.1),
+      (" 9 kpc", 9.0, 9.1),
+      ("10 kpc", 10.0, 10.1),
+      ("11 kpc", 11.0, 11.1),
+      ("12 kpc", 12.0, 12.1),
+      ("13 kpc", 13.0, 13.1),
+      ("14 kpc", 14.0, 14.1),
+    )
+
+    def filterBasic(star: Star)(min: Double, max: Double): Option[Star] = {
+      if (star.parallax <= 0) return None
+      val dist = 1.0 / star.parallax
+      if (dist < min || dist > max) return None
+      return Some(star)
+    }
+
+    for ((id, min, max) <- shells) yield {
+      val cnt = readBasic.flatMap(filterBasic(_)(min, max)).size
+      println(s"$id - $cnt stars")
+    }
   }
 
   // Quickstart configurations
+  def quickNegativeParallax = {
+    var cntAll = 0
+    var cntNegPar = 0
+    var min = Double.MaxValue
+    var max = Double.MinValue
+    readBasic.foreach(s => {
+      if (s.parallax <= 0) {
+        cntNegPar += 1
+        if (s.parallax < min) min = s.parallax
+        if (s.parallax > max) max = s.parallax
+      }
+      cntAll += 1
+    })
+    val minDist = -1 / max
+    val maxDist = -1 / min
+    val perc = 100.0 * cntNegPar / cntAll
+    println("=== negative parallax ===")
+    println(f" $cntNegPar of $cntAll are negative parallaxes. $perc%.2f.")
+    println(f" min parallax:  $min%20.2f            max parallax: $max%20.2f")
+    println(f" max dist:      $minDist%20.3f kpc    min dist:     $maxDist%.3f kpc")
+  }
+
   def quickDownloadBasic: Unit = downloadGrouped(downloadConfigs("BASIC"), Util.outpath)
 
   def quickHeader: Unit = header()
@@ -213,7 +265,7 @@ object Data {
   }
 
   def toStarBasic(a: Array[String]): Star = {
-      Star(a(0).toDouble, a(1).toDouble, a(2).toDouble, a(3).toDouble, a(4).toDouble, a(5).toDouble)
+    Star(a(0).toDouble, a(1).toDouble, a(2).toDouble, a(3).toDouble, a(4).toDouble, a(5).toDouble)
   }
 
   def toStarZero(a: Array[String]): Option[Star] = {

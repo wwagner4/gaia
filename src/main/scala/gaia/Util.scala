@@ -8,12 +8,6 @@ import scala.language.implicitConversions
 
 object Util {
 
-  def drawTo(outfile: Path, drawable: X3d.Color => Seq[X3d.Shapable], backColor: X3d.Color) = {
-    val shapables = drawable(backColor)
-    val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
-    Util.writeString(outfile, xml)
-  }
-
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 
   def datapath: Path = {
@@ -33,7 +27,6 @@ object Util {
 
   def writeString(outfile: Path, string: String): Unit =
     Files.writeString(outfile, string)
-    println(s"wrote x3d to $outfile")
 
 
   def toCsv[T](datas: Iterable[T], f: T => Iterable[String], filePath: Path): Unit = {
@@ -56,5 +49,15 @@ object Util {
       br.close()
     }
   }
+
+  def toVec(ra: Double, dec: Double, dist: Double): X3d.Vec = {
+    val r = math.Pi / 180
+    val x = math.cos(ra * r) * math.cos(dec * r) * dist
+    val y = math.sin(ra * r) * math.cos(dec * r) * dist
+    val z = math.sin(dec * r) * dist
+    X3d.Vec(x, y, z)
+  }
+
+
 }
 

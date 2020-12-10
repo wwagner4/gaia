@@ -1,4 +1,4 @@
-## Visualisation for the data of the gaia space observatory
+# Visualisation for the data of the gaia space observatory
 
 The project ties to find some visualisation for the data retrieved by the 
 gaia [space observatory](https://en.wikipedia.org/wiki/Gaia_(spacecraft))
@@ -7,6 +7,36 @@ Sources of data and data descriptions
 * [All data can be found here](https://www.cosmos.esa.int/web/gaia/data)
 * [Most important data is described here](https://gea.esac.esa.int/archive/documentation/GDR2/Gaia_archive/chap_datamodel/sec_dm_main_tables/ssec_dm_gaia_source.html)
 * [Source csv files can be found here](http://cdn.gea.esac.esa.int/Gaia/gdr2/gaia_source/csv/)
+
+## Gaia
+
+* ra: 0, 360
+* dec: -90 +90
+* parallax: -51 + 304 Why negative ?
+
+* Distance ranges from 0.0032 to 2100000 kpc
+* 1149 of 7183262 parallaxes are negative. This is 0.99 %
+* Diameter of our galaxy 30 kpc
+* Distance of the sun from the galactic center 8.6 kpc
+* From 7112113 stars 37598 (0.53 %) are further away than 30 kpc 
+
+```
+Stars in shell of thikness 0.1kpc:
+1 kpc - 167836 stars
+2 kpc - 124447 stars
+3 kpc - 76738 stars
+4 kpc - 37556 stars
+5 kpc - 21477 stars
+6 kpc - 13602 stars
+7 kpc - 9373 stars
+8 kpc - 6573 stars
+9 kpc - 4690 stars
+10 kpc - 3588 stars
+11 kpc - 2625 stars
+12 kpc - 2116 stars
+13 kpc - 1630 stars
+14 kpc - 1371 stars
+```
 
 Names of the csv file and their index
 ```

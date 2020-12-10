@@ -2,6 +2,7 @@ package gaia
 
 import gaia.Data.Star
 
+import java.nio.file.Path
 import scala.util.Random
 
 object X3d {
@@ -20,6 +21,14 @@ object X3d {
   object Vec {
     def zero = Vec(0.0, 0.0, 0.0)
   }
+
+  case class Vec2(x: Double, y: Double) {
+
+    def strComma = s"$x, $y"
+
+    def strNoComma = s"$x $y"
+  }
+
 
   case class Color(r: Double, g: Double, b: Double) {
     def strNoComma = s"$r $g $b"
@@ -110,8 +119,25 @@ object X3d {
       }
     }
 
+    case class PointSet(positions: Iterable[Vec], color: Color = Color.orange)
+      extends Shapable {
+      val points = positions.map(_.strNoComma).mkString(" ")
+      val colors = points.map(_ => color.strNoComma).mkString(" ")
+
+      def toShape = {
+        s"""
+           |<Shape>
+           |<PointSet>
+           |  <Color color='$colors' />
+           |  <Coordinate point='$points'/>
+           |  </PointSet>
+           |</Shape>
+           |""".stripMargin
+      }
+    }
+
     case class Sphere(translation: Vec, color: Color = Color.orange, radius: Double = 1.0,
-                      solid: Boolean = true) extends Shapable {
+                      solid: Boolean = false) extends Shapable {
       def toShape = {
         s"""
            |<Transform translation='${translation.strNoComma}'>
@@ -158,5 +184,13 @@ object X3d {
        |  </Scene>
        |</X3D>""".stripMargin
   }
+
+  def drawTo(outfile: Path, drawable: X3d.Color => Seq[X3d.Shapable], backColor: X3d.Color) = {
+    val shapables = drawable(backColor)
+    val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
+    gaia.Util.writeString(outfile, xml)
+  }
+
+
 
 }
