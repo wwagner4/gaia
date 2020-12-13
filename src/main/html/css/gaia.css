@@ -1,0 +1,27 @@
+@font-face {
+    font-family: orbitron;
+    src: url("Orbitron-VariableFont_wght.ttf");
+}
+
+body {
+    font-family: orbitron, sans-serif;
+    font-size: x-large;
+    color: beige;
+    background-color: black;
+}
+
+.gimage {
+    float: left;
+    margin: 5px;
+    width: 800px;
+    height: 700px;
+}
+
+h1 {
+    font-size: 3em;
+}
+
+a:link {color: beige;}
+a:visited {color: beige;}
+a:hover {color: beige;}
+a:active {color: beige;} 

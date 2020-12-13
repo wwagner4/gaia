@@ -1,0 +1,10 @@
+<project>
+    <target name="copyhp">
+        <copy verbose="true" todir="../wwagner4.bitbucket.io/wolfi-hp/gaia" overwrite="true">
+            <fileset dir="src/main/html">
+                <include name="**/*"/>
+                <exclude name="**/.gitignore"/>
+            </fileset>
+        </copy>
+    </target>
+</project>

@@ -21,13 +21,16 @@ object Main {
     GaiaDrawing("shs", "multiple shells around the sun", Image1.shellsSphere),
     GaiaDrawing("shp", "multiple shells around the sun", Image1.shellsPoints),
     GaiaDrawing("dt", "data test", Data.dataTest),
+    GaiaDrawing("hp", "create homepage", gaia.Hp.createHp),
     GaiaDrawing("all", "all drawings", all),
   )
 
+  private val ignoreIds = Seq("all", "hp", "dt")
+  
   private def all(id: String): Unit = {
     println(s"running $id")
     drawings
-      .filter(gd => gd.id != "dt" && gd.id != "all")
+      .filter(gd => !ignoreIds.contains(gd.id))
       .toSeq
       .foreach { c =>
         println(s"running ${c.id}")

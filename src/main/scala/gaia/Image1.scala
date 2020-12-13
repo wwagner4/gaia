@@ -6,7 +6,6 @@ import gaia.X3d.Shapable
 import gaia.X3d.Shapable.Line
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Path._
 import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.util.Random
@@ -28,6 +27,8 @@ object Image1 {
                        starsToShapable: (stars: Iterable[Star]) => Iterable[Shapable],
                        transform: Star => Star = identity,
                      )
+  
+  val outLocation = OutLocation.Models
 
   def oneShellSpheres(id: String): Unit = {
     val starsToShapable = shapabelsStarsToSperes(0.02, Color.gray(1.0))(_)
@@ -35,7 +36,7 @@ object Image1 {
     val max = 9.0
     val starProb = 0.1
     val bgc = Color.darkBlue
-    oneShell(id, bgc, min, max, starProb, starsToShapable, OutLocation.Work)
+    oneShell(id, bgc, min, max, starProb, starsToShapable)
   }
 
   def oneShellPoints(id: String): Unit = {
@@ -44,7 +45,7 @@ object Image1 {
     val max = 9.0
     val starProb = 1.0
     val bgc = Color.darkBlue
-    oneShell(id, bgc, min, max, starProb, starsToShapable, OutLocation.Work)
+    oneShell(id, bgc, min, max, starProb, starsToShapable)
   }
 
   def shellsSphere(id: String): Unit = {
@@ -76,7 +77,7 @@ object Image1 {
   }
 
   private def oneShell(id: String, bgColor: Color, min: Double, max: Double, starProb: Double,
-                       starsToShapable: Iterable[Star] => Iterable[Shapable], outLocation: OutLocation) = {
+                       starsToShapable: Iterable[Star] => Iterable[Shapable]) = {
     def draw(bgColor: Color): Seq[Shapable] = {
 
       val stars = filteredStars
@@ -111,7 +112,8 @@ object Image1 {
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
     }
 
-    val imgFile = image1Dir.resolve(s"image1_$id.x3d")
+    val fnam = s"image1_$id.x3d"
+    val imgFile = filePath(outLocation, fnam)
     X3d.drawTo(imgFile, draw, backColor = bgColor)
     println(s"Created image for $id at $imgFile")
   }
@@ -170,7 +172,7 @@ object Image1 {
   private def filePath(outLocation: OutLocation, fileName: String) = {
     val imgFile = outLocation match {
       case OutLocation.Work => image1Dir.resolve(fileName)
-      case OutLocation.Models => of("src", "main", "html", "models", fileName)
+      case OutLocation.Models => Util.modelPath.resolve(fileName)
     }
     imgFile
   }

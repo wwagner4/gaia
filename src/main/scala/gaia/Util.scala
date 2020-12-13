@@ -58,6 +58,7 @@ object Util {
     X3d.Vec(x, y, z)
   }
 
-
+  def modelPath: Path = htmlPath.resolve("models")
+  def htmlPath: Path = Path.of("src", "main", "html")
 }
 
