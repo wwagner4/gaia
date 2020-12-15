@@ -135,7 +135,7 @@ object Data {
     }
 
     val basicPath = Util.datapath.resolve("basic")
-    require(Files.exists(basicPath))
+    require(Files.exists(basicPath), s"Directory for basic data does not exist. $basicPath")
 
     Files.list(basicPath)
       .iterator

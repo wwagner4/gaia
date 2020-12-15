@@ -10,12 +10,14 @@ object Hp {
                         id: String,
                         renderWithBrowser: Boolean = false,
                         video: Option[String] = None,
+                        order: Int = Int.MaxValue,
                         text: String = "No text provided",
                       )
 
   val gaiaImages = Seq(
     GaiaImage(
       id = "image1_osp",
+      order = 10,
       renderWithBrowser = true,
       text =
         """One shell around the sun between 7 and 9 kpc. 
@@ -25,6 +27,7 @@ object Hp {
     ),
     GaiaImage(
       id = "image1_oss",
+      order = 20,
       text =
         """One shell around the sun between 7 and 9 kpc. 
           |The shell contains 2710 Stars which are visualized as spheres.  
@@ -34,6 +37,7 @@ object Hp {
     GaiaImage(
       id = "image1_shp",
       renderWithBrowser = true,
+      order = 30,
       text =
         """Three shells around the sun with distances 5, 8 and 11 kpc. 
           |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell 
@@ -43,6 +47,7 @@ object Hp {
     ),
     GaiaImage(
       id = "image1_shs",
+      order = 40,
       video = Some("https://www.youtube.com/embed/hXMWpzVQsX8"),
       text =
         """Three shells around the sun with distances 5, 8 and 11 kpc. 
@@ -51,7 +56,39 @@ object Hp {
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
     ),
+    GaiaImage(
+      id = "image1_sp16",
+      order = 50,
+      renderWithBrowser = true,
+      text = spText("16")
+    ),
+    GaiaImage(
+      id = "image1_sp8",
+      order = 60,
+      renderWithBrowser = true,
+      text = spText("8")
+    ),
+    GaiaImage(
+      id = "image1_sp5",
+      order = 70,
+      renderWithBrowser = true,
+      text = spText("5")
+    ),
+    GaiaImage(
+      id = "image1_sp2",
+      order = 80,
+      renderWithBrowser = true,
+      text = spText("2")
+    ),
   )
+
+  private def spText(dist: String) = {
+    s"""Stars around the sun with a maximum distance of $dist kpc.
+       |Some stars are filtered out to make the image clearer. 
+       |Near the center more stars are filtered out than close to the edge
+       |to avoid bulges around the sun.
+       |""".stripMargin.trim
+  }
 
   lazy val htmlPath = Util.htmlPath
 
@@ -69,10 +106,10 @@ object Hp {
 
   def createHtmlsForX3d(): Unit = {
 
-    def createHtml(path: Path): Unit = {
-      val bareFn = bareFilename(path)
-      val htmlFn = s"$bareFn.html"
-      val x3dFn = s"$bareFn.x3d"
+    def createHtml(gaiaImage: GaiaImage): Unit = {
+      val gaiaImageId = gaiaImage.id
+      val htmlFn = s"$gaiaImageId.html"
+      val x3dFn = s"$gaiaImageId.x3d"
       val file = htmlPath.resolve(htmlFn)
 
       val html =
@@ -81,7 +118,7 @@ object Hp {
            |<html lang="en">
            |<head>
            |    <meta charset="UTF-8">
-           |    <title>Gaia $bareFn</title>
+           |    <title>Gaia $gaiaImageId</title>
            |    <script type='text/javascript' src='js/x3d.js'> </script>
            |    <link rel='stylesheet' type='text/css' href='css/x3d.css'/>
            |    <meta name="theme-color" content="#000">
@@ -101,40 +138,43 @@ object Hp {
 
     val files = Files.list(Util.modelPath).iterator().asScala.toList
       .filter(p => p.getFileName.toString.endsWith("x3d"))
-    files.foreach(createHtml(_))
+      .map(bareFilename)
+      .map(id => gaiaImage(id))
+      .sortBy(gi => -gi.order)
 
-    files.foreach { path =>
-      val gaiaImageId = bareFilename(path)
-      val gi = gaiaImage(gaiaImageId)
-      val line = gaiaImagHtml(gi)
+    files.foreach(createHtml(_))
+    println("-------------------------------------------------------------")
+    files.foreach { gi =>
+      val line = gaiaImageToHtml(gi)
       println(s"$line")
     }
+    println("-------------------------------------------------------------")
 
   }
 
-  def gaiaImagHtml(gaiaImage: GaiaImage): String = {
-    val videoLine = gaiaImage.video match {
+  def gaiaImageToHtml(gaiaImage: GaiaImage): String = {
+    val videoLink = gaiaImage.video match {
       case Some(url) => s"""<a href="${url}">video</a>"""
       case None => "video"
     }
-    val browserLine =
+    val browserLink =
       if (gaiaImage.renderWithBrowser) s"""<a href="${gaiaImage.id}.html">browser</a>"""
       else "browser"
 
-    val lines = Seq(
+    val links = Seq(
       s"""<a href="models/${gaiaImage.id}.x3d">viewer</a>""",
       s"""<a href="images/${gaiaImage.id}_full.jpg">image</a>""",
-      videoLine,
-      browserLine
+      videoLink,
+      browserLink
     ).mkString(" | ")
 
     s"""
        |<div class="gimage">
        |<a href="images/${gaiaImage.id}_full.jpg"><img src="images/${gaiaImage.id}_m.jpg" alt="i${gaiaImage.id}"/></a>
        |<p>
-       |$lines
+       |$links
        |</p>
-       |<p>${gaiaImage.text}</p>
+       |<p class="text">${gaiaImage.text}</p>
        |</div>
        |""".stripMargin.trim
   }

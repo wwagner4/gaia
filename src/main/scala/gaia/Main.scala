@@ -20,12 +20,16 @@ object Main {
     GaiaDrawing("osp", "one shell around the galactic center with points", Image1.oneShellPoints),
     GaiaDrawing("shs", "multiple shells around the sun", Image1.shellsSphere),
     GaiaDrawing("shp", "multiple shells around the sun", Image1.shellsPoints),
-    GaiaDrawing("dt", "data test", Data.dataTest),
-    GaiaDrawing("hp", "create homepage", gaia.Hp.createHp),
+    GaiaDrawing("sp2", "stars within a distance of 2 kpc to the sun", Image1.sphere2),
+    GaiaDrawing("sp5", "stars within a distance of 5 kpc to the sun", Image1.sphere5),
+    GaiaDrawing("sp8", "stars within a distance of 8 kpc to the sun", Image1.sphere8),
+    GaiaDrawing("sp16", "stars within a distance of 16 kpc to the sun", Image1.sphere16),
+    GaiaDrawing("test", "run some test", gaia.Util.test),
+    GaiaDrawing("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     GaiaDrawing("all", "all drawings", all),
   )
 
-  private val ignoreIds = Seq("all", "hp", "dt")
+  private val ignoreIds = Seq("all", "hp", "test")
   
   private def all(id: String): Unit = {
     println(s"running $id")

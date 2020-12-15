@@ -1,10 +1,12 @@
 package gaia
 
+import gaia.X3d.Color
+
 import java.io.PrintWriter
 import java.nio.file.{Files, Path}
-import scala.util.Random
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
+import scala.util.Random
 
 object Util {
 
@@ -34,13 +36,14 @@ object Util {
     val pw = PrintWriter(bw)
     try {
       for (data <- datas) {
-        val  line = f(data).mkString(",")
+        val line = f(data).mkString(",")
         pw.println(line)
       }
     } finally {
       bw.close
     }
   }
+
   def fromCsv[T](f: Array[String] => T, filePath: Path): Iterable[T] = {
     val br = Files.newBufferedReader(filePath)
     try {
@@ -59,6 +62,55 @@ object Util {
   }
 
   def modelPath: Path = htmlPath.resolve("models")
+
   def htmlPath: Path = Path.of("src", "main", "html")
+
+  def test(id: String): Unit = {
+    println(s"running $id")
+    val s = 0.5
+    val e = 1
+    val c = 5
+    val r = squaredValues(s, e, c)
+      .map(_.toString)
+      .mkString(",")
+    println(s"$s - $e : $c ($r)")
+  }
+
+  private def xValues(cnt: Int): Seq[Double] = {
+    require(cnt >= 2, s"cnt:$cnt must be greater equal 2")
+    val step = 1.0 / (cnt - 1)
+    (0 until cnt)
+      .map(i => i * step)
+  }
+
+  private def linearFunction(startValue: Double, endValue: Double): (Double) => Double = {
+    def lin(a: Double, k: Double)(x: Double): Double = a + k * x
+    val k = endValue - startValue
+    lin(startValue, k)(_)
+  }
+
+  private def squaredFunction(startValue: Double, endValue: Double): (Double) => Double = {
+    def lin(a: Double, k: Double)(x: Double): Double = a + k * x * x
+    val k = endValue - startValue
+    lin(startValue, k)(_)
+  }
+
+  def colorTransition(startColor: Color, endColor: Color, cnt: Int): Seq[Color] = {
+    val fr = linearFunction(startColor.r, endColor.r)
+    val fg = linearFunction(startColor.g, endColor.g)
+    val fb = linearFunction(startColor.b, endColor.b)
+    xValues(cnt).map(x => Color(fr(x), fg(x), fb(x)))
+  }
+
+  def linearValues(start: Double, end: Double, cnt: Int): Seq[Double] = {
+    val f = linearFunction(start, end)
+    xValues(cnt).map(f)
+  }
+
+  def squaredValues(start: Double, end: Double, cnt: Int): Seq[Double] = {
+    val f = squaredFunction(start, end)
+    xValues(cnt).map(f)
+  }
+
 }
 

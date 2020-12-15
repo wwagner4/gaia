@@ -17,6 +17,10 @@ body {
     height: 700px;
 }
 
+.text {
+    font-size: medium;
+}
+
 h1 {
     font-size: 3em;
 }

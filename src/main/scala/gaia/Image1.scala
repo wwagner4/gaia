@@ -27,8 +27,9 @@ object Image1 {
                        starsToShapable: (stars: Iterable[Star]) => Iterable[Shapable],
                        transform: Star => Star = identity,
                      )
-  
+
   val outLocation = OutLocation.Models
+  val galacicCenter = Util.toVec(266.25, -28.94, 8)
 
   def oneShellSpheres(id: String): Unit = {
     val starsToShapable = shapabelsStarsToSperes(0.02, Color.gray(1.0))(_)
@@ -67,13 +68,83 @@ object Image1 {
 
     val shapeSize = 0.02
     val shells = Seq(
-      ShellDef("a", 5.0, 6.0, 400 / 1000.0, shapabelsStarsToPoints(Color.yellow)(_), equalDist(5.5)_),
-      ShellDef("b", 8.0, 9.0, 700 / 1000.0, shapabelsStarsToPoints(Color.orange)(_), equalDist(8)_),
-      ShellDef("c", 11.0, 12.0, 1000 / 1000.0, shapabelsStarsToPoints(Color.darkRed)(_), equalDist(10.5)_),
+      ShellDef("a", 5.0, 6.0, 400 / 1000.0, shapabelsStarsToPoints(Color.yellow)(_), equalDist(5.5) _),
+      ShellDef("b", 8.0, 9.0, 700 / 1000.0, shapabelsStarsToPoints(Color.orange)(_), equalDist(8) _),
+      ShellDef("c", 11.0, 12.0, 1000 / 1000.0, shapabelsStarsToPoints(Color.darkRed)(_), equalDist(10.5) _),
     )
     val bgColor = Color.darkBlue
 
     multiShells(id, shells, bgColor)
+  }
+
+  def sphere2(id: String) = {
+    println(s"Started image1 $id")
+    val startProb = 0.0001
+    val endProb = 0.1
+    val shellCnt = 10
+    val shellThikness = 0.2
+    val startColor = Color.red 
+    val endColor = Color.yellow
+    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+  }
+
+  def sphere5(id: String): Unit = {
+    println(s"Started image1 $id")
+    val shellCnt = 10
+    val shellThikness = 0.5
+    val startProb = 0.0001
+    val endProb = 0.2
+    val startColor = Color.blue
+    val endColor = Color.green
+    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+  }
+
+  def sphere8(id: String): Unit = {
+    println(s"Started image1 $id")
+    val shellCnt = 20
+    val shellThikness = 0.4
+    val startProb = 0.0001
+    val endProb = 0.15
+    val startColor = Color.darkRed
+    val endColor = Color.orange
+    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+  }
+
+  def sphere16(id: String): Unit = {
+    println(s"Started image1 $id")
+    val shellCnt = 40
+    val shellThikness = 0.4
+    val startProb = 0.0001
+    val endProb = 0.6
+    val startColor = Color.orange
+    val endColor = Color.green
+    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+  }
+
+  private def sphere(id: String, shellCnt: Int, shellThikness: Double,
+                         startProb: Double, endProb: Double,
+                         startColor: Color, endColor: Color) = {
+    def draw(bgColor: Color): Seq[Shapable] = {
+      val shells = (0 until shellCnt)
+        .map(i => shellThikness * i)
+        .map(s => (s, s + shellThikness))
+      val colors = Util.colorTransition(startColor, endColor, shellCnt)
+      val probs = Util.squaredValues(startProb, endProb, shellCnt)
+      val cfgs = shells.zip(colors).zip(probs)
+      cfgs.flatMap {
+        case (((s, e), c), p) =>
+          val stars = filteredStars
+            .filter(filterShell(s, e, p)(_))
+          println(f"filtered ${stars.size} stars for shell $s%.2f $p%.4f")
+          shapabelsStarsToPoints(color = c)(stars = stars)
+      }
+      ++ shapablesCoordinates(5, bgColor)
+    }
+
+    val fnam = s"image1_$id.x3d"
+    val imgFile = filePath(outLocation, fnam)
+    X3d.drawTo(imgFile, draw, backColor = Color.black)
+    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
   }
 
   private def oneShell(id: String, bgColor: Color, min: Double, max: Double, starProb: Double,
@@ -83,10 +154,9 @@ object Image1 {
       val stars = filteredStars
         .filter(filterShell(min, max, starProb)(_))
       println(s"using ${stars.size} stars for image1 $id")
-      val galacicCenter = Util.toVec(266.25, -28.94, 8)
       starsToShapable(stars).toSeq
-      ++ shapablesCoordinates(2, bgColor)
-      ++ shapablesCoordinates(4, bgColor, offset = galacicCenter)
+      ++ shapablesCoordinates(5, bgColor)
+      ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
     }
 
     val fnam = s"image1_$id.x3d"
@@ -106,7 +176,6 @@ object Image1 {
           println(s"Using ${stars.size} stars in shell ${shellDef.shellId}")
           shellDef.starsToShapable(stars)
         }
-      val galacicCenter = Util.toVec(266.25, -28.94, 8)
       shapes
       ++ shapablesCoordinates(5, bgColor)
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
