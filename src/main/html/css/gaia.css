@@ -21,6 +21,10 @@ body {
     font-size: medium;
 }
 
+td {
+    vertical-align: top;
+}
+
 h1 {
     font-size: 3em;
 }
