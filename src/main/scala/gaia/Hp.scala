@@ -28,6 +28,7 @@ object Hp {
     GaiaImage(
       id = "image1_oss",
       order = 20,
+      video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
       text =
         """One shell around the sun between 7 and 9 kpc. 
           |The shell contains 2710 Stars which are visualized as spheres.  
@@ -48,7 +49,7 @@ object Hp {
     GaiaImage(
       id = "image1_shs",
       order = 40,
-      video = Some("https://www.youtube.com/embed/hXMWpzVQsX8"),
+      video = Some("https://www.youtube.com/embed/irbUh9Y_Ifg"),
       text =
         """Three shells around the sun with distances 5, 8 and 11 kpc. 
           |The shells contains 1700, 2000 and 1000 Stars from the inner to the outer shell 
@@ -79,6 +80,33 @@ object Hp {
       order = 80,
       renderWithBrowser = true,
       text = spText("2")
+    ),
+    GaiaImage(
+      id = "image1_ntsd27",
+      order = 90,
+      text =
+        """
+          |Directions of the movement of stars around the sun. Maximum distance 27 pc
+          |""".stripMargin.trim
+    ),
+    GaiaImage(
+      id = "image1_ntsdvi",
+      order = 100,
+      renderWithBrowser = true,
+      text =
+        """
+          |Directions of the movement of stars in a distance up to 40 pc
+          |""".stripMargin.trim
+    ),
+    GaiaImage(
+      id = "image1_ntsdvo",
+      order = 110,
+      renderWithBrowser = true,
+      video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
+      text =
+        """
+          |Directions of the movement of stars in a distance of about 45 pc
+          |""".stripMargin.trim
     ),
   )
 
@@ -170,7 +198,7 @@ object Hp {
 
     s"""
        |<div class="gimage">
-       |<a href="images/${gaiaImage.id}_full.jpg"><img src="images/${gaiaImage.id}_m.jpg" alt="i${gaiaImage.id}"/></a>
+       |<a href="images/${gaiaImage.id}_full.jpg"><img  class="topimage" src="images/${gaiaImage.id}_m.jpg" alt="i${gaiaImage.id}"/></a>
        |<p>
        |$links
        |</p>

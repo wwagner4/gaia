@@ -3,6 +3,8 @@
 The project ties to find some visualisation for the data retrieved by the 
 gaia [space observatory](https://en.wikipedia.org/wiki/Gaia_(spacecraft))
 
+Results can be seen at [entelijan](http://entelijan.net/wolfi-hp/gaia/)
+
 Sources of data and data descriptions
 * [All data can be found here](https://www.cosmos.esa.int/web/gaia/data)
 * [Most important data is described here](https://gea.esac.esa.int/archive/documentation/GDR2/Gaia_archive/chap_datamodel/sec_dm_main_tables/ssec_dm_gaia_source.html)

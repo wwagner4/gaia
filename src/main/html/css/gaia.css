@@ -25,6 +25,12 @@ h1 {
     font-size: 3em;
 }
 
+.topimage {
+    width: 800px;
+    height: 480px;
+    -o-object-fit: cover;
+}
+
 a:link {color: beige;}
 a:visited {color: beige;}
 a:hover {color: beige;}

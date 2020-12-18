@@ -24,11 +24,14 @@ object Main {
     GaiaDrawing("sp5", "stars within a distance of 5 kpc to the sun", Image1.sphere5),
     GaiaDrawing("sp8", "stars within a distance of 8 kpc to the sun", Image1.sphere8),
     GaiaDrawing("sp16", "stars within a distance of 16 kpc to the sun", Image1.sphere16),
-    GaiaDrawing("test", "run some test", gaia.Util.test),
+    GaiaDrawing("ntsd27", "direction of stars within a distance of 27 pc to sun", Image1.nearSunDirections27pc),
+    GaiaDrawing("ntsdvi", "direction and velocety of stars to a distace of 40 pc", Image1.nearSunVeloInner),
+    GaiaDrawing("ntsdvo", "direction and velocety of stars of 45 pc distance", Image1.nearSunVeloOuter),
+    GaiaDrawing("test", "run some test", gaia.X3d.test),
     GaiaDrawing("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     GaiaDrawing("all", "all drawings", all),
   )
-
+  
   private val ignoreIds = Seq("all", "hp", "test")
   
   private def all(id: String): Unit = {
