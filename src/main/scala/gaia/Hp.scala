@@ -108,6 +108,16 @@ object Hp {
           |Directions of the movement of stars in a distance of about 45 pc
           |""".stripMargin.trim
     ),
+    GaiaImage(
+      id = "image1_dir01",
+      order = 120,
+      video = Some("https://www.youtube.com/embed/bZ0KkVM-Kwc"),
+      renderWithBrowser = true,
+      text =
+        """
+          |Movement of stars in a distance of about 8 kpc from the sun
+          |""".stripMargin.trim
+    ),
   )
 
   private def spText(dist: String) = {

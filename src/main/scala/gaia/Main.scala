@@ -27,6 +27,7 @@ object Main {
     GaiaDrawing("ntsd27", "direction of stars within a distance of 27 pc to sun", Image1.nearSunDirections27pc),
     GaiaDrawing("ntsdvi", "direction and velocety of stars to a distace of 40 pc", Image1.nearSunVeloInner),
     GaiaDrawing("ntsdvo", "direction and velocety of stars of 45 pc distance", Image1.nearSunVeloOuter),
+    GaiaDrawing("dir01", "direction and velocety of stars  8 kpc from the sun", Image1.dir01),
     GaiaDrawing("test", "run some test", gaia.X3d.test),
     GaiaDrawing("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     GaiaDrawing("all", "all drawings", all),

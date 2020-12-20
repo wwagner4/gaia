@@ -44,6 +44,40 @@ object Image1 {
 
   val outLocation = OutLocation.Models
   val galacicCenter = Util.toVec(266.25, -28.94, 8)
+  
+  def filterShells(ranges: Seq[(Double, Double)])(starPosDir: StarPosDir): Boolean = {
+    def inRange(range: (Double, Double)): Boolean = {
+      starPosDir.dist >= range._1 && starPosDir.dist < range._2
+    }
+    ranges.forall(inRange)
+  }
+  
+  def dir01(id: String): Unit = {
+    val bgColor = Color.veryDarkBlue
+    val ranges = Seq((7.9, 8.1))
+    
+    def allShapables(bc: Color): Seq[Shapable] = {
+      println(s"running $id")
+      
+      val colors = Palette.p2c10.colors
+      val baseDirectionVec = Vec(1, 0, 1)
+      val stars = basicStars
+        .map(StarPosDir.apply)
+        .filter(filterShells(ranges)(_))
+        .map{ s =>
+          val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+          val c = colors(ci)
+          X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.005)), startColor = bc, endColor = c)
+        }
+      println(s"filtered ${stars.size} stars")
+      stars
+      ++ shapablesCoordinates(5, bgColor)
+      ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
+    }
+
+    drawImage(id, bgColor, allShapables)
+
+  }
 
   def nearSunVeloInner(id: String): Unit = {
     val minDist = 0.0
@@ -89,10 +123,7 @@ object Image1 {
       ++ shapablesCoordinates(maxDist * 1.2, bgColor, zoom=zoom)
     }
 
-    val fnam = s"image1_$id.x3d"
-    val imgFile = filePath(outLocation, fnam)
-    X3d.drawTo(imgFile, draw, backColor = bgColor)
-    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
+    drawImage(id, bgColor, draw _)
   }
 
   def nearSunDirections27pc(id: String): Unit = {
@@ -113,17 +144,14 @@ object Image1 {
         }
     }
 
-    def draw(bgColor: Color): Seq[Shapable] = {
+    def allShapables(bgColor: Color): Seq[Shapable] = {
       val stars = nearSunStars.filter(s => 1 / s.parallax < maxDist)
       println(s"There are ${stars.size} stars near the sun")
       shapabels(radius = radius)(stars = stars).toSeq
       ++ shapablesCoordinates(maxDist * 1.2, bgColor)
     }
 
-    val fnam = s"image1_$id.x3d"
-    val imgFile = filePath(outLocation, fnam)
-    X3d.drawTo(imgFile, draw, backColor = bgColor)
-    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
+    drawImage(id, bgColor, allShapables)
 
   }
 
@@ -238,10 +266,7 @@ object Image1 {
       ++ shapablesCoordinates(5, bgColor)
     }
 
-    val fnam = s"image1_$id.x3d"
-    val imgFile = filePath(outLocation, fnam)
-    X3d.drawTo(imgFile, draw, backColor = Color.black)
-    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
+    drawImage(id, Color.black, draw _)
   }
 
   private def oneShell(id: String, bgColor: Color, min: Double, max: Double, starProb: Double,
@@ -256,10 +281,7 @@ object Image1 {
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
     }
 
-    val fnam = s"image1_$id.x3d"
-    val imgFile = filePath(outLocation, fnam)
-    X3d.drawTo(imgFile, draw, backColor = bgColor)
-    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
+    drawImage(id, bgColor, draw _)
   }
 
 
@@ -433,6 +455,13 @@ object Image1 {
       println(s"filtered basic to ${stars.size} stars")
       stars
     }
+  }
+
+  private def drawImage(id: String, bgColor: Color, createShapables: Color => Seq[Shapable]) = {
+    val fnam = s"image1_$id.x3d"
+    val imgFile = filePath(outLocation, fnam)
+    X3d.drawTo(imgFile, createShapables, backColor = bgColor)
+    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
   }
 
   lazy val image1Dir: Path = {
