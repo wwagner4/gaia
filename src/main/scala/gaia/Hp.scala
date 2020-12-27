@@ -67,6 +67,7 @@ object Hp {
       id = "image1_sp8",
       order = 60,
       renderWithBrowser = true,
+      video = Some("https://www.youtube.com/embed/LbW1O-GUPS8"),
       text = spText("8")
     ),
     GaiaImage(

@@ -44,27 +44,28 @@ object Image1 {
 
   val outLocation = OutLocation.Models
   val galacicCenter = Util.toVec(266.25, -28.94, 8)
-  
+
   def filterShells(ranges: Seq[(Double, Double)])(starPosDir: StarPosDir): Boolean = {
     def inRange(range: (Double, Double)): Boolean = {
       starPosDir.dist >= range._1 && starPosDir.dist < range._2
     }
+
     ranges.forall(inRange)
   }
-  
+
   def dir01(id: String): Unit = {
     val bgColor = Color.veryDarkBlue
     val ranges = Seq((7.9, 8.1))
-    
+
     def allShapables(bc: Color): Seq[Shapable] = {
       println(s"running $id")
-      
+
       val colors = Palette.p2c10.colors
       val baseDirectionVec = Vec(1, 0, 1)
       val stars = basicStars
         .map(StarPosDir.apply)
         .filter(filterShells(ranges)(_))
-        .map{ s =>
+        .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(ci)
           X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.005)), startColor = bc, endColor = c)
@@ -73,6 +74,21 @@ object Image1 {
       stars
       ++ shapablesCoordinates(5, bgColor)
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
+    }
+
+    drawImage(id, bgColor, allShapables)
+
+  }
+
+  def gc(id: String): Unit = {
+    val bgColor = Color.veryDarkRed
+    val coordinatesColors = CoordinatesColors(Color.red, bgColor, Color.yellow, bgColor, Color.green, bgColor)
+    val rotation = Vec(X3d.degToRad(-4), X3d.degToRad(96), X3d.degToRad(0))
+
+    def allShapables(bc: Color): Seq[Shapable] = {
+      Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
+      ++ shapablesCoordinates1(5, coordinatesColors)
+      ++ shapablesCoordinates1(10, coordinatesColors, offset = galacicCenter)
     }
 
     drawImage(id, bgColor, allShapables)
@@ -98,10 +114,11 @@ object Image1 {
     val zoom = 60.0
     nearSunVelo(id, minDist, maxDist, bgColor, colors, lengthFactor, zoom)
   }
-  
+
   private def nearSunVelo(id: String, minDist: Double, maxDist: Double, bgColor: Color, colors: Seq[Color],
                           lengthFactor: Double, zoom: Double) = {
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
+
     def shapabels(stars: Iterable[Star]): Iterable[Shapable] = {
       stars
         .map(StarPosDir.apply)
@@ -120,7 +137,7 @@ object Image1 {
       }
       println(s"There are ${stars.size} stars near the sun")
       shapabels(stars = stars).toSeq
-      ++ shapablesCoordinates(maxDist * 1.2, bgColor, zoom=zoom)
+      ++ shapablesCoordinates(maxDist * 1.2, bgColor, zoom = zoom)
     }
 
     drawImage(id, bgColor, draw _)
@@ -351,17 +368,33 @@ object Image1 {
   }
 
 
+  case class CoordinatesColors(
+                                xStart: Color,
+                                xEnd: Color,
+                                yStart: Color,
+                                yEnd: Color,
+                                zStart: Color,
+                                zEnd: Color
+                              )
+
   private def shapablesCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero, zoom: Double = 1.0): Seq[Shapable] = {
+    val ccs = CoordinatesColors(
+      Color.gray(0.9), bgColor, Color.gray(0.9), bgColor, Color.gray(0.9), bgColor)
+    shapablesCoordinates1(len, ccs, offset, zoom)
+  }
+
+
+  private def shapablesCoordinates1(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero, zoom: Double = 1.0): Seq[Shapable] = {
     def ends = Seq(
-      (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), Color.gray(0.9)),
-      (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), Color.gray(0.9)),
-      (Vec(0, 0, 1).mul(len).add(offset), Vec(0, 0, -1).mul(len).add(offset), Color.gray(0.9)),
+      (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), coordinatesColors.xStart, coordinatesColors.xEnd),
+      (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), coordinatesColors.yStart, coordinatesColors.yEnd),
+      (Vec(0, 0, 1).mul(len).add(offset), Vec(0, 0, -1).mul(len).add(offset), coordinatesColors.zStart, coordinatesColors.zEnd),
     )
 
-    def coord(e1: Vec, e2: Vec, color: Color): Seq[Line] = {
+    def coord(e1: Vec, e2: Vec, startColor: Color, endColor: Color): Seq[Line] = {
       Seq(
-        Shapable.Line(start = offset, end = e1, startColor = color, endColor = bgColor, zoom),
-        Shapable.Line(start = offset, end = e2, startColor = color, endColor = bgColor, zoom),
+        Shapable.Line(start = offset, end = e1, startColor = startColor, endColor = endColor, zoom),
+        Shapable.Line(start = offset, end = e2, startColor = startColor, endColor = endColor, zoom),
       )
     }
 

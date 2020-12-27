@@ -1,0 +1,23 @@
+## First animation 
+view3dscene vp_a.x3d --screenshot 0 vpa001.png
+
+view3dscene vp_a.x3d --geometry 2560x1440 --anti-alias 10 --screenshot 0 vpa003.png
+
+view3dscene vp.x3d --screenshot-range TIME-BEGIN TIME-STEP FRAMES-COUNT FILE-NAME
+
+
+view3dscene vp.x3d --screenshot-range 0 1 30 v001.mp4
+
+view3dscene vp.x3d --screenshot-range 0 0.05 1000 v001.mp4
+
+view3dscene vp_a.x3d  --geometry 2560x1440 --screenshot-range 0 0.02 1000 va_001.mp4
+
+view3dscene vp_b.x3d  --geometry 2560x1440 --screenshot-range 0 0.02 1000 vb_002.mp4
+
+view3dscene vp_a.x3d  --geometry 2560x1440 --screenshot-range 0 0.02 1000 va_003.mp4
+
+##############
+# 4k:  3840 * 2160
+# 4k:  4096 * 2160 
+# uhd: 2560 * 1440
+# fhd: 1920 * 1080

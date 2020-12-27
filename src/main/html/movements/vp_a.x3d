@@ -1,0 +1,19 @@
+<X3D profile='Immersive' version='3.4' width="3000" height="2000">
+    <head>
+	<component level='1' name='Geospatial'/>
+    </head> 
+    <Scene>
+
+
+	<Viewpoint  DEF='camera'  position="0 0 0.064800024032592773" orientation="0 0 1 0"/>
+
+
+	<Billboard axisOfRotation='0 0 0' bboxCenter='0 0 0' bboxSize='-1 -1 -1'>
+		<Inline bboxCenter='0 0 0' bboxSize='-1 -1 -1' url='a.x3d'/>
+	</Billboard>         
+	<TimeSensor DEF="time" cycleInterval="20" loop="true"></TimeSensor>
+        <PositionInterpolator DEF="move" key="0 0.5 0.7 1" keyValue="0 0 0.06  0.03 0.01 0.01  0.02 -0.01 0.02  0 0 0.06"></PositionInterpolator>
+        <ROUTE fromNode="time" fromField ="fraction_changed" toNode="move" toField="set_fraction"></ROUTE>
+        <ROUTE fromNode="move" fromField ="value_changed" toNode="camera" toField="position"></ROUTE>
+    </Scene>
+</X3D> 

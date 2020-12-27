@@ -1,5 +1,9 @@
 FROM hseeberger/scala-sbt:15.0.1_1.4.4_2.13.4
 
+RUN apt-get update
+RUN apt-get install -y view3dscene
+RUN apt-get install -y ffmpeg
+
 RUN mkdir /opt/prj
 
 WORKDIR /opt/prj
