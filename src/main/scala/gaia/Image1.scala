@@ -2,6 +2,7 @@ package gaia
 
 import com.sun.imageio.plugins.common.BogusColorSpace
 import gaia.Data.Star
+import gaia.Main.GaiaImage
 import gaia.X3d.Shapable
 import gaia.X3d.Shapable.Line
 
@@ -14,10 +15,6 @@ import scala.util.Random
 object Image1 {
 
   import X3d._
-
-  enum OutLocation {
-    case Work, Models
-  }
 
   case class ShellDef(
                        shellId: String,
@@ -42,7 +39,6 @@ object Image1 {
 
   }
 
-  val outLocation = OutLocation.Models
   val galacicCenter = Util.toVec(266.25, -28.94, 8)
 
   def filterShells(ranges: Seq[(Double, Double)])(starPosDir: StarPosDir): Boolean = {
@@ -53,8 +49,8 @@ object Image1 {
     ranges.forall(inRange)
   }
 
-  def dir01(id: String): Unit = {
-    val bgColor = Color.veryDarkBlue
+  def dir01(id: String, workPath: Path): Unit = {
+    val bgColor = gaiaImage(id).backColor
     val ranges = Seq((7.9, 8.1))
 
     def allShapables(bc: Color): Seq[Shapable] = {
@@ -62,7 +58,7 @@ object Image1 {
 
       val colors = Palette.p2c10.colors
       val baseDirectionVec = Vec(1, 0, 1)
-      val stars = basicStars
+      val stars = basicStars(workPath)
         .map(StarPosDir.apply)
         .filter(filterShells(ranges)(_))
         .map { s =>
@@ -76,12 +72,12 @@ object Image1 {
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
     }
 
-    drawImage(id, bgColor, allShapables)
+    createX3dFile(id, workPath, bgColor, allShapables)
 
   }
 
-  def gc(id: String): Unit = {
-    val bgColor = Color.veryDarkRed
+  def gc(id: String, workPath: Path): Unit = {
+    val bgColor = gaiaImage(id).backColor
     val coordinatesColors = CoordinatesColors(Color.red, bgColor, Color.yellow, bgColor, Color.green, bgColor)
     val rotation = Vec(X3d.degToRad(-4), X3d.degToRad(96), X3d.degToRad(0))
 
@@ -91,32 +87,31 @@ object Image1 {
       ++ shapablesCoordinates1(10, coordinatesColors, offset = galacicCenter)
     }
 
-    drawImage(id, bgColor, allShapables)
+    createX3dFile(id, workPath, bgColor, allShapables)
 
   }
 
-  def nearSunVeloInner(id: String): Unit = {
+  def nearSunVeloInner(id: String, workPath: Path): Unit = {
     val minDist = 0.0
     val maxDist = 0.04
-    val bgColor = Color.veryDarkGreen
     val colors = Palette.p1c10.colors
     val lengthFactor = 0.8
     val zoom = 100.0
-    nearSunVelo(id, minDist, maxDist, bgColor, colors, lengthFactor, zoom)
+    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor, zoom)
   }
 
-  def nearSunVeloOuter(id: String): Unit = {
+  def nearSunVeloOuter(id: String, workPath: Path): Unit = {
     val minDist = 0.04
     val maxDist = 0.05
-    val bgColor = Color.veryDarkGreen
     val colors = Palette.p2c10.colors
     val lengthFactor = 1.0
     val zoom = 60.0
-    nearSunVelo(id, minDist, maxDist, bgColor, colors, lengthFactor, zoom)
+    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor, zoom)
   }
 
-  private def nearSunVelo(id: String, minDist: Double, maxDist: Double, bgColor: Color, colors: Seq[Color],
+  private def nearSunVelo(id: String, workPath: Path, minDist: Double, maxDist: Double, colors: Seq[Color],
                           lengthFactor: Double, zoom: Double) = {
+    val bgColor = gaiaImage(id).backColor
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
     def shapabels(stars: Iterable[Star]): Iterable[Shapable] = {
@@ -131,7 +126,7 @@ object Image1 {
     }
 
     def draw(bgColor: Color): Seq[Shapable] = {
-      val stars = nearSunStars.filter { s =>
+      val stars = nearSunStars(workPath).filter { s =>
         val dist = 1 / s.parallax
         dist < maxDist && dist > minDist
       }
@@ -140,14 +135,14 @@ object Image1 {
       ++ shapablesCoordinates(maxDist * 1.2, bgColor, zoom = zoom)
     }
 
-    drawImage(id, bgColor, draw _)
+    createX3dFile(id, workPath, bgColor, draw _)
   }
 
-  def nearSunDirections27pc(id: String): Unit = {
+  def nearSunDirections27pc(id: String, workPath: Path): Unit = {
 
     val radius = 0.00005
     val maxDist = 0.027
-    val bgColor = Color.veryDarkGreen
+    val bgColor = gaiaImage(id).backColor
 
     def shapabels(radius: Double)(stars: Iterable[Star]): Iterable[Shapable] = {
       stars
@@ -162,36 +157,34 @@ object Image1 {
     }
 
     def allShapables(bgColor: Color): Seq[Shapable] = {
-      val stars = nearSunStars.filter(s => 1 / s.parallax < maxDist)
+      val stars = nearSunStars(workPath).filter(s => 1 / s.parallax < maxDist)
       println(s"There are ${stars.size} stars near the sun")
       shapabels(radius = radius)(stars = stars).toSeq
       ++ shapablesCoordinates(maxDist * 1.2, bgColor)
     }
 
-    drawImage(id, bgColor, allShapables)
+    createX3dFile(id, workPath, bgColor, allShapables)
 
   }
 
 
-  def oneShellSpheres(id: String): Unit = {
+  def oneShellSpheres(id: String, workPath: Path): Unit = {
     val starsToShapable = shapabelsStarsToSperes(0.02, Color.gray(1.0))(_)
     val min = 7.0
     val max = 9.0
     val starProb = 0.1
-    val bgc = Color.darkBlue
-    oneShell(id, bgc, min, max, starProb, starsToShapable)
+    oneShell(id, workPath, min, max, starProb, starsToShapable)
   }
 
-  def oneShellPoints(id: String): Unit = {
+  def oneShellPoints(id: String, workPath: Path): Unit = {
     val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
     val min = 7.0
     val max = 9.0
     val starProb = 1.0
-    val bgc = Color.darkBlue
-    oneShell(id, bgc, min, max, starProb, starsToShapable)
+    oneShell(id, workPath, min, max, starProb, starsToShapable)
   }
 
-  def shellsSphere(id: String): Unit = {
+  def shellsSphere(id: String, workPath: Path): Unit = {
 
     val shapeSize = 0.02
     val shells = Seq(
@@ -199,12 +192,11 @@ object Image1 {
       ShellDef("08", 8.0, 8.2, 800 / 1000.0, shapabelsStarsToSperes(0.06, Color.orange)(_)),
       ShellDef("11", 11.0, 11.2, 1000 / 1000.0, shapabelsStarsToSperes(0.08, Color.yellow)(_)),
     )
-    val bgColor = Color.darkBlue
 
-    multiShells(id, shells, bgColor)
+    multiShells(id, workPath, shells)
   }
 
-  def shellsPoints(id: String): Unit = {
+  def shellsPoints(id: String, workPath: Path): Unit = {
 
     def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
 
@@ -214,12 +206,11 @@ object Image1 {
       ShellDef("b", 8.0, 9.0, 700 / 1000.0, shapabelsStarsToPoints(Color.orange)(_), equalDist(8) _),
       ShellDef("c", 11.0, 12.0, 1000 / 1000.0, shapabelsStarsToPoints(Color.darkRed)(_), equalDist(10.5) _),
     )
-    val bgColor = Color.darkBlue
 
-    multiShells(id, shells, bgColor)
+    multiShells(id, workPath, shells)
   }
 
-  def sphere2(id: String) = {
+  def sphere2(id: String, workPath: Path) = {
     println(s"Started image1 $id")
     val startProb = 0.0001
     val endProb = 0.1
@@ -227,10 +218,10 @@ object Image1 {
     val shellThikness = 0.2
     val startColor = Color.red
     val endColor = Color.yellow
-    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere5(id: String): Unit = {
+  def sphere5(id: String, workPath: Path): Unit = {
     println(s"Started image1 $id")
     val shellCnt = 10
     val shellThikness = 0.5
@@ -238,10 +229,10 @@ object Image1 {
     val endProb = 0.2
     val startColor = Color.blue
     val endColor = Color.green
-    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere8(id: String): Unit = {
+  def sphere8(id: String, workPath: Path): Unit = {
     println(s"Started image1 $id")
     val shellCnt = 20
     val shellThikness = 0.4
@@ -249,10 +240,10 @@ object Image1 {
     val endProb = 0.15
     val startColor = Color.darkRed
     val endColor = Color.orange
-    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere16(id: String): Unit = {
+  def sphere16(id: String, workPath: Path): Unit = {
     println(s"Started image1 $id")
     val shellCnt = 40
     val shellThikness = 0.4
@@ -260,10 +251,10 @@ object Image1 {
     val endProb = 0.6
     val startColor = Color.orange
     val endColor = Color.green
-    sphere(id, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  private def sphere(id: String, shellCnt: Int, shellThikness: Double,
+  private def sphere(id: String, workPath: Path, shellCnt: Int, shellThikness: Double,
                      startProb: Double, endProb: Double,
                      startColor: Color, endColor: Color) = {
     def draw(bgColor: Color): Seq[Shapable] = {
@@ -275,7 +266,7 @@ object Image1 {
       val cfgs = shells.zip(colors).zip(probs)
       cfgs.flatMap {
         case (((s, e), c), p) =>
-          val stars = basicStars
+          val stars = basicStars(workPath)
             .filter(filterShell(s, e, p)(_))
           println(f"filtered ${stars.size} stars for shell $s%.2f $p%.4f")
           shapabelsStarsToPoints(color = c)(stars = stars)
@@ -283,14 +274,14 @@ object Image1 {
       ++ shapablesCoordinates(5, bgColor)
     }
 
-    drawImage(id, Color.black, draw _)
+    createX3dFile(id, workPath, Color.black, draw _)
   }
 
-  private def oneShell(id: String, bgColor: Color, min: Double, max: Double, starProb: Double,
+  private def oneShell(id: String, workPath: Path, min: Double, max: Double, starProb: Double,
                        starsToShapable: Iterable[Star] => Iterable[Shapable]) = {
     def draw(bgColor: Color): Seq[Shapable] = {
 
-      val stars = basicStars
+      val stars = basicStars(workPath)
         .filter(filterShell(min, max, starProb)(_))
       println(s"using ${stars.size} stars for image1 $id")
       starsToShapable(stars).toSeq
@@ -298,15 +289,15 @@ object Image1 {
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
     }
 
-    drawImage(id, bgColor, draw _)
+    createX3dFile(id, workPath, gaiaImage(id).backColor, draw _)
   }
 
 
-  private def multiShells(id: String, shells: Seq[ShellDef], bgColor: Color) = {
+  private def multiShells(id: String, workPath: Path, shells: Seq[ShellDef]) = {
     def draw(bgColor: Color): Seq[Shapable] = {
       val shapes = shells
         .flatMap { shellDef =>
-          val stars = basicStars
+          val stars = basicStars(workPath)
             .filter(filterShell(shellDef.startDist, shellDef.endDist, shellDef.starProb)(_))
             .map(shellDef.transform)
           println(s"Using ${stars.size} stars in shell ${shellDef.shellId}")
@@ -317,13 +308,19 @@ object Image1 {
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
     }
 
-    val fnam = s"image1_$id.x3d"
-    val imgFile = filePath(outLocation, fnam)
-    X3d.drawTo(imgFile, draw, backColor = bgColor)
+    val imgFile = x3dFilePath(workPath, id)
+    X3d.drawTo(imgFile, draw, backColor = gaiaImage(id).backColor)
     println(s"Created image for $id at $imgFile")
   }
 
-  private def basicStars: Seq[Star] = {
+  def x3dFilePath(workPath: Path, id: String): Path = {
+    val modelsPath = workPath.resolve("models")
+    if (Files.notExists(modelsPath)) Files.createDirectories(modelsPath)
+    val fnam = s"$id.x3d"
+    modelsPath.resolve(fnam)
+  }
+
+  private def basicStars(workPath: Path): Seq[Star] = {
 
     def filter(star: Star): Boolean = {
       if (star.parallax <= 0) return false
@@ -331,11 +328,17 @@ object Image1 {
       true
     }
 
-    val cacheFile = image1Dir.resolve(s"cache_basic.csv")
+    val cacheFile = createCacheFile("basic", workPath)
     starsFilteredAndCached(cacheFile, filter)
   }
 
-  private def nearSunStars: Seq[Star] = {
+  private def createCacheFile(id: String, workPath: Path): Path = {
+    val cacheDir = workPath.resolve("cache")
+    if (Files.notExists(cacheDir)) Files.createDirectories(cacheDir)
+    cacheDir.resolve(s"cache_$id.csv")
+  }
+
+  private def nearSunStars(workPath: Path): Seq[Star] = {
 
     def filter(star: Star): Boolean = {
       if (star.parallax <= 0) return false
@@ -344,7 +347,7 @@ object Image1 {
       true
     }
 
-    val cacheFile = image1Dir.resolve(s"cache_near_sun.csv")
+    val cacheFile = createCacheFile("near_sun", workPath)
     starsFilteredAndCached(cacheFile, filter)
   }
 
@@ -401,14 +404,6 @@ object Image1 {
     ends.flatMap {
       coord
     }
-  }
-
-  private def filePath(outLocation: OutLocation, fileName: String) = {
-    val imgFile = outLocation match {
-      case OutLocation.Work => image1Dir.resolve(fileName)
-      case OutLocation.Models => Util.modelPath.resolve(fileName)
-    }
-    imgFile
   }
 
   private def toVec(star: Star): Vec = {
@@ -490,17 +485,13 @@ object Image1 {
     }
   }
 
-  private def drawImage(id: String, bgColor: Color, createShapables: Color => Seq[Shapable]) = {
-    val fnam = s"image1_$id.x3d"
-    val imgFile = filePath(outLocation, fnam)
-    X3d.drawTo(imgFile, createShapables, backColor = bgColor)
-    println(s"Created image for $id at ${imgFile.toAbsolutePath}")
+  private def createX3dFile(id: String, workPath: Path, bgColor: Color, createShapables: Color => Seq[Shapable]) = {
+    val file = x3dFilePath(workPath, id)
+    X3d.drawTo(file, createShapables, backColor = bgColor)
+    println(s"Created image for $id at ${file.toAbsolutePath}")
   }
 
-  lazy val image1Dir: Path = {
-    val imagePath = Util.datapath.resolve("image1")
-    if !Files.exists(imagePath)
-      Files.createDirectories(imagePath)
-    imagePath
+  def gaiaImage(id: String): GaiaImage = {
+    Main.images(id)
   }
 }

@@ -1,195 +1,125 @@
 package gaia
 
-import java.nio.file.{Files, Path}
+import gaia.Main.{GaiaImage, createX3d, images}
+
+import java.io.IOException
+import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 object Hp {
 
-  case class GaiaImage(
-                        id: String,
-                        renderWithBrowser: Boolean = false,
-                        video: Option[String] = None,
-                        order: Int = Int.MaxValue,
-                        text: String = "No text provided",
-                      )
 
-  val gaiaImages = Seq(
-    GaiaImage(
-      id = "image1_osp",
-      order = 10,
-      renderWithBrowser = true,
-      text =
-        """One shell around the sun between 7 and 9 kpc. 
-          |The shell contains 27104 Stars which are visualized as points.  
-          |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_oss",
-      order = 20,
-      video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
-      text =
-        """One shell around the sun between 7 and 9 kpc. 
-          |The shell contains 2710 Stars which are visualized as spheres.  
-          |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_shp",
-      renderWithBrowser = true,
-      order = 30,
-      text =
-        """Three shells around the sun with distances 5, 8 and 11 kpc. 
-          |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell 
-          |which are visualized as points.  
-          |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_shs",
-      order = 40,
-      video = Some("https://www.youtube.com/embed/irbUh9Y_Ifg"),
-      text =
-        """Three shells around the sun with distances 5, 8 and 11 kpc. 
-          |The shells contains 1700, 2000 and 1000 Stars from the inner to the outer shell 
-          |which are visualized as spheres.  
-          |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_sp16",
-      order = 50,
-      renderWithBrowser = true,
-      text = spText("16")
-    ),
-    GaiaImage(
-      id = "image1_sp8",
-      order = 60,
-      renderWithBrowser = true,
-      video = Some("https://www.youtube.com/embed/LbW1O-GUPS8"),
-      text = spText("8")
-    ),
-    GaiaImage(
-      id = "image1_sp5",
-      order = 70,
-      renderWithBrowser = true,
-      text = spText("5")
-    ),
-    GaiaImage(
-      id = "image1_sp2",
-      order = 80,
-      renderWithBrowser = true,
-      text = spText("2")
-    ),
-    GaiaImage(
-      id = "image1_ntsd27",
-      order = 90,
-      text =
-        """
-          |Directions of the movement of stars around the sun. Maximum distance 27 pc
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_ntsdvi",
-      order = 100,
-      renderWithBrowser = true,
-      text =
-        """
-          |Directions of the movement of stars in a distance up to 40 pc
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_ntsdvo",
-      order = 110,
-      renderWithBrowser = true,
-      video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
-      text =
-        """
-          |Directions of the movement of stars in a distance of about 45 pc
-          |""".stripMargin.trim
-    ),
-    GaiaImage(
-      id = "image1_dir01",
-      order = 120,
-      video = Some("https://www.youtube.com/embed/bZ0KkVM-Kwc"),
-      renderWithBrowser = true,
-      text =
-        """
-          |Movement of stars in a distance of about 8 kpc from the sun
-          |""".stripMargin.trim
-    ),
-  )
+  def createHp(args: List[String], workDir: Path): Unit = {
+    val htmlDir = workDir.resolve("html")
+    if (Files.notExists(htmlDir)) Files.createDirectories(htmlDir)
+    val modelsDir = workDir.resolve("models")
 
-  private def spText(dist: String) = {
-    s"""Stars around the sun with a maximum distance of $dist kpc.
-       |Some stars are filtered out to make the image clearer. 
-       |Near the center more stars are filtered out than close to the edge
-       |to avoid bulges around the sun.
-       |""".stripMargin.trim
+    val imgs = images.values
+      .toSeq
+      .filter(i => i.hpRelevant)
+      .sortBy(i => -i.hpOrder)
+
+    imgs.foreach(i => createHtml(i, htmlDir))
+    createIndexHtml(htmlDir, imgs)
+    copyResources(htmlDir, modelsDir)
   }
 
-  lazy val htmlPath = Util.htmlPath
+  def createIndexHtml(htmlDir: Path, imgs: Seq[GaiaImage]) = {
+    val gimages = imgs.map(gaiaImageToHtml).mkString("\n")
 
-
-  def createHp(id: String): Unit = {
-    createHtmlsForX3d()
+    val html =
+      s"""
+         |<!DOCTYPE html>
+         |<html lang="en">
+         |<head>
+         |    <meta charset="UTF-8">
+         |    <meta name="viewport" content="width=device-width, initial-scale=0.7">
+         |    <meta name="theme-color" content="#000">
+         |    <title>Gaia Visual</title>
+         |    <link rel="stylesheet" href="css/gaia.css">
+         |</head>
+         |<body>
+         |<h1>GAIA VISUAL</h1>
+         |<p>
+         |    Visualisations of the data provided by the
+         |    <a href="https://en.wikipedia.org/wiki/Gaia_(spacecraft)" TARGET="_blank"> gaia space observatory</a>,
+         |    launched in 2013.
+         |</p>
+         |Usage
+         |<table>
+         |    <tr>
+         |        <td>viewer-</td>
+         |        <td>Download the x3d-model file and render it at your local
+         |            <a href="https://www.web3d.org/x3d/content/examples/X3dResources.html">x3d-viewer</a></td>
+         |    </tr>
+         |    <tr>
+         |        <td>image-</td>
+         |        <td>Show a larger version of the image</td>
+         |    </tr>
+         |    <tr>
+         |        <td>video-</td>
+         |        <td>Show a video created by using the x3d-model</td>
+         |    </tr>
+         |    <tr>
+         |        <td>browser-</td>
+         |        <td>Render the x3d-model on your browser using <a href="https://www.x3dom.org/">x3dom</a></td>
+         |    </tr>
+         |</table>
+         |
+         |<br/>
+         |<br/>
+         |<br/>
+         |<br/>
+         |$gimages
+         |<p style="max-width: 800px">
+         |    This page is brought to you by
+         |    <a href="http://entelijan.net" TARGET="_blank"> entelijan.net</a>
+         |</body>
+         |</html>
+         |
+         |""".stripMargin
+    val fnam = htmlDir.resolve("index.html")
+    Util.writeString(fnam, html)
   }
 
-  def gaiaImage(gaiaImageId: String): GaiaImage = {
-    gaiaImages
-      .map(gi => (gi.id, gi))
-      .toMap
-      .getOrElse(gaiaImageId, GaiaImage(id = gaiaImageId))
+  def copyResources(htmlDir: Path, modelsDir: Path): Unit = {
+    val projectHtmlDir = Path.of("src", "main", "html")
+    Util.recursiveCopy(projectHtmlDir, htmlDir)
+    val htmlModelsDir = htmlDir.resolve("models")
+    Util.recursiveCopy(modelsDir, htmlModelsDir)
   }
 
-  def createHtmlsForX3d(): Unit = {
+  def createHtml(gaiaImage: GaiaImage, htmlPath: Path): Unit = {
+    val gaiaImageId = gaiaImage.id
+    val htmlFn = s"$gaiaImageId.html"
+    val x3dFn = s"$gaiaImageId.x3d"
+    val file = htmlPath.resolve(htmlFn)
 
-    def createHtml(gaiaImage: GaiaImage): Unit = {
-      val gaiaImageId = gaiaImage.id
-      val htmlFn = s"$gaiaImageId.html"
-      val x3dFn = s"$gaiaImageId.x3d"
-      val file = htmlPath.resolve(htmlFn)
+    val html =
+      s"""
+         |<!DOCTYPE html>
+         |<html lang="en">
+         |<head>
+         |    <meta charset="UTF-8">
+         |    <title>Gaia $gaiaImageId</title>
+         |    <script type='text/javascript' src='js/x3d.js'> </script>
+         |    <link rel='stylesheet' type='text/css' href='css/x3d.css'/>
+         |    <meta name="theme-color" content="#000">
+         |</head>
+         |<body>
+         |<x3d >
+         |    <scene>
+         |        <inline url="models/$x3dFn" />
+         |    </scene>
+         |</x3d>
+         |</body>
+         |</html>""".stripMargin
 
-      val html =
-        s"""
-           |<!DOCTYPE html>
-           |<html lang="en">
-           |<head>
-           |    <meta charset="UTF-8">
-           |    <title>Gaia $gaiaImageId</title>
-           |    <script type='text/javascript' src='js/x3d.js'> </script>
-           |    <link rel='stylesheet' type='text/css' href='css/x3d.css'/>
-           |    <meta name="theme-color" content="#000">
-           |</head>
-           |<body>
-           |<x3d >
-           |    <scene>
-           |        <inline url="models/$x3dFn" />
-           |    </scene>
-           |</x3d>
-           |</body>
-           |</html>""".stripMargin
-
-      Util.writeString(file, html)
-      println(s"created html ${file.toAbsolutePath}")
-    }
-
-    val files = Files.list(Util.modelPath).iterator().asScala.toList
-      .filter(p => p.getFileName.toString.endsWith("x3d"))
-      .map(bareFilename)
-      .map(id => gaiaImage(id))
-      .sortBy(gi => -gi.order)
-
-    files.foreach(createHtml(_))
-    println("-------------------------------------------------------------")
-    files.foreach { gi =>
-      val line = gaiaImageToHtml(gi)
-      println(s"$line")
-    }
-    println("-------------------------------------------------------------")
-
+    Util.writeString(file, html)
+    println(s"created html ${file.toAbsolutePath}")
   }
+
 
   def gaiaImageToHtml(gaiaImage: GaiaImage): String = {
     val videoLink = gaiaImage.video match {
@@ -216,13 +146,6 @@ object Hp {
        |<p class="text">${gaiaImage.text}</p>
        |</div>
        |""".stripMargin.trim
-  }
-
-  // TODO evtl Util
-  private def bareFilename(path: Path): String = {
-    val fnamStr = path.getFileName.toString
-    val idx = fnamStr.lastIndexOf('.')
-    fnamStr.substring(0, idx)
   }
 
 }

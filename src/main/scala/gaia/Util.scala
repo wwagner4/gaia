@@ -2,8 +2,8 @@ package gaia
 
 import gaia.X3d.Color
 
-import java.io.PrintWriter
-import java.nio.file.{Files, Path}
+import java.io.{IOException, PrintWriter}
+import java.nio.file.{Files, Path, StandardCopyOption}
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scala.util.Random
@@ -111,6 +111,21 @@ object Util {
     val f = squaredFunction(start, end)
     xValues(cnt).map(f)
   }
+  
+  def recursiveCopy(sourceDir: Path, destinationDir: Path) = {
+    if (Files.notExists(destinationDir)) Files.createDirectories(destinationDir)
+    Files.walk(sourceDir).forEach((sourcePath: Path) => {
+      def foo(sourcePath: Path) = try {
+        val targetPath = destinationDir.resolve(sourceDir.relativize(sourcePath))
+        printf("Copying %s to %s%n", sourcePath, targetPath)
+        Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
+      } catch {
+        case ex: IOException => printf("I/O error: %s%n", ex)
+      }
+      foo(sourcePath)
+    })
+  }
+
 
 }
 

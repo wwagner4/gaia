@@ -1,7 +1,11 @@
 <project>
+    <!--
+    <property name="WORK" value="/home/wwagner4/work" />
+    -->
+    <property name="WORK" value="/data/work" />
     <target name="copyhp">
         <copy verbose="true" todir="../wwagner4.bitbucket.io/wolfi-hp/gaia" overwrite="true">
-            <fileset dir="src/main/html">
+            <fileset dir="${WORK}/gaia/html">
                 <include name="**/*"/>
                 <exclude name="**/.gitignore"/>
             </fileset>
