@@ -2,8 +2,9 @@ package gaia
 
 import gaia.X3d.Color
 
-import java.io.{IOException, PrintWriter}
+import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
+import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scala.util.Random
@@ -125,6 +126,59 @@ object Util {
       foo(sourcePath)
     })
   }
+
+  def runAllCommands(cmds: Iterable[Iterable[String]], waitForStartMs: Int = 1000): Unit = {
+
+    class StreamGobbler(val inputStream: InputStream,   val errorStream: InputStream) extends Runnable {
+      private def handleInputStream(in: InputStream) = {
+        val br = new BufferedReader(new InputStreamReader(in))
+        try {
+          br.lines().forEach(line => println(line))
+        } finally {
+          br.close()
+        }
+      }
+
+      override def run(): Unit = {
+        println("--- Stream gobble handle input streams")
+        handleInputStream(inputStream)
+        handleInputStream(errorStream)
+      }
+
+    }
+
+    val executor: ExecutorService = Executors.newSingleThreadExecutor
+    try {
+      def start(cmd: List[String]): CompletableFuture[Process] = {
+        val process = new ProcessBuilder()
+          .command(cmd.asJava)
+          .start
+
+        val streamGobbler = StreamGobbler(process.getInputStream(), process.getErrorStream)
+        executor.submit(streamGobbler)
+        println("--- started command: " + cmd.mkString(" "))
+        process.onExit()
+      }
+
+      val fs = for (cmd <- cmds) yield {
+        Thread.sleep(waitForStartMs)
+        start(cmd.toList)
+      }
+      var states = fs.map(f => f.isDone)
+      while (!states.forall(s => s)) {
+        Thread.sleep(3000)
+        val all = states.size
+        val done = states.filter(v => v).size
+        println(s"--- Check futures. $done of $all done")
+        states =  fs.map(f => f.isDone)
+      }
+      val exits = fs.map(f => f.get().exitValue()).mkString(", ")
+      println(s"--- finished all commands. Exit values: $exits")
+    } finally {
+      executor.shutdownNow()
+    }
+  }
+
 
 
 }

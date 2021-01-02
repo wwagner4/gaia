@@ -34,13 +34,15 @@ object Main {
 
   case class MoveConfig(
                          id: String,
-                         viewpointDistance: Double,
+                         viewpoint: Vec,
                          cycleInterval: Int,
                          rotation: RotAxesDeg,
                          rotationAxis: RotAxesDeg = RotAxesDeg.aroundX
                        ) extends Identifiable
 
   case class VideoConfig(
+                          name: String,
+                          references: Seq[String],
                           resolution: Resolution,
                           frameRate: FrameRate,
                           frameCount: Int,
@@ -99,7 +101,8 @@ object Main {
   val actions = toMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     Action("x3d", "create x3d files for an image", createX3d),
-    Action("video", "create video sniplets from an existing x3d model", createVideo),
+    Action("vidDry", "create video sniplets from an existing x3d model", createVideo(true)(_, _)),
+    Action("vid", "create video sniplets from an existing x3d model", createVideo(false)(_, _)),
     Action("test", "create video sniplets from an existing x3d model", Test.test),
   ))
 
@@ -132,11 +135,53 @@ object Main {
       hpOrder = 10,
       renderWithBrowser = true,
       backColor = Color.darkBlue,
+      video = Some("https://www.youtube.com/embed/cEVH0IhlJ4Y"),
       text =
         """One shell around the sun between 7 and 9 kpc. 
           |The shell contains 27104 Stars which are visualized as points.  
           |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
+          |""".stripMargin.trim,
+      videoConfig = Some(VideoConfig(
+        name = "One shell 8kpc",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
+        resolution = Resolution._4k,
+        frameRate = FrameRate._60,
+        frameCount = 2000,
+        moves = Seq(
+          MoveConfig(
+            id = "01",
+            viewpoint = Vec(0, 0, 10),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg.aroundX,
+            rotation = RotAxesDeg(0, 10)
+          ),
+          MoveConfig(
+            id = "02",
+            viewpoint = Vec(0, 0, 20),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(0, 10)
+          ),
+          MoveConfig(
+            id = "03",
+            viewpoint = Vec(5, -1.5, 6),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(90, 70)
+          ),
+          MoveConfig(
+            id = "04",
+            viewpoint = Vec(0, 0, 25),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(180, 20)
+          ),
+        ),
+      )),
+
     ),
     GaiaImage("shs", "multiple shells around the sun", Image1.shellsSphere,
       hpOrder = 40,
@@ -158,17 +203,86 @@ object Main {
           |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell 
           |which are visualized as points.  
           |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
+          |""".stripMargin.trim,
+      video = Some("https://www.youtube.com/embed/JelflHQSamo"),
+      videoConfig = Some(VideoConfig(
+        name = "Three shells",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
+        resolution = Resolution._4k,
+        frameRate = FrameRate._60,
+        frameCount = 2000,
+        moves = Seq(
+          MoveConfig(
+            id = "01",
+            viewpoint = Vec(2, 3, 10),
+            cycleInterval = 80,
+            rotationAxis = RotAxesDeg(90, 45),
+            rotation = RotAxesDeg.aroundX
+          ),
+          MoveConfig(
+            id = "02",
+            viewpoint = Vec(0, 0, 20),
+            cycleInterval = 80,
+            rotationAxis = RotAxesDeg(-90, 45),
+            rotation = RotAxesDeg.aroundY
+          ),
+          MoveConfig(
+            id = "03",
+            viewpoint = Vec(0, 0, 25),
+            cycleInterval = 80,
+            rotationAxis = RotAxesDeg.aroundX,
+            rotation = RotAxesDeg.nearEcliptic
+          ),
+        ),
+      )),
     ),
     GaiaImage("sp2", "stars within a distance of 2 kpc to the sun", Image1.sphere2, hpOrder = 80,
       renderWithBrowser = true,
       backColor = Color.black,
+      video = Some("https://www.youtube.com/embed/lp-Y_jpYmnw"),
       text =
         """Stars around the sun with a maximum distance of 2 kpc.
           |Some stars are filtered out to make the image clearer. 
           |Near the center more stars are filtered out than close to the edge
           |to avoid bulges around the sun.
-          |""".stripMargin.trim
+          |""".stripMargin.trim,
+      videoConfig = Some(VideoConfig(
+        name = "Around the sun 2kpc",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
+        resolution = Resolution._4k,
+        frameRate = FrameRate._60,
+        frameCount = 2000,
+        moves = Seq(
+          MoveConfig(
+            id = "01",
+            viewpoint = Vec(0, 0, 3),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg(20, 34),
+            rotation = RotAxesDeg.aroundZ
+          ),
+          MoveConfig(
+            id = "02",
+            viewpoint = Vec(0, 0, 5),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg(-20, 90),
+            rotation = RotAxesDeg.aroundX
+          ),
+          MoveConfig(
+            id = "03",
+            viewpoint = Vec(0, 0, 2),
+            cycleInterval = 120,
+            rotationAxis = RotAxesDeg(0, 190),
+            rotation = RotAxesDeg.aroundX
+          ),
+        ),
+      )),
+
     ),
     GaiaImage("sp5", "stars within a distance of 5 kpc to the sun", Image1.sphere5,
       hpOrder = 70,
@@ -213,19 +327,24 @@ object Main {
           |Directions of the movement of stars around the sun. Maximum distance 27 pc
           |""".stripMargin.trim,
       videoConfig = Some(VideoConfig(
+        name = "Around the sun 27pc",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
         resolution = Resolution._4k,
         frameRate = FrameRate._60,
         frameCount = 2000,
         moves = Seq(
           MoveConfig(
             id = "nearEcliptic",
-            viewpointDistance = 0.01,
+            viewpoint = Vec(0, 0, 0.01),
             cycleInterval = 60,
             rotation = RotAxesDeg.nearEcliptic
           ),
           MoveConfig(
             id = "steep",
-            viewpointDistance = 0.07,
+            viewpoint = Vec(0, 0, 0.07),
             cycleInterval = 120,
             rotationAxis = RotAxesDeg.aroundY,
             rotation = RotAxesDeg.steep
@@ -252,19 +371,24 @@ object Main {
           |Directions of the movement of stars in a distance of about 45 pc
           |""".stripMargin.trim,
       videoConfig = Some(VideoConfig(
+        name = "Movements near the sun",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
         resolution = Resolution._4k,
         frameRate = FrameRate._60,
         frameCount = 2000,
         moves = Seq(
           MoveConfig(
             id = "nearEcliptic",
-            viewpointDistance = 5,
+            viewpoint = Vec(0, 0, 5),
             cycleInterval = 60,
             rotation = RotAxesDeg.nearEcliptic
           ),
           MoveConfig(
             id = "steep",
-            viewpointDistance = 3,
+            viewpoint = Vec(0, 0, 3),
             cycleInterval = 60,
             rotationAxis = RotAxesDeg.aroundZ,
             rotation = RotAxesDeg.steep
@@ -292,6 +416,105 @@ object Main {
           |Movement of stars in a distance of about 8 kpc from the sun
           |""".stripMargin.trim,
       hpRelevant = false,
+    ),
+    GaiaImage(id = "dir02",
+      desc = "direction and velocety of stars arond the sun",
+      fCreateModel = Image1.dir02,
+      hpOrder = 140,
+      renderWithBrowser = true,
+      video = Some("https://www.youtube.com/embed/NWRHYBLjFv0"),
+      backColor = Color.veryDarkBlue,
+      text =
+        """
+          |Movement of stars around the sun in 3 shells. 
+          |Crosshairs indicate the sun and the center of the galaxy
+          |""".stripMargin.trim,
+      videoConfig = Some(VideoConfig(
+        name = "Directions in 3 shells",
+        references = Seq(
+          "Music Try The Other Door by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch/MUSIC_FOR_TV_FILM__GAMES_VOL1/Try_The_Other_Door",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
+        resolution = Resolution._4k,
+        frameRate = FrameRate._60,
+        frameCount = 2500,
+        moves = Seq(
+          MoveConfig(
+            id = "01",
+            viewpoint = Vec(0, 0, 30),
+            cycleInterval = 200,
+            rotationAxis = RotAxesDeg.aroundX,
+            rotation = RotAxesDeg.nearEcliptic
+          ),
+          MoveConfig(
+            id = "02",
+            viewpoint = Vec(0, 0, 15),
+            cycleInterval = 200,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(0, 0)
+          ),
+          MoveConfig(
+            id = "03",
+            viewpoint = Vec(2, 0, 8),
+            cycleInterval = 200,
+            rotationAxis = RotAxesDeg(80, 5),
+            rotation = RotAxesDeg(90, 45)
+          ),
+        ),
+      )),
+    ),
+    GaiaImage(id = "dirs",
+      desc = "stars as spheres with direction color coded. 8 to 23 kpc",
+      fCreateModel = Image1.dirs,
+      hpOrder = 150,
+      backColor = Color.black,
+      video = Some("https://www.youtube.com/embed/j1GaECAYAi8"),
+      text =
+        """
+          |Movement of stars around the sun in a distance between 8 and 23 kpc.
+          |Crosshairs indicate the sun and the center of the galaxy
+          |""".stripMargin.trim,
+      videoConfig = Some(VideoConfig(
+        name = "Stars as spheres",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
+        resolution = Resolution._4k,
+        frameRate = FrameRate._60,
+        frameCount = 2500,
+        moves = Seq(
+          MoveConfig(
+            id = "01",
+            viewpoint = Vec(0, 0, 20),
+            cycleInterval = 60,
+            rotationAxis = RotAxesDeg.aroundX,
+            rotation = RotAxesDeg.nearEcliptic,
+          ),
+          MoveConfig(
+            id = "02",
+            viewpoint = Vec(0, -5, 30),
+            cycleInterval = 60,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(0, 0),
+          ),
+          MoveConfig(
+            id = "03",
+            viewpoint = Vec(2, 0, 10),
+            cycleInterval = 60,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(180, 190),
+          ),
+          MoveConfig(
+            id = "04",
+            viewpoint = Vec(0, 0, 50),
+            cycleInterval = 60,
+            rotationAxis = RotAxesDeg.aroundZ,
+            rotation = RotAxesDeg(0, 0),
+          ),
+        )
+      ))
+
     ),
     GaiaImage("all", "create all x3d models", createAllModels,
       realCreatable = false,
@@ -356,7 +579,7 @@ object Main {
     }
   }
 
-  def createVideo(args: List[String], workPath: Path): Unit = {
+  def createVideo(isDry: Boolean)(args: List[String], workPath: Path): Unit = {
     val info = "Valid IDs: " + images.values.filter(i => i.videoConfig.isDefined).map(i => i.id).mkString(", ")
     if (args.size < 1) throw new IllegalArgumentException(s"Define an ID for creating videos. $info")
     val id = args(0)
@@ -364,7 +587,7 @@ object Main {
       case None => throw new IllegalArgumentException(s"Unknown ID $id for creating videos. $info")
       case Some(gaiaImage) =>
         println(s"Creating a video for ID ${gaiaImage.id}. ${gaiaImage.desc}")
-        Automove.createAutomove(gaiaImage, workPath)
+        Automove.createAutomove(isDry)(gaiaImage, workPath)
     }
   }
 

@@ -46,7 +46,7 @@ object Image1 {
       starPosDir.dist >= range._1 && starPosDir.dist < range._2
     }
 
-    ranges.forall(inRange)
+    ranges.exists(inRange)
   }
 
   def dir01(id: String, workPath: Path): Unit = {
@@ -67,6 +67,109 @@ object Image1 {
           X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.005)), startColor = bc, endColor = c)
         }
       println(s"filtered ${stars.size} stars")
+      stars
+      ++ shapablesCoordinates(5, bgColor)
+      ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
+    }
+
+    createX3dFile(id, workPath, bgColor, allShapables)
+
+  }
+
+  def dir02(id: String, workPath: Path): Unit = {
+    val bgColor = gaiaImage(id).backColor
+    val ranges = Seq(
+      (9.6, 10.0),
+      (7.8, 8.0),
+      (5.95, 6.0),
+    )
+
+    def allShapables(bc: Color): Seq[Shapable] = {
+      println(s"running $id")
+
+      def adjust(star: StarPosDir): StarPosDir = {
+        val dist = star.pos.length
+        val dist1 = math.ceil(dist)
+        val pos1 = star.pos.norm.mul(dist1)
+        val dir1 = star.dir.norm.mul(-1.0)
+        star.copy(pos = pos1, dir = dir1, dist = dist1)
+      }
+
+      val colors = Palette.p5c8.colors
+      val baseDirectionVec = Vec(1, -1, 1)
+      val stars = basicStars(workPath)
+        .map(StarPosDir.apply)
+        .filter(filterShells(ranges)(_))
+        .map { s =>
+          val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+          val c = colors(ci)
+          X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.003)), startColor = bc, endColor = c)
+        }
+      println(s"filtered ${stars.size} stars")
+      stars
+      ++ shapablesCoordinates(5, bgColor)
+      ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)
+    }
+
+    createX3dFile(id, workPath, bgColor, allShapables)
+
+  }
+
+  def dirs(id: String, workPath: Path): Unit = {
+    val epsBase = 0.4
+    val bgColor = gaiaImage(id).backColor
+    val epsAdj = Seq(
+      8 -> 1.0 / 13,
+      9 -> 1.0 / 9,
+      10 -> 1.0 / 7,
+      11 -> 1.0 / 5,
+      12 -> 1.0 / 4,
+      13 -> 1.0 / 3,
+      14 -> 1.0 / 2,
+      15 -> 1.0 / 2,
+      16 -> 1.0 / 2,
+      ).toMap
+    def eps(dist: Int): Double = {
+    	epsAdj.get(dist).map(adj => adj * epsBase).getOrElse(epsBase)
+    }
+    val ranges = (8 to 23)
+    	.toSeq
+    	.map(v => (v.toDouble - eps(v), v.toDouble))
+    
+    def analyse(stars: Seq[X3d.Shapable.Sphere]): Unit = {
+    	val grouped = stars
+    	  .groupBy(s => math.round(s.translation.length).toInt)
+    	  .map{case (v, l) => (v, l.size)}
+    	  .toSeq
+    	  .sortBy(t => t._1)
+    	println("-- grouped size: " + grouped.size)
+    	grouped.foreach(g => printf("%5d %5d%n",  g._1, g._2))
+    }
+
+
+    def allShapables(bc: Color): Seq[Shapable] = {
+      println(s"running $id")
+
+      def adjust(star: StarPosDir): StarPosDir = {
+        val dist = star.pos.length
+        val dist1 = math.ceil(dist)
+        val pos1 = star.pos.norm.mul(dist1)
+        star.copy(pos = pos1, dist = dist1)
+      }
+
+      val colors = Palette.p5c8.colors
+      val baseDirectionVec = Vec(1, -1, 1)
+      val stars = basicStars(workPath)
+        .map(StarPosDir.apply)
+        .filter(filterShells(ranges)(_))
+        .map(adjust)
+        .map { s =>
+          val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+          val c: Color = colors(ci)
+          X3d.Shapable.Sphere(translation=s.pos, color = c, radius = 0.05)
+        }
+      println(s"filtered ${stars.size} stars")
+      analyse(stars)
       stars
       ++ shapablesCoordinates(5, bgColor)
       ++ shapablesCoordinates(10, bgColor, offset = galacicCenter)

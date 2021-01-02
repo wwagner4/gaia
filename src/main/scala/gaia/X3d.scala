@@ -24,6 +24,20 @@ object X3d {
 
     case p3c5 extends Palette("['rgb(123,50,148)','rgb(194,165,207)','rgb(247,247,247)','rgb(166,219,160)','rgb(0,136,55)']")
 
+    case p4c8 extends Palette("['rgb(255,153,153)','rgb(255,204,153)','rgb(255,255,253)','rgb(204,255,153)','rgb(153,255,153)','rgb(153,255,204)','rgb(153,255,255)','rgb(153,204,255)']")
+
+    case p5c8 extends Palette("['rgb(255,51,51)','rgb(255,153,51)','rgb(255,255,51)','rgb(153,255,51)','rgb(51,155,51)','rgb(51,255,153)','rgb(51,255,255)','rgb(51,153,255)']")
+
+    case p6c6 extends Palette("['rgb(102,255,0)','rgb(102,255,51)','rgb(102,255,102)','rgb(102,255,153)','rgb(102,255,204)','rgb(102,255,255)']")
+
+    case p7c6 extends Palette("['rgb(204,102,0)','rgb(204,102,51)','rgb(204,102,102)','rgb(204,102,153)','rgb(204,102,204)','rgb(204,102,255)']")
+
+    case p8c6 extends Palette("['rgb(255,255,0)','rgb(255,255,51)','rgb(255,255,102)','rgb(255,255,153)','rgb(255,255,204)','rgb(255,255,255)']")
+
+    case p9c6 extends Palette("['rgb(204,102,0)','rgb(204,102,51)','rgb(204,102,102)','rgb(204,102,153)','rgb(204,102,204)','rgb(204,102,255)']")
+
+    case p10c6 extends Palette("['rgb(255,204,0)','rgb(255,204,51)','rgb(255,204,102)','rgb(255,204,153)','rgb(255,204,204)','rgb(255,204,255)']")
+
     def colors: Seq[Color] = {
       val r = """rgb\((.*?)\)""".r
       val colorStrings = for (m <- r.findAllMatchIn(brew)) yield m.group(1)
