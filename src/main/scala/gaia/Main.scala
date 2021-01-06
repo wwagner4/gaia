@@ -49,7 +49,7 @@ object Main {
                           moves: Seq[MoveConfig],
                         )
 
-  enum Resolution(width: Int, height: Int) {
+  enum Resolution(val width: Int, val height: Int) {
 
     def resString = s"${width}x${height}"
 
