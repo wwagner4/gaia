@@ -174,23 +174,23 @@ object ImageUtil {
     Main.images(id)
   }
 
-  def shapablesCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero, zoom: Double = 1.0): Seq[Shapable] = {
+  def shapablesCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     val ccs = CoordinatesColors(
       Color.gray(0.9), bgColor, Color.gray(0.9), bgColor, Color.gray(0.9), bgColor)
-    shapablesCoordinates1(len, ccs, offset, zoom)
+    shapablesCoordinates1(len, ccs, offset)
   }
 
 
-  def shapablesCoordinatesColored(len: Double, bgColor: Color, offset: Vec = Vec.zero, zoom: Double = 1.0): Seq[Shapable] = {
+  def shapablesCoordinatesColored(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     val ccs = CoordinatesColors(
       Color.red, bgColor, 
       Color.yellow, bgColor, 
       Color.green, bgColor)
-    shapablesCoordinates1(len, ccs, offset, zoom)
+    shapablesCoordinates1(len, ccs, offset)
   }
 
 
-  def shapablesCoordinates1(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero, zoom: Double = 1.0): Seq[Shapable] = {
+  def shapablesCoordinates1(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero): Seq[Shapable] = {
     def ends = Seq(
       (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), coordinatesColors.xStart, coordinatesColors.xEnd),
       (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), coordinatesColors.yStart, coordinatesColors.yEnd),
@@ -199,8 +199,8 @@ object ImageUtil {
 
     def coord(e1: Vec, e2: Vec, startColor: Color, endColor: Color): Seq[Line] = {
       Seq(
-        Shapable.Line(start = offset, end = e1, startColor = startColor, endColor = endColor, zoom),
-        Shapable.Line(start = offset, end = e2, startColor = startColor, endColor = endColor, zoom),
+        Shapable.Line(start = offset, end = e1, startColor = startColor, endColor = endColor),
+        Shapable.Line(start = offset, end = e2, startColor = startColor, endColor = endColor),
       )
     }
 
@@ -289,7 +289,7 @@ object ImageUtil {
   }
 
   def nearSunVelo(id: String, workPath: Path, minDist: Double, maxDist: Double, colors: Seq[Color],
-                          lengthFactor: Double, zoom: Double) = {
+                          lengthFactor: Double) = {
     val bgColor = gaiaImage(id).backColor
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
@@ -300,7 +300,7 @@ object ImageUtil {
           val e = s.pos.add(s.dir.mul(0.00005 * lengthFactor))
           val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(a)
-          Seq(Shapable.Line(start = e, end = s.pos, startColor = c, endColor = bgColor, zoom = zoom))
+          Seq(Shapable.Line(start = e, end = s.pos, startColor = c, endColor = bgColor))
         }
     }
 
@@ -311,7 +311,7 @@ object ImageUtil {
       }
       println(s"There are ${stars.size} stars near the sun")
       shapabels(stars = stars).toSeq
-      ++ shapablesCoordinates(maxDist * 1.2, bgColor, zoom = zoom)
+      ++ shapablesCoordinates(maxDist * 1.2, bgColor)
     }
 
     createX3dFile(id, workPath, bgColor, draw _)

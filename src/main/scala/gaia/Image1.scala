@@ -168,8 +168,7 @@ object Image1 {
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
     val lengthFactor = 0.8
-    val zoom = 100.0
-    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor, zoom)
+    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor)
   }
 
   def nearSunVeloOuter(id: String, workPath: Path): Unit = {
@@ -177,8 +176,7 @@ object Image1 {
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
     val lengthFactor = 1.0
-    val zoom = 60.0
-    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor, zoom)
+    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor)
   }
 
   def nearSunDirections27pc(id: String, workPath: Path): Unit = {

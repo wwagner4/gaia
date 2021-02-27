@@ -68,7 +68,7 @@ object X3d {
     def add(other: Vec): Vec = Vec(x + other.x, y + other.y, z + other.z)
 
     def sub(other: Vec): Vec = Vec(x - other.x, y - other.y, z - other.z)
- 
+
     def rotx(a: Double): Vec =
       Vec(
         x,
@@ -317,15 +317,13 @@ object X3d {
     }
 
     case class Line(start: Vec = Vec.zero, end: Vec = Vec(1, 0, 0), startColor: Color = Color.white,
-                    endColor: Color = Color.yellow, zoom: Double = 1.0) extends Shapable {
+                    endColor: Color = Color.yellow) extends Shapable {
       def toShape = {
-        val s = start.mul(zoom)
-        val e = end.mul(zoom)
         s"""
            |<Shape>
            |<IndexedLineSet colorIndex='0 1 -1' coordIndex='0 1 -1'>
            |  <Color color='${startColor.strNoComma} ${endColor.strNoComma}'/>
-           |  <Coordinate point='${s.strNoComma}  ${e.strNoComma}'/>
+           |  <Coordinate point='${start.strNoComma}  ${end.strNoComma}'/>
            |</IndexedLineSet>
            |</Shape>
            |""".stripMargin
