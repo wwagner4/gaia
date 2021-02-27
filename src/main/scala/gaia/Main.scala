@@ -527,7 +527,16 @@ object Main {
     ),
     GaiaImage(id = "agc",
       desc = "around the galactic center",
-      fCreateModel = Image2.aroundGalacticCenter,
+      fCreateModel = Image2.aroundGalacticCenterSpheres,
+      backColor = Color.veryDarkBlue,
+      text =
+        """Stars around the galactic center
+          |""".stripMargin.trim,
+      hpRelevant = false,
+    ),
+    GaiaImage(id = "agcd",
+      desc = "around the galactic center",
+      fCreateModel = Image2.aroundGalacticCenterDirections,
       backColor = Color.veryDarkBlue,
       text =
         """Stars around the galactic center

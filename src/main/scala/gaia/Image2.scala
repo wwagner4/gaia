@@ -12,14 +12,14 @@ import scala.util.Random
 
 object Image2 {
 
-  def aroundGalacticCenter(id: String, workPath: Path): Unit = {
+  def aroundGalacticCenterSpheres(id: String, workPath: Path): Unit = {
     println("running around the galactic center")
 
     val maxDist = 1.7
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
     val cnt = cols.size
     val dens = 1
- 
+
     def colorForDistance(s: StarPosDir): Color = {
       val i = math.floor(cnt * s.pos.length / maxDist).toInt
       cols(i)
@@ -32,20 +32,57 @@ object Image2 {
         .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
       println(s"filtered ${stars.size} stars")
 
-      //val poss = stars.map(s => s.pos)
-      //val starShapes = Seq(Shapable.PointSet(positions = poss, color = Color.green))
-
       val starShapes = stars.map(s => Shapable.Sphere(s.pos, radius = 0.01, color = colorForDistance(s)))
-
       val sun = Util.toGalacticCoords(Util.galacicCenter.mul(-1))
 
       starShapes
-      ++ (2 to (25, 2)).map{r => 
-        Shapable.Circle(translation = Vec.zero, 
-          rotation = Vec(0, X3d.degToRad(90), 0), 
+      ++ (2 to (25, 2)).map{r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, X3d.degToRad(90), 0),
           color=Color.gray(0.1), radius = r * 0.1)}
       ++ shapablesCoordinates1(2, Color.gray(0.5), bgColor)
-      //++ shapablesCoordinates1(3, Color.gray(0.2), bgColor, sun)
+    }
+
+    createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
+  }
+
+  def aroundGalacticCenterDirections(id: String, workPath: Path): Unit = {
+    println("running around the galactic center")
+
+    val maxDist = 2
+    val cols: Seq[Color] = X3d.Palette.p9c6.colors
+    val cnt = cols.size
+    val dens = 1.0
+
+    def colorForDistance(s: StarPosDir): Color = {
+      val i = math.floor(cnt * s.pos.length / maxDist).toInt
+      cols(i)
+    }
+
+    def draw(bgColor: Color): Seq[Shapable] = {
+      import X3d._
+
+      val stars = basicStars(workPath)
+        .map(toStarPosDirGalactic)
+        .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
+      println(s"filtered ${stars.size} stars")
+      
+      val baseDirectionVec = Vec(1, -1, 1)
+      val colors = Palette.p5c8 .colors
+      val starShapes = stars.map{s =>
+        val d = s.dir.mul(0.0007)
+        val e = s.pos.add(d)
+        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+        val c = colors(ci)
+        Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bgColor)
+      }
+
+      starShapes
+      ++ (1 to (30, 1)).map{r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, X3d.degToRad(90), 0),
+          color=Color.gray(0.1), radius = r * 0.1)}
+      ++ shapablesCoordinates1(4, Color.gray(0.5), bgColor)
     }
 
     createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
