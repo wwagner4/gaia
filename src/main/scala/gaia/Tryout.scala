@@ -10,11 +10,15 @@ import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
-object Test {
+object Tryout {
 
-  def test(args: List[String], workPath: Path): Unit = {
+  def doit(args: List[String], workPath: Path): Unit = {
     println(s"Some tests ${workPath.toAbsolutePath} ${args.mkString("[", ",", "]")}")
+    
+    println(Util.galacicCenter)
+  }
 
+  private def execCmds = {
     val cmds = Seq(
       Seq("wget", "https://google.com"),
       Seq("wget", "http://entelijan.net"),

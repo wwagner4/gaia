@@ -67,7 +67,30 @@ object X3d {
 
     def add(other: Vec): Vec = Vec(x + other.x, y + other.y, z + other.z)
 
-    def length: Double = math.sqrt((x * x) + (y * y) + (z * z))
+    def sub(other: Vec): Vec = Vec(x - other.x, y - other.y, z - other.z)
+ 
+    def rotx(a: Double): Vec =
+      Vec(
+        x,
+        y * math.cos(a) - z * math.sin(a),
+        y * math.sin(a) + z * math.cos(a),
+      )
+
+    def roty(a: Double): Vec =
+      Vec(
+        x * math.cos(a) + z * math.sin(a),
+        y,
+        -x * math.sin(a) + z * math.cos(a),
+      )
+
+    def rotz(a: Double): Vec =
+      Vec(
+        x * math.cos(a) - y * math.sin(a),
+        x * math.sin(a) + y * math.cos(a),
+        z,
+      )
+
+    lazy val length: Double = math.sqrt((x * x) + (y * y) + (z * z))
 
     def norm: Vec = {
       val l = length

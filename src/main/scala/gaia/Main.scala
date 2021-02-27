@@ -103,7 +103,7 @@ object Main {
     Action("x3d", "create x3d files for an image", createX3d),
     Action("vidDry", "create video sniplets from an existing x3d model", createVideo(true)(_, _)),
     Action("vid", "create video sniplets from an existing x3d model", createVideo(false)(_, _)),
-    Action("test", "create video sniplets from an existing x3d model", Test.test),
+    Action("tryout", "Tryout something during development", Tryout.doit),
   ))
 
   case class GaiaImage(
@@ -121,6 +121,16 @@ object Main {
                       ) extends Identifiable
 
   val images: Map[String, GaiaImage] = toMap(Seq(
+    GaiaImage("gal", "The whole galaxy", Image1.oneShellSpheres,
+      hpOrder = 20,
+      video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
+      backColor = Color.darkBlue,
+      text =
+        """One shell around the sun between 7 and 9 kpc. 
+          |The shell contains 2710 Stars which are visualized as spheres.  
+          |The sun and the galactic center is displayed as crosshairs.
+          |""".stripMargin.trim
+    ),
     GaiaImage("oss", "one shell around the galactic center with spheres", Image1.oneShellSpheres,
       hpOrder = 20,
       video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
@@ -514,7 +524,61 @@ object Main {
           ),
         )
       ))
-
+    ),
+    GaiaImage(id = "agc",
+      desc = "around the galactic center",
+      fCreateModel = Image2.aroundGalacticCenter,
+      backColor = Color.veryDarkBlue,
+      text =
+        """Stars around the galactic center
+          |""".stripMargin.trim,
+      hpRelevant = false,
+    ),
+    GaiaImage(id = "dens",
+      desc = "density of stars as shown by gaia",
+      fCreateModel = Image2.dens,
+      hpOrder = 170,
+      backColor = Color.veryDarkBlue,
+      video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
+      text =
+        """Density of stars seen by gaia in a cube around the center of 
+          |galaxy. The side of that cube is 16 kpc. 
+          |Regions with many stars are marked as green bowls.
+          |The center of the galaxy is marked with a crosshair.
+          |""".stripMargin.trim,
+      videoConfig = Some(VideoConfig(
+        name = "Stars density",
+        references = Seq(
+          "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+          "More: http://entelijan.net/wolfi-hp/gaia/"
+        ),
+        resolution = Resolution._4k,
+        frameRate = FrameRate._60,
+        frameCount = 2500,
+        moves = Seq(
+          MoveConfig(
+            id = "01",
+            viewpoint = Vec(-2, 0, 20),
+            cycleInterval = 100,
+            rotationAxis = RotAxesDeg.aroundX,
+            rotation = RotAxesDeg(20, 40),
+          ),
+          MoveConfig(
+            id = "02",
+            viewpoint = Vec(-2, 0, 10),
+            cycleInterval = 60,
+            rotationAxis = RotAxesDeg.aroundY,
+            rotation = RotAxesDeg(110, 20),
+          ),
+          MoveConfig(
+            id = "03",
+            viewpoint = Vec(-1, 0, 25),
+            cycleInterval = 80,
+            rotationAxis = RotAxesDeg.aroundX,
+            rotation = RotAxesDeg(120, 155),
+          ),
+        )
+      ))
     ),
     GaiaImage("all", "create all x3d models", createAllModels,
       realCreatable = false,

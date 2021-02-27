@@ -1,6 +1,6 @@
 package gaia
 
-import gaia.X3d.Color
+import gaia.X3d.{Color, Vec, degToRad}
 
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
@@ -10,6 +10,8 @@ import scala.language.implicitConversions
 import scala.util.Random
 
 object Util {
+
+  val galacicCenter = Util.toVec(266.25, -28.94, 8)
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 
@@ -53,7 +55,7 @@ object Util {
       br.close()
     }
   }
-
+ 
   def toVec(ra: Double, dec: Double, dist: Double): X3d.Vec = {
     val r = math.Pi / 180
     val x = math.cos(ra * r) * math.cos(dec * r) * dist
@@ -179,7 +181,10 @@ object Util {
     }
   }
 
-
+  def toGalacticPos(pos: Vec): Vec = pos.sub(galacicCenter)
+  def toGalacticCoords(pos: Vec): Vec = pos
+    .rotx(degToRad(27.13))
+    .roty(degToRad(-28.94))
 
 }
 
