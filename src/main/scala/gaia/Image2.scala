@@ -89,11 +89,11 @@ object Image2 {
         .flatMap { case (k, v) =>
           if (v <= 0.01) {
             val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
-            Some(Shapable.Sphere(translation = pos, color = Color.gray(0.4), radius = 0.01 * 0.6))
+            Some(Shapable.Sphere(position = pos, color = Color.gray(0.4), radius = 0.01 * 0.6))
           }
           else {
             val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
-            Some(Shapable.Sphere(translation = pos, color = Color.green, radius = v * 0.6))
+            Some(Shapable.Sphere(position = pos, color = Color.green, radius = v * 0.6))
           }
         }
       shapes

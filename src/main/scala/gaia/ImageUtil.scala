@@ -279,7 +279,7 @@ object ImageUtil {
   def shapabelsStarsToSpheres(radius: Double, color: Color)(stars: Iterable[Star]): Iterable[Shapable] = {
     stars
       .map(toVec)
-      .map(v => Shapable.Sphere(translation = v, color = color, radius = radius, solid = false))
+      .map(v => Shapable.Sphere(position = v, color = color, radius = radius, solid = false))
   }
 
   def shapabelsStarsToPoints(color: Color)(stars: Iterable[Star]): Iterable[Shapable] = {

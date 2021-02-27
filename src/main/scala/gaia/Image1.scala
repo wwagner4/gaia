@@ -107,7 +107,7 @@ object Image1 {
 
     def analyse(stars: Seq[X3d.Shapable.Sphere]): Unit = {
       val grouped = stars
-        .groupBy(s => math.round(s.translation.length).toInt)
+        .groupBy(s => math.round(s.position.length).toInt)
         .map { case (v, l) => (v, l.size) }
         .toSeq
         .sortBy(t => t._1)
@@ -135,7 +135,7 @@ object Image1 {
         .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c: Color = colors(ci)
-          X3d.Shapable.Sphere(translation = s.pos, color = c, radius = 0.05)
+          X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.05)
         }
       println(s"filtered ${stars.size} stars")
       analyse(stars)
@@ -191,8 +191,7 @@ object Image1 {
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           // println(s)
           val c = Color.orange.mul(br)
-          Seq(Shapable.Cylinder(pos = s.pos, rotation = s.dir, color = c,
-            radius = radius, height = radius * 100))
+          Seq(Shapable.Cylinder(position = s.pos, rotation = s.dir, radius = radius, height = radius * 100, color = c))
         }
     }
 

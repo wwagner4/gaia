@@ -212,11 +212,10 @@ object X3d {
 
   object Shapable {
 
-    case class Cylinder(pos: Vec, color: Color, radius: Double = 1.0, height: Double = 1.0,
-                        rotation: Vec = Vec.zero) extends Shapable {
+    case class Cylinder(position: Vec, rotation: Vec = Vec.zero, radius: Double = 1.0, height: Double = 1.0, color: Color) extends Shapable {
       def toShape = {
         s"""
-           |<Transform translation='${pos.strNoComma}'>
+           |<Transform translation='${position.strNoComma}'>
            |<Transform rotation='1 0 0 ${rotation.x}' center='0, 0, 0'>
            |<Transform rotation='0 1 0 ${rotation.y}' center='0, 0, 0'>
            |<Transform rotation='0 0 1 ${rotation.z}' center='0, 0, 0'>
@@ -234,11 +233,11 @@ object X3d {
       }
     }
 
-    case class Box(pos: Vec, rotaion: Vec = Vec.zero, color: Color = Color.orange, size: Vec = Vec(1, 1, 1),
+    case class Box(position: Vec, rotaion: Vec = Vec.zero, color: Color = Color.orange, size: Vec = Vec(1, 1, 1),
                    solid: Boolean = true) extends Shapable {
       def toShape = {
         s"""
-           |<Transform translation='${pos.strNoComma}'>
+           |<Transform translation='${position.strNoComma}'>
            |<Transform rotation='1 0 0 ${rotaion.x}' center='0, 0, 0'>
            |<Transform rotation='0 1 0 ${rotaion.y}' center='0, 0, 0'>
            |<Transform rotation='0 0 1 ${rotaion.z}' center='0, 0, 0'>
@@ -273,11 +272,11 @@ object X3d {
       }
     }
 
-    case class Sphere(translation: Vec, color: Color = Color.orange, radius: Double = 1.0,
+    case class Sphere(position: Vec, color: Color = Color.orange, radius: Double = 1.0,
                       solid: Boolean = false) extends Shapable {
       def toShape = {
         s"""
-           |<Transform translation='${translation.strNoComma}'>
+           |<Transform translation='${position.strNoComma}'>
            |  <Shape>
            |     <Sphere radius='${radius}' solid='$solid'/>
            |     <Appearance>
