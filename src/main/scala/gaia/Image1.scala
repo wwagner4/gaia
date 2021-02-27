@@ -35,8 +35,8 @@ object Image1 {
         }
       println(s"filtered ${stars.size} stars")
       stars
-      ++ shapablesCoordinates(5, bgColor)
-      ++ shapablesCoordinates(10, bgColor, offset = Util.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bgColor)
+      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
     }
 
     createX3dFile(id, workPath, bgColor, allShapables)
@@ -74,8 +74,8 @@ object Image1 {
         }
       println(s"filtered ${stars.size} stars")
       stars
-      ++ shapablesCoordinates(5, bgColor)
-      ++ shapablesCoordinates(10, bgColor, offset = Util.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bgColor)
+      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
     }
 
     createX3dFile(id, workPath, bgColor, allShapables)
@@ -140,8 +140,8 @@ object Image1 {
       println(s"filtered ${stars.size} stars")
       analyse(stars)
       stars
-      ++ shapablesCoordinates(5, bgColor)
-      ++ shapablesCoordinates(10, bgColor, offset = Util.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bgColor)
+      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
     }
 
     createX3dFile(id, workPath, bgColor, allShapables)
@@ -150,13 +150,12 @@ object Image1 {
 
   def gc(id: String, workPath: Path): Unit = {
     val bgColor = gaiaImage(id).backColor
-    val coordinatesColors = CoordinatesColors(Color.red, bgColor, Color.yellow, bgColor, Color.green, bgColor)
     val rotation = Vec(X3d.degToRad(-4), X3d.degToRad(96), X3d.degToRad(0))
 
     def allShapables(bc: Color): Seq[Shapable] = {
       Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
-      ++ shapablesCoordinates1(5, coordinatesColors)
-      ++ shapablesCoordinates1(10, coordinatesColors, offset = Util.galacicCenter)
+      ++ shapablesCoordinatesColored(5, bgColor)
+      ++ shapablesCoordinatesColored(10, bgColor, offset = Util.galacicCenter)
     }
 
     createX3dFile(id, workPath, bgColor, allShapables)
@@ -192,7 +191,7 @@ object Image1 {
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           // println(s)
           val c = Color.orange.mul(br)
-          Seq(Shapable.Cylinder(translation = s.pos, rotation = s.dir, color = c,
+          Seq(Shapable.Cylinder(pos = s.pos, rotation = s.dir, color = c,
             radius = radius, height = radius * 100))
         }
     }
@@ -201,7 +200,7 @@ object Image1 {
       val stars = nearSunStars(workPath).filter(s => 1 / s.parallax < maxDist)
       println(s"There are ${stars.size} stars near the sun")
       shapabels(radius = radius)(stars = stars).toSeq
-      ++ shapablesCoordinates(maxDist * 1.2, bgColor)
+      ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
     }
 
     createX3dFile(id, workPath, bgColor, allShapables)

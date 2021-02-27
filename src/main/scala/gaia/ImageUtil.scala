@@ -174,23 +174,22 @@ object ImageUtil {
     Main.images(id)
   }
 
-  def shapablesCoordinates(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
+  def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     val ccs = CoordinatesColors(
       Color.gray(0.9), bgColor, Color.gray(0.9), bgColor, Color.gray(0.9), bgColor)
-    shapablesCoordinates1(len, ccs, offset)
+    shapablesCoordinates(len, ccs, offset)
   }
 
 
   def shapablesCoordinatesColored(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     val ccs = CoordinatesColors(
-      Color.red, bgColor, 
-      Color.yellow, bgColor, 
+      Color.red, bgColor,
+      Color.yellow, bgColor,
       Color.green, bgColor)
-    shapablesCoordinates1(len, ccs, offset)
+    shapablesCoordinates(len, ccs, offset)
   }
 
-
-  def shapablesCoordinates1(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero): Seq[Shapable] = {
+  private def shapablesCoordinates(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero): Seq[Shapable] = {
     def ends = Seq(
       (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), coordinatesColors.xStart, coordinatesColors.xEnd),
       (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), coordinatesColors.yStart, coordinatesColors.yEnd),
@@ -211,8 +210,8 @@ object ImageUtil {
 
 
   def sphere(id: String, workPath: Path, shellCnt: Int, shellThikness: Double,
-                     startProb: Double, endProb: Double,
-                     startColor: Color, endColor: Color) = {
+             startProb: Double, endProb: Double,
+             startColor: Color, endColor: Color) = {
     def draw(bgColor: Color): Seq[Shapable] = {
       val shells = (0 until shellCnt)
         .map(i => shellThikness * i)
@@ -227,22 +226,22 @@ object ImageUtil {
           println(f"filtered ${stars.size} stars for shell $s%.2f $p%.4f")
           shapabelsStarsToPoints(color = c)(stars = stars)
       }
-      ++ shapablesCoordinates(5, bgColor)
+      ++ shapablesCoordinatesGray(5, bgColor)
     }
 
     createX3dFile(id, workPath, Color.black, draw _)
   }
 
   def oneShell(id: String, workPath: Path, min: Double, max: Double, starProb: Double,
-                       starsToShapable: Iterable[Star] => Iterable[Shapable]) = {
+               starsToShapable: Iterable[Star] => Iterable[Shapable]) = {
     def draw(bgColor: Color): Seq[Shapable] = {
 
       val stars = basicStars(workPath)
         .filter(filterShell(min, max, starProb)(_))
       println(s"using ${stars.size} stars for image1 $id")
       starsToShapable(stars).toSeq
-      ++ shapablesCoordinates(5, bgColor)
-      ++ shapablesCoordinates(10, bgColor, offset = Util.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bgColor)
+      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
     }
 
     createX3dFile(id, workPath, gaiaImage(id).backColor, draw _)
@@ -260,8 +259,8 @@ object ImageUtil {
           shellDef.starsToShapable(stars)
         }
       shapes
-      ++ shapablesCoordinates(5, bgColor)
-      ++ shapablesCoordinates(10, bgColor, offset = Util.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bgColor)
+      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
     }
 
     val imgFile = x3dFilePath(workPath, id)
@@ -289,7 +288,7 @@ object ImageUtil {
   }
 
   def nearSunVelo(id: String, workPath: Path, minDist: Double, maxDist: Double, colors: Seq[Color],
-                          lengthFactor: Double) = {
+                  lengthFactor: Double) = {
     val bgColor = gaiaImage(id).backColor
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
@@ -311,7 +310,7 @@ object ImageUtil {
       }
       println(s"There are ${stars.size} stars near the sun")
       shapabels(stars = stars).toSeq
-      ++ shapablesCoordinates(maxDist * 1.2, bgColor)
+      ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
     }
 
     createX3dFile(id, workPath, bgColor, draw _)

@@ -1,7 +1,7 @@
 package gaia
 
 import gaia.Data.Star
-import gaia.ImageUtil.{StarPosDir, basicStars, createX3dFile, gaiaImage, shapablesCoordinates, shapablesCoordinatesColored, toStarPosDirGalactic}
+import gaia.ImageUtil.{StarPosDir, basicStars, createX3dFile, gaiaImage, shapablesCoordinatesGray, shapablesCoordinatesColored, toStarPosDirGalactic}
 import gaia.X3d.{Color, Shapable, Vec}
 
 import java.io.File
@@ -30,10 +30,10 @@ object Image2 {
         .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
       println(s"filtered ${stars.size} stars")
       val poss = stars.map(s => s.pos)
-      val starShapes = Seq(Shapable.PointSet(positions = poss, color=Color.gray(0.5)))
+      val starShapes = Seq(Shapable.PointSet(positions = poss, color = Color.gray(0.5)))
       //val starShapes = stars.map(s => Shapable.Sphere(translation = s.pos, radius = 0.005, color = colorForDistance(s)))
       starShapes
-      ++ Seq(Shapable.Circle(translation=Vec.zero, radius = 7.0))
+      ++ Seq (Shapable.Circle(translation = Vec.zero, radius = 7.0))
       ++ shapablesCoordinatesColored(3, bgColor)
       ++ shapablesCoordinatesColored(3, bgColor, Util.galacicCenter.mul(-1))
 
@@ -54,8 +54,9 @@ object Image2 {
         if (dv < 0.000001) None
         else Some("%d,%d,%d,%.6f".formatLocal(Locale.ENGLISH, d._1._1, d._1._2, d._1._3, d._2))
       }
+
       val h = Seq("x", "y", "z", "dens", "\n").mkString(",")
-      val v =   densities.flatMap(d2Str).mkString("\n")
+      val v = densities.flatMap(d2Str).mkString("\n")
       val all = h + v
       val fnam = "densities.csv"
       val outDir = workPath.resolve("data")
@@ -74,7 +75,7 @@ object Image2 {
     val counts = for (i <- -cubeCount until cubeCount;
                       j <- -cubeCount until cubeCount;
                       k <- -cubeCount until cubeCount) yield {
-      val sc = stars.map { s => if (ic(s.pos, i, j, k)) 1 else 0 } 
+      val sc = stars.map { s => if (ic(s.pos, i, j, k)) 1 else 0 }
       ((i, j, k), sc.sum)
     }
     val maxCount = counts.map { case (_, v) => v }.max
@@ -96,7 +97,7 @@ object Image2 {
           }
         }
       shapes
-      ++ shapablesCoordinates(3, bgColor)
+      ++ shapablesCoordinatesGray(3, bgColor)
     }
 
     createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
