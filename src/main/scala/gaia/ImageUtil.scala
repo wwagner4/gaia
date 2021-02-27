@@ -175,11 +175,13 @@ object ImageUtil {
   }
 
   def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
-    val ccs = CoordinatesColors(
-      Color.gray(0.9), bgColor, Color.gray(0.9), bgColor, Color.gray(0.9), bgColor)
-    shapablesCoordinates(len, ccs, offset)
+    shapablesCoordinates1(len, Color.gray(0.9), bgColor, offset)
   }
 
+  def shapablesCoordinates1(len: Double, color: Color, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
+    val ccs = CoordinatesColors(color, bgColor, color, bgColor, color, bgColor)
+    shapablesCoordinates(len, ccs, offset)
+  }
 
   def shapablesCoordinatesColored(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     val ccs = CoordinatesColors(
@@ -327,7 +329,7 @@ object ImageUtil {
 
   def toStarPosDirGalactic(star: Star): StarPosDir = {
     val spd = StarPosDir.fromStar(star)
-    val gpos = Util.toGalacticPos(spd.pos)
+    val gpos = Util.toGalacticCoords(Util.toGalacticPos(spd.pos))
     spd.copy(pos = gpos)
   }
 

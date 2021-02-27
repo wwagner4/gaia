@@ -1,7 +1,8 @@
 package gaia
 
 import gaia.Data.Star
-import gaia.ImageUtil.{StarPosDir, basicStars, createX3dFile, gaiaImage, shapablesCoordinatesGray, shapablesCoordinatesColored, toStarPosDirGalactic}
+import gaia.ImageUtil._
+import gaia.Util.toGalacticCoords
 import gaia.X3d.{Color, Shapable, Vec}
 
 import java.io.File
@@ -14,29 +15,37 @@ object Image2 {
   def aroundGalacticCenter(id: String, workPath: Path): Unit = {
     println("running around the galactic center")
 
-    val maxDist = 5
+    val maxDist = 1.7
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
     val cnt = cols.size
-    val dens = 0.05
-
+    val dens = 1
+ 
     def colorForDistance(s: StarPosDir): Color = {
       val i = math.floor(cnt * s.pos.length / maxDist).toInt
       cols(i)
     }
 
     def draw(bgColor: Color): Seq[Shapable] = {
+
       val stars = basicStars(workPath)
         .map(toStarPosDirGalactic)
         .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
       println(s"filtered ${stars.size} stars")
-      val poss = stars.map(s => s.pos)
-      val starShapes = Seq(Shapable.PointSet(positions = poss, color = Color.gray(0.5)))
-      //val starShapes = stars.map(s => Shapable.Sphere(translation = s.pos, radius = 0.005, color = colorForDistance(s)))
-      starShapes
-      ++ Seq (Shapable.Circle(translation = Vec.zero, radius = 7.0))
-      ++ shapablesCoordinatesColored(3, bgColor)
-      ++ shapablesCoordinatesColored(3, bgColor, Util.galacicCenter.mul(-1))
 
+      //val poss = stars.map(s => s.pos)
+      //val starShapes = Seq(Shapable.PointSet(positions = poss, color = Color.green))
+
+      val starShapes = stars.map(s => Shapable.Sphere(s.pos, radius = 0.01, color = colorForDistance(s)))
+
+      val sun = Util.toGalacticCoords(Util.galacicCenter.mul(-1))
+
+      starShapes
+      ++ (2 to (25, 2)).map{r => 
+        Shapable.Circle(translation = Vec.zero, 
+          rotation = Vec(0, X3d.degToRad(90), 0), 
+          color=Color.gray(0.1), radius = r * 0.1)}
+      ++ shapablesCoordinates1(2, Color.gray(0.5), bgColor)
+      //++ shapablesCoordinates1(3, Color.gray(0.2), bgColor, sun)
     }
 
     createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
