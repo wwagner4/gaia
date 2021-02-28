@@ -371,6 +371,15 @@ object Main {
           |Directions of the movement of stars in a distance up to 40 pc
           |""".stripMargin.trim
     ),
+    GaiaImage("dirtest", "direction and velocety of stars to a distace of 40 pc", Image1.nearSunDirtest,
+      hpOrder = 100,
+      renderWithBrowser = true,
+      backColor = Color.black,
+      text =
+        """
+          |Directions of the movement of stars in a distance up to 40 pc
+          |""".stripMargin.trim
+    ),
     GaiaImage("ntsdvo", "direction and velocety of stars of 45 pc distance", Image1.nearSunVeloOuter,
       hpOrder = 110,
       renderWithBrowser = true,

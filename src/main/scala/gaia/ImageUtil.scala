@@ -141,27 +141,20 @@ object ImageUtil {
     Util.toVec(ra, dec, dist)
   }
 
+  // constants for 'toDir'
+  val parsecToMeter = 3.08567758e16
+  val yearToSeconds = 3.154e7
+  val k0 = math.Pi * 1e-6 / (3 * 180)
+  val k1 = k0 * parsecToMeter / yearToSeconds
+
   def toDir(star: Star): Vec = {
-
-    // in mas milli arc seconds per year
-    val ra = star.pmra
-
-    // in mas milli arc seconds per year
-    val dec = star.pmdec
     val dist = 1 / star.parallax
-
-    // in km / second
     val z = star.radialVelocity
-
-    //  1 Parsec = 3.08567758e16 Meter 
-    val parsecToMeter = 3.08567758e16
-
-    // 1 Year = 3.154 Seconds
-    val yearToSeconds = 3.154e7
-    val k0 = math.Pi * 1e-6 / (3 * 180)
-    val x = dist * k0 * ra * parsecToMeter / yearToSeconds
-    val y = dist * k0 * dec * parsecToMeter / yearToSeconds
+    val x = dist * star.pmra * k1
+    val y = dist * star.pmdec * k1
     Vec(x, y, z)
+      .rotx(X3d.degToRad(-star.ra))
+      //.rotz(X3d.degToRad(star.dec))
   }
 
   def createX3dFile(id: String, workPath: Path, bgColor: Color, createShapables: Color => Seq[Shapable]) = {

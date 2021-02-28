@@ -170,11 +170,45 @@ object Image1 {
     nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor)
   }
 
+  def nearSunDirtest(id: String, workPath: Path): Unit = {
+    val minDist = 0.03
+    val maxDist = 0.032
+    val colors = Palette.p1c10.colors
+    val lengthFactor = 10.0
+    val bgColor = gaiaImage(id).backColor
+    val baseDirectionVec = Vec(1.0, 1.0, 0.0)
+
+    def shapabels(stars: Iterable[Star]): Iterable[Shapable] = {
+      stars
+        .map(s => s.copy(pmra=0.0, pmdec=0.0, radialVelocity = 20.0, parallax = 1 / 0.03))
+        .map(StarPosDir.fromStar)
+        .map { s =>
+          val e = s.pos.add(s.dir.mul(0.00005 * lengthFactor))
+          val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+          val c = colors(a)
+          Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bgColor)
+        }
+    }
+
+    def draw(bgColor: Color): Seq[Shapable] = {
+      val stars = nearSunStars(workPath).filter { s =>
+        val dist = 1 / s.parallax
+        dist < maxDist && dist > minDist
+      }
+      println(s"There are ${stars.size} stars near the sun")
+      shapabels(stars = stars).toSeq
+      ++ shapablesCoordinatesColored(maxDist * 1.2, bgColor)
+    }
+
+    createX3dFile(id, workPath, bgColor, draw _)
+
+  }
+
   def nearSunVeloOuter(id: String, workPath: Path): Unit = {
     val minDist = 0.04
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
-    val lengthFactor = 1.0
+    val lengthFactor = 2.0
     nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor)
   }
 
@@ -189,7 +223,6 @@ object Image1 {
         .map(StarPosDir.fromStar)
         .flatMap { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
-          // println(s)
           val c = Color.orange.mul(br)
           Seq(Shapable.Cylinder(position = s.pos, rotation = s.dir, radius = radius, height = radius * 100, color = c))
         }
