@@ -181,9 +181,13 @@ object Util {
     }
   }
 
-  def toGalacticPos(pos: Vec): Vec = pos.sub(galacicCenter)
-  //def toGalacticCoords(pos: Vec): Vec = pos.roty(X3d.degToRad(-27.13)).rotz(X3d.degToRad(-28.94))
-  def toGalacticCoords(pos: Vec): Vec = pos.rotx(X3d.degToRad(-27.13)).roty(X3d.degToRad(-28.94))
+  def toGalacticPos(pos: Vec): Vec = 
+    pos.sub(galacicCenter)
+
+  def toGalacticCoords(pos: Vec): Vec = 
+    pos
+      .rotx(X3d.degToRad(-27.13))
+      .roty(X3d.degToRad(-28.94))
 
 }
 
