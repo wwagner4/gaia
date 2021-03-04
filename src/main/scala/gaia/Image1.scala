@@ -174,7 +174,7 @@ object Image1 {
     val minDist = 0.03
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
-    val lengthFactor = 5.0
+    val lengthFactor = 2.0
     val bgColor = gaiaImage(id).backColor
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
