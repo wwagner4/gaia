@@ -149,12 +149,14 @@ object ImageUtil {
 
   def toDir(star: Star): Vec = {
     val dist = 1 / star.parallax
-    val x = dist * star.pmra * k1
+    val z = dist * star.pmra * k1
     val y = dist * star.pmdec * k1
-    val z = star.radialVelocity
-    Vec(x, y, z)
-      .roty(X3d.degToRad(- star.dec - 90))
-//      .roty(X3d.degToRad(star.dec + 28))
+    val x = star.radialVelocity
+    val sp = Vec(x, y, z).toPolarVec
+    val sp1 = sp.copy(
+      dec = sp.dec + X3d.degToRad(star.ra), 
+      ra = sp.ra - X3d.degToRad(star.dec))
+    sp1.toVec
   }
 
   def createX3dFile(id: String, workPath: Path, bgColor: Color, createShapables: Color => Seq[Shapable]) = {

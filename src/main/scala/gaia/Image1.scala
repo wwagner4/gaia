@@ -174,17 +174,14 @@ object Image1 {
     val minDist = 0.03
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
-    val lengthFactor = 10.0
+    val lengthFactor = 20.0
     val bgColor = gaiaImage(id).backColor
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
     def shapabels(stars: Iterable[Star]): Iterable[Shapable] = {
-      val ras = stars.map(s => s.ra).toSeq.sorted.mkString("|")
-      val decs = stars.map(s => s.dec).toSeq.sorted.mkString("|")
-      println(ras)
       stars
         .map(s => s.copy(pmra=0.0, pmdec=0.0, radialVelocity = -20.0, parallax = 1 / 0.03))
-        .filter(s => s.ra > 350 || s.ra < 10)
+       // .filter(s => s.ra > 80 && s.ra < 100 || s.ra > 260 && s.ra < 280)
         .map(StarPosDir.fromStar)
         .map { s =>
           val e = s.pos.add(s.dir.mul(0.00005 * lengthFactor))
