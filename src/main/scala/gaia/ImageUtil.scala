@@ -149,13 +149,19 @@ object ImageUtil {
 
   def toDir(star: Star): Vec = {
     val dist = 1 / star.parallax
-    val z = dist * star.pmra * k1
-    val y = dist * star.pmdec * k1
+    val y = dist * star.pmra * k1
+    val z = dist * star.pmdec * k1
     val x = star.radialVelocity
     val sp = Vec(x, y, z).toPolarVec
-    val sp1 = sp.copy(
-      dec = sp.dec + X3d.degToRad(star.ra), 
-      ra = sp.ra - X3d.degToRad(star.dec))
+    val sp1 = if x > 0 then
+      sp.copy(
+        dec = sp.dec + X3d.degToRad(star.ra),
+        ra = sp.ra - X3d.degToRad(180 - star.dec),
+        r = -sp.r)
+    else
+      sp.copy(
+        dec = sp.dec + X3d.degToRad(star.ra),
+        ra = sp.ra - X3d.degToRad(star.dec))
     sp1.toVec
   }
 
