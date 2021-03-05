@@ -43,10 +43,10 @@ object Image2 {
   def aroundGalacticCenterDirections(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
-    val maxDist = 2
+    val maxDist = 3
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
     val cnt = cols.size
-    val dens = 1.0
+    val dens = 0.1  
 
     def colorForDistance(s: StarPosDir): Color = {
       val i = math.floor(cnt * s.pos.length / maxDist).toInt
@@ -59,20 +59,22 @@ object Image2 {
 
     val baseDirectionVec = Vec(1, -1, 1)
     val colors = Palette.p5c8.colors
-    val starShapes = stars.toList.map { s =>
-      val d = s.dir.mul(0.0007)
+    val starShapes = stars.toList.flatMap { s =>
+      val d = s.dir.mul(0.0002)
       val e = s.pos.add(d)
       val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
       val c = colors(ci)
-      Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc)
+      Seq(
+        Shapable.Sphere(position = s.pos, color = c, radius = 0.015),
+        Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc))
     }
 
-    val sphereShapes = (1 to(30, 1)).map { r =>
+    val sphereShapes = (1 to(30, 5)).map { r =>
       Shapable.Circle(translation = Vec.zero,
         rotation = Vec(0, X3d.degToRad(90), 0),
         color = Color.gray(0.1), radius = r * 0.1)
     }
-    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.5), bc)
+    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
 
     starShapes ++ sphereShapes ++ coordshapes
   }
@@ -111,4 +113,16 @@ object Image2 {
       }
     shapes ++ shapablesCoordinatesGray(3, bc)
   }
+
+  def testDir(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    stars.toSeq
+      .map(toStarPosDir)
+      .map { spd =>
+        val a = spd.pos
+        val b = spd.pos.add(spd.dir)
+        Shapable.Line(start = a, end = b)
+      }
+  }
+
+
 }

@@ -56,6 +56,11 @@ object ImageUtil {
     starsFilteredAndCached(cacheFile, filter)
   }
 
+  def testStars(workPath: Path): Seq[Star] = {
+    for (dec <- -80 to(80, 20); ra <- 0 to(359, 1)) yield {
+      Star(ra, dec, 1.0 / 200, 0, 0, 50)
+    }
+  }
 
   def basicStars(workPath: Path): Seq[Star] = {
 
@@ -147,8 +152,7 @@ object ImageUtil {
     val sp1 = if x > 0 then
       sp.copy(
         dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(180 - star.dec),
-        r = -sp.r)
+        ra = sp.ra - X3d.degToRad(180 - star.dec))
     else
       sp.copy(
         dec = sp.dec + X3d.degToRad(star.ra),
@@ -289,7 +293,7 @@ object ImageUtil {
         val c = colors(a)
         Seq(Shapable.Line(start = e, end = s.pos, startColor = c, endColor = bgColor))
       }
-    
+
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
   }
 
@@ -312,8 +316,8 @@ object ImageUtil {
     pos
       .rotx(X3d.degToRad(-27.13))
       .roty(X3d.degToRad(-28.94))
-    
-  def toStarPosDir(star: Star): StarPosDir = 
+
+  def toStarPosDir(star: Star): StarPosDir =
     StarPosDir(toVec(star), toDir(star))
 
   def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {

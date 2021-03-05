@@ -1,6 +1,8 @@
 package gaia
 
 
+import gaia.ImageUtil.testStars
+
 import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
@@ -601,6 +603,13 @@ object Main {
           ),
         )
       ))
+    ),
+    GaiaImage(id = "td1",
+      desc = "test stars for checkin direction",
+      fCreateModel = createFile(s => s, testStars)(Image2.testDir),
+      backColor = Color.veryDarkBlue,
+      text =
+        """Configuration for testing the display of direction""".stripMargin.trim,
     ),
     GaiaImage("all", "create all x3d models", createAllModels,
       realCreatable = false,
