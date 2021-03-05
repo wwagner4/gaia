@@ -1,14 +1,16 @@
 package gaia
 
 
-import gaia.X3d.{Color, PolarVecDeg, Vec}
-
 import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
 
 
 object Main {
+
+  import Data.Star
+  import ImageUtil.{StarPosDir, basicStars, createFile, nearSunStars, toStarPosDir}
+  import X3d.{Color, PolarVecDeg, Vec}
 
   trait Identifiable {
     def id: String
@@ -121,7 +123,7 @@ object Main {
                       ) extends Identifiable
 
   val images: Map[String, GaiaImage] = toMap(Seq(
-    GaiaImage("gal", "The whole galaxy", Image1.oneShellSpheres,
+    GaiaImage("gal", "The whole galaxy", createFile(s => s, basicStars)(Image1.oneShellSpheres),
       hpOrder = 20,
       video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
       backColor = Color.darkBlue,
@@ -131,7 +133,7 @@ object Main {
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
     ),
-    GaiaImage("oss", "one shell around the galactic center with spheres", Image1.oneShellSpheres,
+    GaiaImage("oss", "one shell around the galactic center with spheres", createFile(s => s, basicStars)(Image1.oneShellSpheres),
       hpOrder = 20,
       video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
       backColor = Color.darkBlue,
@@ -141,7 +143,7 @@ object Main {
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
     ),
-    GaiaImage("osp", "one shell around the galactic center with points", Image1.oneShellPoints,
+    GaiaImage("osp", "one shell around the galactic center with points", createFile(s => s, basicStars)(Image1.oneShellPoints),
       hpOrder = 10,
       renderWithBrowser = true,
       backColor = Color.darkBlue,
@@ -193,7 +195,7 @@ object Main {
       )),
 
     ),
-    GaiaImage("shs", "multiple shells around the sun", Image1.shellsSphere,
+    GaiaImage("shs", "multiple shells around the sun", createFile(s => s, basicStars)(Image1.shellsSphere),
       hpOrder = 40,
       video = Some("https://www.youtube.com/embed/irbUh9Y_Ifg"),
       backColor = Color.darkBlue,
@@ -204,7 +206,7 @@ object Main {
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
     ),
-    GaiaImage("shp", "multiple shells around the sun", Image1.shellsPoints,
+    GaiaImage("shp", "multiple shells around the sun", createFile(s => s, basicStars)(Image1.shellsPoints),
       renderWithBrowser = true,
       hpOrder = 30,
       backColor = Color.darkBlue,
@@ -249,7 +251,9 @@ object Main {
         ),
       )),
     ),
-    GaiaImage("sp2", "stars within a distance of 2 kpc to the sun", Image1.sphere2, hpOrder = 80,
+    GaiaImage("sp2", "stars within a distance of 2 kpc to the sun", 
+      createFile(s => s, basicStars)(Image1.sphere2),
+      hpOrder = 80,
       renderWithBrowser = true,
       backColor = Color.black,
       video = Some("https://www.youtube.com/embed/lp-Y_jpYmnw"),
@@ -294,7 +298,7 @@ object Main {
       )),
 
     ),
-    GaiaImage("sp5", "stars within a distance of 5 kpc to the sun", Image1.sphere5,
+    GaiaImage("sp5", "stars within a distance of 5 kpc to the sun", createFile(s => s, basicStars)(Image1.sphere5),
       hpOrder = 70,
       renderWithBrowser = true,
       backColor = Color.black,
@@ -305,7 +309,7 @@ object Main {
           |to avoid bulges around the sun.
           |""".stripMargin.trim
     ),
-    GaiaImage("sp8", "stars within a distance of 8 kpc to the sun", Image1.sphere8,
+    GaiaImage("sp8", "stars within a distance of 8 kpc to the sun", createFile(s => s, basicStars)(Image1.sphere8),
       hpOrder = 60,
       renderWithBrowser = true,
       video = Some("https://www.youtube.com/embed/LbW1O-GUPS8"),
@@ -317,7 +321,7 @@ object Main {
           |to avoid bulges around the sun.
           |""".stripMargin.trim
     ),
-    GaiaImage("sp16", "stars within a distance of 16 kpc to the sun", Image1.sphere16,
+    GaiaImage("sp16", "stars within a distance of 16 kpc to the sun", createFile(s => s, basicStars)(Image1.sphere16),
       hpOrder = 50,
       renderWithBrowser = true,
       backColor = Color.black,
@@ -328,8 +332,8 @@ object Main {
           |to avoid bulges around the sun.
           |""".stripMargin.trim
     ),
-    GaiaImage("ntsd27", "direction of stars within a distance of 27 pc to sun", Image1.nearSunDirections27pc,
-      hpOrder = 90,
+    GaiaImage("ntsd27", "direction of stars within a distance of 27 pc to sun", createFile(s => s, nearSunStars)(Image1.nearSunDirections27pc),
+      hpOrder = 90, 
       backColor = Color.veryDarkGreen,
       video = Some("https://www.youtube.com/embed/JuK80k5m4vU"),
       text =
@@ -362,7 +366,7 @@ object Main {
         )
       ))
     ),
-    GaiaImage("ntsdvi", "direction and velocety of stars to a distace of 40 pc", Image1.nearSunVeloInner,
+    GaiaImage("ntsdvi", "direction and velocety of stars to a distace of 40 pc",  createFile(s => s, nearSunStars)(Image1.nearSunVeloInner), 
       hpOrder = 100,
       renderWithBrowser = true,
       backColor = Color.veryDarkGreen,
@@ -371,16 +375,16 @@ object Main {
           |Directions of the movement of stars in a distance up to 40 pc
           |""".stripMargin.trim
     ),
-    GaiaImage("dirtest", "direction and velocety of stars to a distace of 40 pc", Image1.nearSunDirtest,
+    GaiaImage("dirtest", "direction and velocety of stars to a distace of 40 pc", createFile(s => s, nearSunStars)(Image1.nearSunDirtest),
       hpOrder = 100,
       renderWithBrowser = true,
       backColor = Color.black,
-      text =
+      text = 
         """
           |Directions of the movement of stars in a distance up to 40 pc
           |""".stripMargin.trim
     ),
-    GaiaImage("ntsdvo", "direction and velocety of stars of 45 pc distance", Image1.nearSunVeloOuter,
+    GaiaImage("ntsdvo", "direction and velocety of stars of 45 pc distance", createFile(s => s, nearSunStars)(Image1.nearSunVeloOuter),
       hpOrder = 110,
       renderWithBrowser = true,
       video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
@@ -415,7 +419,7 @@ object Main {
         )
       ))
     ),
-    GaiaImage("dir01", "direction and velocety of stars  8 kpc from the sun", Image1.dir01,
+    GaiaImage("dir01", "direction and velocety of stars  8 kpc from the sun", createFile(toStarPosDir, basicStars)(Image1.dir01a),
       hpOrder = 120,
       video = Some("https://www.youtube.com/embed/bZ0KkVM-Kwc"),
       renderWithBrowser = true,
@@ -425,7 +429,7 @@ object Main {
           |Movement of stars in a distance of about 8 kpc from the sun
           |""".stripMargin.trim
     ),
-    GaiaImage("gc", "galactic circle", Image1.gc,
+    GaiaImage("gc", "galactic circle", createFile(toStarPosDir, (p: Path) => Seq.empty[Star])(Image1.gc),
       hpOrder = 130,
       video = Some("https://www.youtube.com/embed/bZ0KkVM-Kwc"),
       renderWithBrowser = true,
@@ -438,7 +442,7 @@ object Main {
     ),
     GaiaImage(id = "dir02",
       desc = "direction and velocety of stars arond the sun",
-      fCreateModel = Image1.dir02,
+      fCreateModel = createFile(toStarPosDir, basicStars)(Image1.dir02a),
       hpOrder = 140,
       renderWithBrowser = true,
       video = Some("https://www.youtube.com/embed/NWRHYBLjFv0"),
@@ -484,7 +488,7 @@ object Main {
     ),
     GaiaImage(id = "dirs",
       desc = "stars as spheres with direction color coded. 8 to 23 kpc",
-      fCreateModel = Image1.dirs,
+      fCreateModel = createFile(toStarPosDir, basicStars)(Image1.dirs),
       hpOrder = 150,
       backColor = Color.black,
       video = Some("https://www.youtube.com/embed/j1GaECAYAi8"),
@@ -536,7 +540,7 @@ object Main {
     ),
     GaiaImage(id = "agc",
       desc = "around the galactic center",
-      fCreateModel = Image2.aroundGalacticCenterSpheres,
+      fCreateModel = createFile(s => s, basicStars)(Image2.aroundGalacticCenterSpheres),
       backColor = Color.veryDarkBlue,
       text =
         """Stars around the galactic center
@@ -545,7 +549,7 @@ object Main {
     ),
     GaiaImage(id = "agcd",
       desc = "around the galactic center",
-      fCreateModel = Image2.aroundGalacticCenterDirections,
+      fCreateModel = createFile(ImageUtil.toStarPosDirGalactic, basicStars)(Image2.aroundGalacticCenterDirections),
       backColor = Color.veryDarkBlue,
       text =
         """Stars around the galactic center
@@ -554,7 +558,7 @@ object Main {
     ),
     GaiaImage(id = "dens",
       desc = "density of stars as shown by gaia",
-      fCreateModel = Image2.dens,
+      fCreateModel = createFile(ImageUtil.toStarPosDirGalactic, basicStars)(Image2.dens),
       hpOrder = 170,
       backColor = Color.veryDarkBlue,
       video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
@@ -696,6 +700,7 @@ object Main {
       workFromBase(base)
     }
   }
+
 }
 
 

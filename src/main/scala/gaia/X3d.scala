@@ -57,6 +57,14 @@ object X3d {
 
   def radToDeg(rad: Double): Double = rad * degRad
 
+  def toVec(ra: Double, dec: Double, dist: Double): X3d.Vec = {
+    val r = math.Pi / 180
+    val x = math.cos(ra * r) * math.cos(dec * r) * dist
+    val y = math.sin(ra * r) * math.cos(dec * r) * dist
+    val z = math.sin(dec * r) * dist
+    Vec(x, y, z)
+  }
+
   case class Vec(x: Double, y: Double, z: Double) {
 
     def strComma = s"$x, $y, $z"
@@ -350,6 +358,11 @@ object X3d {
 
   def drawTo(outfile: Path, drawable: X3d.Color => Seq[X3d.Shapable], backColor: X3d.Color) = {
     val shapables = drawable(backColor)
+    val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
+    gaia.Util.writeString(outfile, xml)
+  }
+
+  def drawTo1(outfile: Path, shapables: Seq[X3d.Shapable], backColor: X3d.Color) = {
     val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
     gaia.Util.writeString(outfile, xml)
   }

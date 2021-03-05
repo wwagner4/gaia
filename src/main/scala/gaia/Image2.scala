@@ -1,10 +1,5 @@
 package gaia
 
-import gaia.Data.Star
-import gaia.ImageUtil._
-import gaia.Util.toGalacticCoords
-import gaia.X3d.{Color, Shapable, Vec}
-
 import java.io.File
 import java.nio.file.{Files, Path}
 import java.util.Locale
@@ -12,7 +7,11 @@ import scala.util.Random
 
 object Image2 {
 
-  def aroundGalacticCenterSpheres(id: String, workPath: Path): Unit = {
+  import Data.Star
+  import ImageUtil._
+  import X3d._
+
+  def aroundGalacticCenterSpheres(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
     val maxDist = 1.7
@@ -25,28 +24,23 @@ object Image2 {
       cols(i)
     }
 
-    def draw(bgColor: Color): Seq[Shapable] = {
+    val stars = stars1
+      .map(toStarPosDirGalactic)
+      .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
+    println(s"filtered ${stars.size} stars")
 
-      val stars = basicStars(workPath)
-        .map(toStarPosDirGalactic)
-        .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
-      println(s"filtered ${stars.size} stars")
+    val starShapes = stars.map(s => Shapable.Sphere(s.pos, radius = 0.01, color = colorForDistance(s)))
+    val sun = toGalacticCoords(ImageUtil.galacicCenter.mul(-1))
 
-      val starShapes = stars.map(s => Shapable.Sphere(s.pos, radius = 0.01, color = colorForDistance(s)))
-      val sun = Util.toGalacticCoords(Util.galacicCenter.mul(-1))
-
-      starShapes
-      ++ (2 to (25, 2)).map{r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, X3d.degToRad(90), 0),
-          color=Color.gray(0.1), radius = r * 0.1)}
-      ++ shapablesCoordinates1(2, Color.gray(0.5), bgColor)
+    starShapes.toList ++ (2 to(25, 2)).map { r =>
+      Shapable.Circle(translation = Vec.zero,
+        rotation = Vec(0, X3d.degToRad(90), 0),
+        color = Color.gray(0.1), radius = r * 0.1)
     }
-
-    createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
+    ++ shapablesCoordinatesOneColor(2, Color.gray(0.5), bc)
   }
 
-  def aroundGalacticCenterDirections(id: String, workPath: Path): Unit = {
+  def aroundGalacticCenterDirections(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
     val maxDist = 2
@@ -59,62 +53,37 @@ object Image2 {
       cols(i)
     }
 
-    def draw(bgColor: Color): Seq[Shapable] = {
-      import X3d._
+    val stars = stars1
+      .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
+    println(s"filtered ${stars.size} stars")
 
-      val stars = basicStars(workPath)
-        .map(toStarPosDirGalactic)
-        .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
-      println(s"filtered ${stars.size} stars")
-      
-      val baseDirectionVec = Vec(1, -1, 1)
-      val colors = Palette.p5c8 .colors
-      val starShapes = stars.map{s =>
-        val d = s.dir.mul(0.0007)
-        val e = s.pos.add(d)
-        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-        val c = colors(ci)
-        Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bgColor)
-      }
-
-      starShapes
-      ++ (1 to (30, 1)).map{r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, X3d.degToRad(90), 0),
-          color=Color.gray(0.1), radius = r * 0.1)}
-      ++ shapablesCoordinates1(4, Color.gray(0.5), bgColor)
+    val baseDirectionVec = Vec(1, -1, 1)
+    val colors = Palette.p5c8.colors
+    val starShapes = stars.toList.map { s =>
+      val d = s.dir.mul(0.0007)
+      val e = s.pos.add(d)
+      val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+      val c = colors(ci)
+      Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc)
     }
 
-    createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
+    val sphereShapes = (1 to(30, 1)).map { r =>
+      Shapable.Circle(translation = Vec.zero,
+        rotation = Vec(0, X3d.degToRad(90), 0),
+        color = Color.gray(0.1), radius = r * 0.1)
+    }
+    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.5), bc)
+
+    starShapes ++ sphereShapes ++ coordshapes
   }
 
-  def dens(id: String, workPath: Path): Unit = {
+  def dens(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     println("running density")
 
     val cubeSize = 16
     val cubeCount = 16
 
-    def writeDensities(densities: IndexedSeq[((Int, Int, Int), Double)]) = {
-      def d2Str(d: ((Int, Int, Int), Double)): Option[String] = {
-        val dv = d._2
-        if (dv < 0.000001) None
-        else Some("%d,%d,%d,%.6f".formatLocal(Locale.ENGLISH, d._1._1, d._1._2, d._1._3, d._2))
-      }
-
-      val h = Seq("x", "y", "z", "dens", "\n").mkString(",")
-      val v = densities.flatMap(d2Str).mkString("\n")
-      val all = h + v
-      val fnam = "densities.csv"
-      val outDir = workPath.resolve("data")
-      if (Files.notExists(outDir))
-        Files.createDirectories(outDir)
-      val outFile = outDir.resolve(fnam)
-      Util.writeString(outFile, all)
-      println(s"Wrote densities to ${outFile.toAbsolutePath}")
-    }
-
-    val stars = basicStars(workPath)
-      .map(toStarPosDirGalactic)
+    val stars = stars1
       .filter(s => Random.nextDouble() <= 0.01 && s.pos.length < cubeSize)
 
     val ic = inCube(cubeSize, cubeCount) _
@@ -128,33 +97,18 @@ object Image2 {
     println(s"size max: ${counts.size} $maxCount")
 
     val densities = counts.map { case (k, v) => (k, math.sqrt(v.toDouble / maxCount)) }
-    writeDensities(densities)
 
-    def draw(bgColor: Color): Seq[Shapable] = {
-      val shapes = densities
-        .flatMap { case (k, v) =>
-          if (v <= 0.01) {
-            val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
-            Some(Shapable.Sphere(position = pos, color = Color.gray(0.4), radius = 0.01 * 0.6))
-          }
-          else {
-            val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
-            Some(Shapable.Sphere(position = pos, color = Color.green, radius = v * 0.6))
-          }
+    val shapes = densities
+      .flatMap { case (k, v) =>
+        if (v <= 0.01) {
+          val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
+          Some(Shapable.Sphere(position = pos, color = Color.gray(0.4), radius = 0.01 * 0.6))
         }
-      shapes
-      ++ shapablesCoordinatesGray(3, bgColor)
-    }
-
-    createX3dFile(id, workPath, gaiaImage(id).backColor, draw)
+        else {
+          val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
+          Some(Shapable.Sphere(position = pos, color = Color.green, radius = v * 0.6))
+        }
+      }
+    shapes ++ shapablesCoordinatesGray(3, bc)
   }
-
-  def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
-    val ix = math.floor(pos.x * cubeCount / cubeSize).toInt
-    val iy = math.floor(pos.y * cubeCount / cubeSize).toInt
-    val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
-    ix == i && iy == j && iz == k
-  }
-
-
 }

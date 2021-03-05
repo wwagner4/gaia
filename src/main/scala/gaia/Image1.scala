@@ -1,9 +1,6 @@
 package gaia
 
 import com.sun.imageio.plugins.common.BogusColorSpace
-import gaia.Data.Star
-import gaia.X3d.Shapable
-import gaia.X3d.Shapable.Line
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
@@ -12,79 +9,61 @@ import scala.util.Random
 
 
 object Image1 {
-  
+
   import X3d._
   import ImageUtil._
+  import Data._
 
-  def dir01(id: String, workPath: Path): Unit = {
-    val bgColor = gaiaImage(id).backColor
+  def dir01a(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     val ranges = Seq((7.9, 8.1))
-
-    def allShapables(bc: Color): Seq[Shapable] = {
-      println(s"running $id")
-
-      val colors = Palette.p2c10.colors
-      val baseDirectionVec = Vec(1, 0, 1)
-      val stars = basicStars(workPath)
-        .map(StarPosDir.fromStar)
+    val colors = Palette.p2c10.colors
+    val baseDirectionVec = Vec(1, 0, 1)
+    val starShapes =
+      stars
         .filter(filterShells(ranges)(_))
         .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(ci)
           X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.005)), startColor = bc, endColor = c)
         }
-      println(s"filtered ${stars.size} stars")
-      stars
-      ++ shapablesCoordinatesGray(5, bgColor)
-      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
-    }
-
-    createX3dFile(id, workPath, bgColor, allShapables)
-
+    println(s"filtered ${stars.size} stars")
+    starShapes.toSeq
+    ++ shapablesCoordinatesGray(5, bc)
+    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dir02(id: String, workPath: Path): Unit = {
-    val bgColor = gaiaImage(id).backColor
+  def dir02a(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     val ranges = Seq(
       (9.6, 10.0),
       (7.8, 8.0),
       (5.95, 6.0),
     )
 
-    def allShapables(bc: Color): Seq[Shapable] = {
-      println(s"running $id")
-
-      def adjust(star: StarPosDir): StarPosDir = {
-        val dist = star.pos.length
-        val dist1 = math.ceil(dist)
-        val pos1 = star.pos.norm.mul(dist1)
-        val dir1 = star.dir.norm.mul(-1.0)
-        star.copy(pos = pos1, dir = dir1)
-      }
-
-      val colors = Palette.p5c8.colors
-      val baseDirectionVec = Vec(1, -1, 1)
-      val stars = basicStars(workPath)
-        .map(StarPosDir.fromStar)
-        .filter(filterShells(ranges)(_))
-        .map { s =>
-          val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-          val c = colors(ci)
-          X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.003)), startColor = bc, endColor = c)
-        }
-      println(s"filtered ${stars.size} stars")
-      stars
-      ++ shapablesCoordinatesGray(5, bgColor)
-      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
+    def adjust(star: StarPosDir): StarPosDir = {
+      val dist = star.pos.length
+      val dist1 = math.ceil(dist)
+      val pos1 = star.pos.norm.mul(dist1)
+      val dir1 = star.dir.norm.mul(-1.0)
+      star.copy(pos = pos1, dir = dir1)
     }
 
-    createX3dFile(id, workPath, bgColor, allShapables)
-
+    val colors = Palette.p5c8.colors
+    val baseDirectionVec = Vec(1, -1, 1)
+    val starShapables = stars
+      .filter(filterShells(ranges)(_))
+      .map { s =>
+        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+        val c = colors(ci)
+        X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.003)), startColor = bc, endColor = c)
+      }
+    println(s"filtered ${starShapables.size} stars")
+    starShapables.toSeq
+    ++ shapablesCoordinatesGray(5, bc)
+    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dirs(id: String, workPath: Path): Unit = {
+  def dirs(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     val epsBase = 0.4
-    val bgColor = gaiaImage(id).backColor
     val epsAdj = Seq(
       8 -> 1.0 / 13,
       9 -> 1.0 / 9,
@@ -105,124 +84,88 @@ object Image1 {
       .toSeq
       .map(v => (v.toDouble - eps(v), v.toDouble))
 
-    def analyse(stars: Seq[X3d.Shapable.Sphere]): Unit = {
-      val grouped = stars
-        .groupBy(s => math.round(s.position.length).toInt)
-        .map { case (v, l) => (v, l.size) }
-        .toSeq
-        .sortBy(t => t._1)
-      println("-- grouped size: " + grouped.size)
-      grouped.foreach(g => printf("%5d %5d%n", g._1, g._2))
+    def adjust(star: StarPosDir): StarPosDir = {
+      val dist = star.pos.length
+      val dist1 = math.ceil(dist)
+      val pos1 = star.pos.norm.mul(dist1)
+      star.copy(pos = pos1)
     }
 
-
-    def allShapables(bc: Color): Seq[Shapable] = {
-      println(s"running $id")
-
-      def adjust(star: StarPosDir): StarPosDir = {
-        val dist = star.pos.length
-        val dist1 = math.ceil(dist)
-        val pos1 = star.pos.norm.mul(dist1)
-        star.copy(pos = pos1)
+    val colors = Palette.p5c8.colors
+    val baseDirectionVec = Vec(1, -1, 1)
+    val starss = stars1
+      .filter(filterShells(ranges)(_))
+      .map(adjust)
+      .map { s =>
+        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+        val c: Color = colors(ci)
+        X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.05)
       }
-
-      val colors = Palette.p5c8.colors
-      val baseDirectionVec = Vec(1, -1, 1)
-      val stars = basicStars(workPath)
-        .map(StarPosDir.fromStar)
-        .filter(filterShells(ranges)(_))
-        .map(adjust)
-        .map { s =>
-          val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-          val c: Color = colors(ci)
-          X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.05)
-        }
-      println(s"filtered ${stars.size} stars")
-      analyse(stars)
-      stars
-      ++ shapablesCoordinatesGray(5, bgColor)
-      ++ shapablesCoordinatesGray(10, bgColor, offset = Util.galacicCenter)
-    }
-
-    createX3dFile(id, workPath, bgColor, allShapables)
-
+    println(s"filtered ${starss.size} stars")
+    starss.toSeq
+    ++ shapablesCoordinatesGray(5, bc)
+    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def gc(id: String, workPath: Path): Unit = {
-    val bgColor = gaiaImage(id).backColor
+  def gc(stars: Iterable[Any], bc: Color): Seq[Shapable] = {
     val rotation = Vec(X3d.degToRad(-4), X3d.degToRad(96), X3d.degToRad(0))
-
-    def allShapables(bc: Color): Seq[Shapable] = {
-      Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
-      ++ shapablesCoordinatesColored(5, bgColor)
-      ++ shapablesCoordinatesColored(10, bgColor, offset = Util.galacicCenter)
-    }
-
-    createX3dFile(id, workPath, bgColor, allShapables)
-
+    Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
+    ++ shapablesCoordinatesColored(5, bc)
+    ++ shapablesCoordinatesColored(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def nearSunVeloInner(id: String, workPath: Path): Unit = {
+  def nearSunVeloInner(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.0
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
     val lengthFactor = 0.8
-    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor)
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor)
   }
 
-  def nearSunDirtest(id: String, workPath: Path): Unit = {
+  def nearSunDirtest(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.03
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
     val lengthFactor = 2.0
-    val bgColor = gaiaImage(id).backColor
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
     def shapabels(stars: Iterable[Star]): Iterable[Shapable] = {
       stars
-        .map(s => s.copy(pmra=0.0, pmdec=0.0))
-       // .filter(s => s.ra > 80 && s.ra < 100 || s.ra > 260 && s.ra < 280)
-        .map(StarPosDir.fromStar)
+        .map(s => s.copy(pmra = 0.0, pmdec = 0.0))
+        .map(toStarPosDir)
         .map { s =>
           val e = s.pos.add(s.dir.mul(0.00005 * lengthFactor))
           val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(a)
-          Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bgColor)
-          //Shapable.Box(position = s.pos, size=Vec(0.001, 0.001, 0.001))
+          Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc)
         }
     }
 
-    def draw(bgColor: Color): Seq[Shapable] = {
-      val stars = nearSunStars(workPath).filter { s =>
-        val dist = 1 / s.parallax
-        dist < maxDist && dist > minDist
-      }
-      println(s"There are ${stars.size} stars near the sun")
-      shapabels(stars = stars).toSeq
-      ++ shapablesCoordinatesColored(maxDist * 1.2, bgColor)
+    val stars = stars1.filter { s =>
+      val dist = 1 / s.parallax
+      dist < maxDist && dist > minDist
     }
-
-    createX3dFile(id, workPath, bgColor, draw _)
-
+    println(s"There are ${stars.size} stars near the sun")
+    shapabels(stars = stars).toSeq
+    ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
   }
 
-  def nearSunVeloOuter(id: String, workPath: Path): Unit = {
+  def nearSunVeloOuter(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.04
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
     val lengthFactor = 2.0
-    nearSunVelo(id, workPath, minDist, maxDist, colors, lengthFactor)
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor)
   }
 
-  def nearSunDirections27pc(id: String, workPath: Path): Unit = {
+  def nearSunDirections27pc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     val radius = 0.00005
     val maxDist = 0.027
-    val bgColor = gaiaImage(id).backColor
 
     def shapabels(radius: Double)(stars: Iterable[Star]): Iterable[Shapable] = {
       stars
-        .map(StarPosDir.fromStar)
+        .map(toStarPosDir)
         .flatMap { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           val c = Color.orange.mul(br)
@@ -230,35 +173,30 @@ object Image1 {
         }
     }
 
-    def allShapables(bgColor: Color): Seq[Shapable] = {
-      val stars = nearSunStars(workPath).filter(s => 1 / s.parallax < maxDist)
-      println(s"There are ${stars.size} stars near the sun")
-      shapabels(radius = radius)(stars = stars).toSeq
-      ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
-    }
-
-    createX3dFile(id, workPath, bgColor, allShapables)
-
+    val sl = stars.filter(s => 1 / s.parallax < maxDist)
+    println(s"There are ${sl.size} stars near the sun")
+    shapabels(radius = radius)(stars = sl).toSeq
+    ++ shapablesCoordinatesGray(maxDist * 1.2, bc)
   }
 
 
-  def oneShellSpheres(id: String, workPath: Path): Unit = {
+  def oneShellSpheres(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val starsToShapable = shapabelsStarsToSpheres(0.02, Color.gray(1.0))(_)
     val min = 7.0
     val max = 9.0
     val starProb = 0.1
-    oneShell(id, workPath, min, max, starProb, starsToShapable)
+    oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def oneShellPoints(id: String, workPath: Path): Unit = {
+  def oneShellPoints(stars1: Iterable[Star], bc: Color): Seq[Shapable]  = {
     val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
     val min = 7.0
     val max = 9.0
     val starProb = 1.0
-    oneShell(id, workPath, min, max, starProb, starsToShapable)
+    oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def shellsSphere(id: String, workPath: Path): Unit = {
+  def shellsSphere(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     val shapeSize = 0.02
     val shells = Seq(
@@ -267,10 +205,10 @@ object Image1 {
       ShellDef("11", 11.0, 11.2, 1000 / 1000.0, shapabelsStarsToSpheres(0.08, Color.yellow)(_)),
     )
 
-    multiShells(id, workPath, shells)
+    multiShells(stars1, bc, shells)
   }
 
-  def shellsPoints(id: String, workPath: Path): Unit = {
+  def shellsPoints(stars: Iterable[Star], bc: Color): Seq[Shapable]  = {
 
     def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
 
@@ -281,51 +219,47 @@ object Image1 {
       ShellDef("c", 11.0, 12.0, 1000 / 1000.0, shapabelsStarsToPoints(Color.darkRed)(_), equalDist(10.5) _),
     )
 
-    multiShells(id, workPath, shells)
+    multiShells(stars, bc, shells)
   }
 
-  def sphere2(id: String, workPath: Path) = {
-    println(s"Started image1 $id")
+  def sphere2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val startProb = 0.0001
     val endProb = 0.1
     val shellCnt = 10
     val shellThikness = 0.2
     val startColor = Color.red
     val endColor = Color.yellow
-    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere5(id: String, workPath: Path): Unit = {
-    println(s"Started image1 $id")
+  def sphere5(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shellCnt = 10
     val shellThikness = 0.5
     val startProb = 0.0001
     val endProb = 0.2
     val startColor = Color.blue
     val endColor = Color.green
-    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere8(id: String, workPath: Path): Unit = {
-    println(s"Started image1 $id")
+  def sphere8(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shellCnt = 20
     val shellThikness = 0.4
     val startProb = 0.0001
     val endProb = 0.15
     val startColor = Color.darkRed
     val endColor = Color.orange
-    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere16(id: String, workPath: Path): Unit = {
-    println(s"Started image1 $id")
+  def sphere16(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shellCnt = 40
     val shellThikness = 0.4
     val startProb = 0.0001
     val endProb = 0.6
     val startColor = Color.orange
     val endColor = Color.green
-    sphere(id, workPath, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
 }

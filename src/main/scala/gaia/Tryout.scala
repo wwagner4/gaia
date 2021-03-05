@@ -15,9 +15,9 @@ object Tryout {
   def doit(args: List[String], workPath: Path): Unit = {
     println(s"Some tests ${workPath.toAbsolutePath} ${args.mkString("[", ",", "]")}")
     
-    println(Util.galacicCenter)
+    println(ImageUtil.galacicCenter)
   }
-
+  
   private def execCmds = {
     val cmds = Seq(
       Seq("wget", "https://google.com"),

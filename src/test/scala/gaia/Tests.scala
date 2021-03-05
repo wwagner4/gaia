@@ -93,13 +93,13 @@ class Tests {
   @Test
   def toGalacticNearTheCenter(): Unit = {
     val s = Vec(0.4, -6, -3)
-    val s1 = Util.toGalacticPos(s)
+    val s1 = ImageUtil.toGalacticPos(s)
     assertEquals("[0.8579,0.9860,0.8711]", f(s1))
   }
 
   def f(v: Vec): String = "[%.4f,%.4f,%.4f]".formatLocal(Locale.ENGLISH, v.x, v.y, v.z)
 
-  lazy val ic = Image2.inCube(8, 2)_
+  lazy val ic = ImageUtil.inCube(8, 2)_
 
   @Test
   def inCube01(): Unit = {

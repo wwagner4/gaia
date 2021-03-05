@@ -5,27 +5,25 @@ import gaia.X3d.{Color, Vec, degToRad}
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
+import java.util.{Locale, stream}
 import scala.collection.JavaConverters._
-import scala.language.implicitConversions
 import scala.util.Random
 
 object Util {
-
-  val galacicCenter = Util.toVec(266.25, -28.94, 8)
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 
   def datapath: Path = {
     val home = Path.of(System.getProperty("user.home"))
     val result = home.resolve(Path.of("gaia", "data"))
-    if !Files.exists(result)
+    if !Files.exists(result) then
       Files.createDirectories(result)
     result
   }
 
   def outpath: Path = {
     val result = datapath.resolve("out")
-    if !Files.exists(result)
+    if !Files.exists(result) then
       Files.createDirectories(result)
     result
   }
@@ -56,28 +54,9 @@ object Util {
     }
   }
  
-  def toVec(ra: Double, dec: Double, dist: Double): X3d.Vec = {
-    val r = math.Pi / 180
-    val x = math.cos(ra * r) * math.cos(dec * r) * dist
-    val y = math.sin(ra * r) * math.cos(dec * r) * dist
-    val z = math.sin(dec * r) * dist
-    X3d.Vec(x, y, z)
-  }
-
   def modelPath: Path = htmlPath.resolve("models")
 
   def htmlPath: Path = Path.of("src", "main", "html")
-
-  def test(id: String): Unit = {
-    println(s"running $id")
-    val s = 0.5
-    val e = 1
-    val c = 5
-    val r = squaredValues(s, e, c)
-      .map(_.toString)
-      .mkString(",")
-    println(s"$s - $e : $c ($r)")
-  }
 
   private def xValues(cnt: Int): Seq[Double] = {
     require(cnt >= 2, s"cnt:$cnt must be greater equal 2")
@@ -180,14 +159,6 @@ object Util {
       executor.shutdownNow()
     }
   }
-
-  def toGalacticPos(pos: Vec): Vec = 
-    pos.sub(galacicCenter)
-
-  def toGalacticCoords(pos: Vec): Vec = 
-    pos
-      .rotx(X3d.degToRad(-27.13))
-      .roty(X3d.degToRad(-28.94))
 
 }
 
