@@ -14,7 +14,7 @@ object Image1 {
   import ImageUtil._
   import Data._
 
-  def dir01a(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def dir01(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     val ranges = Seq((7.9, 8.1))
     val colors = Palette.p2c10.colors
     val baseDirectionVec = Vec(1, 0, 1)
@@ -32,7 +32,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dir02a(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def dir02(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     val ranges = Seq(
       (9.6, 10.0),
       (7.8, 8.0),

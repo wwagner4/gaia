@@ -36,13 +36,6 @@ object ImageUtil {
 
   val galacicCenter = X3d.toVec(266.25, -28.94, 8)
 
-  def x3dFilePath(workPath: Path, id: String): Path = {
-    val modelsPath = workPath.resolve("models")
-    if (Files.notExists(modelsPath)) Files.createDirectories(modelsPath)
-    val fnam = s"$id.x3d"
-    modelsPath.resolve(fnam)
-  }
-
   def nearSunStars(workPath: Path): Seq[Star] = {
 
     def filter(star: Star): Boolean = {
@@ -56,12 +49,6 @@ object ImageUtil {
     starsFilteredAndCached(cacheFile, filter)
   }
 
-  def testStars(workPath: Path): Seq[Star] = {
-    for (dec <- -80 to(80, 20); ra <- 0 to(359, 1)) yield {
-      Star(ra, dec, 1.0 / 200, 0, 0, 50)
-    }
-  }
-
   def basicStars(workPath: Path): Seq[Star] = {
 
     def filter(star: Star): Boolean = {
@@ -72,6 +59,12 @@ object ImageUtil {
 
     val cacheFile = createCacheFile("basic", workPath)
     starsFilteredAndCached(cacheFile, filter)
+  }
+
+  def testStars(workPath: Path): Seq[Star] = {
+    for (dec <- -80 to(80, 20); ra <- 0 to(359, 1)) yield {
+      Star(ra, dec, 1.0 / 200, 0, 0, 50)
+    }
   }
 
   private def createCacheFile(id: String, workPath: Path): Path = {
@@ -130,7 +123,7 @@ object ImageUtil {
   }
 
 
-  def toVec(star: Star): Vec = {
+  private def starToVec(star: Star): Vec = {
     val dist = 1 / star.parallax
     val ra = star.ra
     val dec = star.dec
@@ -138,12 +131,12 @@ object ImageUtil {
   }
 
   // constants for 'toDir'
-  val parsecToMeter = 3.08567758e16
-  val yearToSeconds = 3.154e7
-  val k0 = math.Pi * 1e-6 / (3 * 180)
-  val k1 = k0 * parsecToMeter / yearToSeconds
+  private val parsecToMeter = 3.08567758e16
+  private val yearToSeconds = 3.154e7
+  private val k0 = math.Pi * 1e-6 / (3 * 180)
+  private val k1 = k0 * parsecToMeter / yearToSeconds
 
-  def toDir(star: Star): Vec = {
+  private def toDir(star: Star): Vec = {
     val dist = 1 / star.parallax
     val y = dist * star.pmra * k1
     val z = dist * star.pmdec * k1
@@ -160,22 +153,22 @@ object ImageUtil {
     sp1.toVec
   }
 
-  def createX3dFile1(id: String, workPath: Path, bgColor: Color, createShapables: Seq[Shapable]) = {
-    val file = x3dFilePath(workPath, id)
-    X3d.drawTo1(file, createShapables, backColor = bgColor)
+  def writeModelToFile[T](converter: Star => T, reader: Path => Iterable[Star])(fcreateShapables: (Iterable[T], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
+    val gaiaImage = Main.images(id)
+    val bgColor = gaiaImage.backColor
+    val stars = reader(workPath)
+    val starsConverted = stars.map(converter)
+    val shapables = fcreateShapables(starsConverted, bgColor)
+    val file = {
+      val modelsPath = workPath.resolve("models")
+      if (Files.notExists(modelsPath)) Files.createDirectories(modelsPath)
+      val fnam = s"$id.x3d"
+      modelsPath.resolve(fnam)
+    }
+
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bgColor)
+    gaia.Util.writeString(file, xml)
     println(s"Created image for $id at ${file.toAbsolutePath}")
-  }
-
-  def createFile[T](c: Star => T, r: Path => Iterable[Star])(f: (Iterable[T], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
-    val bgColor = gaiaImage(id).backColor
-    val stars = r(workPath)
-    val starsConverted = stars.map(c)
-    val shapables = f(starsConverted, bgColor)
-    createX3dFile1(id, workPath, bgColor, shapables)
-  }
-
-  def gaiaImage(id: String): GaiaImage = {
-    Main.images(id)
   }
 
   def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
@@ -266,12 +259,12 @@ object ImageUtil {
 
   def shapabelsStarsToSpheres(radius: Double, color: Color)(stars: Iterable[Star]): Iterable[Shapable] = {
     stars
-      .map(toVec)
+      .map(starToVec)
       .map(v => Shapable.Sphere(position = v, color = color, radius = radius, solid = false))
   }
 
   def shapabelsStarsToPoints(color: Color)(stars: Iterable[Star]): Iterable[Shapable] = {
-    val vecs = stars.map(toVec)
+    val vecs = stars.map(starToVec)
     Seq(Shapable.PointSet(positions = vecs, color = color))
   }
 
@@ -308,17 +301,18 @@ object ImageUtil {
 
   def toStarPosDirGalactic(star: Star): StarPosDir = {
     val spd = toStarPosDir(star)
-    val gpos = toGalacticCoords(toGalacticPos(spd.pos))
+    val gcoord = spd.pos.sub(galacicCenter)
+    val gpos = toGalacticCoords(gcoord)
     spd.copy(pos = gpos)
   }
+
+  def toStarPosDir(star: Star): StarPosDir =
+    StarPosDir(starToVec(star), toDir(star))
 
   def toGalacticCoords(pos: Vec): Vec =
     pos
       .rotx(X3d.degToRad(-27.13))
       .roty(X3d.degToRad(-28.94))
-
-  def toStarPosDir(star: Star): StarPosDir =
-    StarPosDir(toVec(star), toDir(star))
 
   def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
     val ix = math.floor(pos.x * cubeCount / cubeSize).toInt
@@ -326,8 +320,5 @@ object ImageUtil {
     val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
     ix == i && iy == j && iz == k
   }
-
-  def toGalacticPos(pos: Vec): Vec =
-    pos.sub(galacicCenter)
 
 }

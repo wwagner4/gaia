@@ -356,16 +356,4 @@ object X3d {
        |</X3D>""".stripMargin
   }
 
-  def drawTo(outfile: Path, drawable: X3d.Color => Seq[X3d.Shapable], backColor: X3d.Color) = {
-    val shapables = drawable(backColor)
-    val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
-    gaia.Util.writeString(outfile, xml)
-  }
-
-  def drawTo1(outfile: Path, shapables: Seq[X3d.Shapable], backColor: X3d.Color) = {
-    val xml = X3d.createXml(shapables, outfile.getFileName.toString, backColor)
-    gaia.Util.writeString(outfile, xml)
-  }
-
-
 }
