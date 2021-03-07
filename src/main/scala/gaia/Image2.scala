@@ -120,7 +120,7 @@ object Image2 {
       .map { spd =>
         val a = spd.pos
         val b = spd.pos.add(spd.dir)
-        Shapable.Line(start = a, end = b)
+        Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.yellow)
       }
   }
 

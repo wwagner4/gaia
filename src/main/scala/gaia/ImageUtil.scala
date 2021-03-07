@@ -62,8 +62,10 @@ object ImageUtil {
   }
 
   def testStars(workPath: Path): Seq[Star] = {
-    for (dec <- -80 to(80, 20); ra <- 0 to(359, 1)) yield {
-      Star(ra, dec, 1.0 / 200, 0, 0, 50)
+    for (w <- 0 to (355, 5); dec <- -80 to(80, 20); ra <- 0 to(340, 20)) yield {
+      val x = 0.01 * math.sin(X3d.degToRad(w))
+      val y = 0.01 * math.cos(X3d.degToRad(w))
+      Star(ra, dec, 1.0 / 600, x, y, 60)
     }
   }
 
@@ -138,18 +140,20 @@ object ImageUtil {
 
   private def toDir(star: Star): Vec = {
     val dist = 1 / star.parallax
-    val y = dist * star.pmra * k1
-    val z = dist * star.pmdec * k1
+    val z = dist * star.pmra * k1
+    val y = dist * star.pmdec * k1
     val x = star.radialVelocity
     val sp = Vec(x, y, z).toPolarVec
     val sp1 = if x > 0 then
       sp.copy(
         dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(180 - star.dec))
+        ra = sp.ra - X3d.degToRad(180 - star.dec),
+        r= if x > 0 then sp.r * -1 else sp.r)
     else
       sp.copy(
         dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(star.dec))
+        ra = sp.ra - X3d.degToRad(star.dec),
+        r= if x > 0 then sp.r * -1 else sp.r)
     sp1.toVec
   }
 
