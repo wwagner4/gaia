@@ -53,16 +53,14 @@ object X3d {
 
   private val degRad = 180.0 / math.Pi
 
+  val pihalbe = math.Pi * 0.5
+
   def degToRad(deg: Double): Double = deg / degRad
 
   def radToDeg(rad: Double): Double = rad * degRad
 
-  def toVec(ra: Double, dec: Double, dist: Double): X3d.Vec = {
-    val r = math.Pi / 180
-    val x = math.cos(ra * r) * math.cos(dec * r) * dist
-    val y = math.sin(ra * r) * math.cos(dec * r) * dist
-    val z = math.sin(dec * r) * dist
-    Vec(x, y, z)
+  object Vec {
+    def zero: Vec = Vec(0, 0, 0)
   }
 
   case class Vec(x: Double, y: Double, z: Double) {
@@ -110,16 +108,7 @@ object X3d {
     def angle(other: Vec): Double = math.acos(sprod(other) / (length * other.length)) * 180 / math.Pi
 
     def toPolarVec: PolarVec = {
-      def atan2: Double = {
-        if (x > 0) math.atan(y / x)
-        else if (x == 0.0) math.signum(y) * math.Pi / 2.0
-        else if (x < 0.0 && y >= 0) math.atan(y / x) + math.Pi
-        else math.atan(y / x) - math.Pi
-      }
-
-      val ra = math.asin(z / length)
-      val dec = atan2
-      PolarVec(length, ra, dec)
+      ???
     }
 
     def toVec4(u: Double = 0.0) = Vec4(x, y, z, u)
@@ -127,25 +116,9 @@ object X3d {
 
   case class PolarVec(r: Double, ra: Double, dec: Double) {
     def toVec: Vec = {
-      val x = r * math.cos(ra) * math.cos(dec)
-      val y = r * math.cos(ra) * math.sin(dec)
-      val z = r * math.sin(ra)
-      Vec(x, y, z)
+      ???
     }
 
-    def degToRad: PolarVec = {
-      PolarVec(r, X3d.degToRad(dec), X3d.degToRad(ra))
-    }
-  }
-
-  case class PolarVecDeg(r: Double, ra: Double, dec: Double) {
-    def toRad: PolarVec = {
-      PolarVec(r, X3d.degToRad(ra), X3d.degToRad(dec))
-    }
-  }
-
-  object Vec {
-    def zero = Vec(0.0, 0.0, 0.0)
   }
 
   case class Vec2(x: Double, y: Double) {

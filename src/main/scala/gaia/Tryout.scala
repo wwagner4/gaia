@@ -2,7 +2,7 @@ package gaia
 
 import gaia.Data.{Star, readBasic}
 import gaia.Main.RotAxesDeg
-import gaia.X3d.{PolarVecDeg, Vec}
+import gaia.X3d.{Vec}
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -14,11 +14,18 @@ import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 object Tryout {
+  
+  def format(s: Star, pm: Vec): String = 
+    "  %7.2f %7.2f %7.2f | %7.2f %7.2f %7.2f ".format(
+      s.pmra, s.pmdec, s.radialVelocity, 
+      pm.x, pm.y, pm.z)
 
   def doit(args: List[String], workPath: Path): Unit = {
-    println(s"Some tests ${workPath.toAbsolutePath} ${args.mkString("[", ",", "]")}")
-
-    println(ImageUtil.galacicCenter)
+    val stars = ImageUtil.basicStars(Main.workPath).take(20)
+    for (s <- stars) {
+      val sm = ImageUtil.properMotionToSpaceMotion(s)
+      println(format(s, sm))
+    }
   }
 
   private def execCmds = {

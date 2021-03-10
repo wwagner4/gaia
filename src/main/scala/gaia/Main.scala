@@ -2,6 +2,7 @@ package gaia
 
 
 import gaia.ImageUtil.testStars
+import gaia.X3d.PolarVec
 
 import java.nio.file.{Files, Path}
 import scala.io._
@@ -12,7 +13,7 @@ object Main {
 
   import Data.Star
   import ImageUtil.{StarPosDir, basicStars, writeModelToFile, nearSunStars, toStarPosDir}
-  import X3d.{Color, PolarVecDeg, Vec}
+  import X3d.{Color, Vec}
 
   lazy val workPath = getCreateWorkPath
 
@@ -22,7 +23,7 @@ object Main {
 
   case class RotAxesDeg(ra: Double, dec: Double) {
     def toVec: Vec = {
-      PolarVecDeg(1, ra, dec).toRad.toVec
+      PolarVec(1, X3d.degToRad(ra), X3d.degToRad(dec)).toVec
     }
   }
 

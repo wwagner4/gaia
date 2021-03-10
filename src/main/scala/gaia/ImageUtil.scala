@@ -1,6 +1,7 @@
 package gaia
 
 
+import gaia.{Data, X3d}
 import java.nio.file.{Files, Path}
 import scala.util.Random
 
@@ -34,7 +35,7 @@ object ImageUtil {
                        transform: Star => Star = identity,
                      )
 
-  val galacicCenter = X3d.toVec(266.25, -28.94, 8)
+  lazy val galacicCenter = X3d.PolarVec(r = 8, ra = X3d.degToRad(266.25), dec = X3d.degToRad(-28.94)).toVec
 
   def nearSunStars(workPath: Path): Seq[Star] = {
 
@@ -62,7 +63,7 @@ object ImageUtil {
   }
 
   def testStars(workPath: Path): Seq[Star] = {
-    for (w <- 0 to (355, 5); dec <- -80 to(80, 20); ra <- 0 to(340, 20)) yield {
+    for (w <- 0 to(355, 5); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
       val x = 0.01 * math.sin(X3d.degToRad(w))
       val y = 0.01 * math.cos(X3d.degToRad(w))
       Star(ra, dec, 1.0 / 600, x, y, 60)
@@ -129,32 +130,35 @@ object ImageUtil {
     val dist = 1 / star.parallax
     val ra = star.ra
     val dec = star.dec
-    X3d.toVec(ra, dec, dist)
+    X3d.PolarVec(dist, X3d.degToRad(ra), X3d.degToRad(dec)).toVec
   }
 
-  // constants for 'toDir'
-  private val parsecToMeter = 3.08567758e16
-  private val yearToSeconds = 3.154e7
-  private val k0 = math.Pi * 1e-6 / (3 * 180)
-  private val k1 = k0 * parsecToMeter / yearToSeconds
+  // constants for 'properMotionToSpaceMotion'
+  private lazy val parsecToMeter = 3.08567758e16
+  private lazy val yearToSeconds = 3.154e7
+  private lazy val k0 = math.Pi * 1e-6 / (3 * 180)
+  private lazy val k1 = k0 * parsecToMeter / yearToSeconds
+
+  def properMotionToSpaceMotion(star: Star): Vec = {
+    val dist = 1 / star.parallax
+    val x = dist * star.pmra * k1
+    val y = dist * star.pmdec * k1
+    val z = star.radialVelocity
+    Vec(x, y, z)
+  }
+
+  def spaceMotionToGalacticMotion(star: Data.Star, spaceMotion: Vec): Vec = {
+    val smp = spaceMotion.toPolarVec
+    val gmp = smp.copy(
+      dec = smp.dec + X3d.degToRad(star.dec - 90),
+      ra = smp.ra,
+      r = smp.r)
+    gmp.toVec
+  }
 
   private def toDir(star: Star): Vec = {
-    val dist = 1 / star.parallax
-    val z = dist * star.pmra * k1
-    val y = dist * star.pmdec * k1
-    val x = star.radialVelocity
-    val sp = Vec(x, y, z).toPolarVec
-    val sp1 = if x > 0 then
-      sp.copy(
-        dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(180 - star.dec),
-        r= if x > 0 then sp.r * -1 else sp.r)
-    else
-      sp.copy(
-        dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(star.dec),
-        r= if x > 0 then sp.r * -1 else sp.r)
-    sp1.toVec
+    val sm = properMotionToSpaceMotion(star)
+    spaceMotionToGalacticMotion(star, sm)
   }
 
   def writeModelToFile[T](converter: Star => T, reader: Path => Iterable[Star])(fcreateShapables: (Iterable[T], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
