@@ -108,7 +108,10 @@ object X3d {
     def angle(other: Vec): Double = math.acos(sprod(other) / (length * other.length)) * 180 / math.Pi
 
     def toPolarVec: PolarVec = {
-      ???
+      val r = math.sqrt(x * x + y * y + z * z)
+      val ra = if x == 0.0 then if y >= 0 then X3d.pihalbe else -X3d.pihalbe else if x >= 0 then math.atan(y / x) else math.Pi * 2.0 - math.atan(y / x)
+      val dec = math.atan(z / math.sqrt(x * x + y * y))
+      PolarVec(r, ra, dec)
     }
 
     def toVec4(u: Double = 0.0) = Vec4(x, y, z, u)
@@ -116,7 +119,10 @@ object X3d {
 
   case class PolarVec(r: Double, ra: Double, dec: Double) {
     def toVec: Vec = {
-      ???
+      val x = r * math.cos(dec) * math.cos(ra)
+      val y = r * math.cos(dec) * math.sin(ra)
+      val z = r * math.sin(dec)
+      Vec(x, y, z)
     }
 
   }

@@ -17,32 +17,37 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   def f(v: PolarVec): String = f(v.r, v.ra, v.dec)
 
-  val VEC_POLAR = Seq(
+  val TO_POLAR = Seq(
     (Vec(1, 0, 0), 1.0, 0.0, 0.0),
+    (Vec(2, 0, 0), 2.0, 0.0, 0.0),
+    (Vec(1, 1, 0), math.sqrt(2), math.Pi / 4.0, 0.0),
+    (Vec(1, -1, 0), math.sqrt(2), X3d.degToRad(-45), 0.0),
+    (Vec(2, 3, 4), 5.3852, 0.9828, 0.8372),
+    (Vec(-2, 3, 4), 5.3852, -0.9828, 0.8372),
+    (Vec(2, -3, 4), 5.3852, -0.9828, 0.8372),
+    (Vec(2, 3, -4), 5.3852, 0.9828, -0.8372),
     (Vec(0, 1, 0), 1.0, X3d.pihalbe, 0.0),
-    (Vec(0, 0, 1), 1.0, 0.0, X3d.pihalbe),
+    (Vec(0, 0, 1), 1.0, X3d.pihalbe, X3d.pihalbe),
   )
 
-  for ((v, r, ra, dec) <- VEC_POLAR) {
+  for ((v, r, ra, dec) <- TO_POLAR) {
     test(s"vec to polar vec $v") {
       val vp = v.toPolarVec
       f(vp) mustBe f(r, ra, dec)
     }
   }
-
-  val VECS = Seq(
-    (PolarVec(1, 0, 0), 1.0, 0.0, 0.0),
-    (PolarVec(1, X3d.pihalbe, 0), 0.0, 1.0, 0.0),
-    (PolarVec(1, 0, X3d.pihalbe), 0.0, 0.0, 1.0),
-  )
-
-  for ((pv, x, y, z) <- VECS) {
-    test(s"to cart vec $pv") {
-      val v = pv.toVec
-      f(v) mustBe f(x, y, z)
+    val VECS = Seq(
+      (PolarVec(1, 0, 0), 1.0, 0.0, 0.0),
+      (PolarVec(1, X3d.pihalbe, 0), 0.0, 1.0, 0.0),
+      (PolarVec(1, 0, X3d.pihalbe), 0.0, 0.0, 1.0),
+    )
+  
+    for ((pv, x, y, z) <- VECS) {
+      test(s"to cart vec $pv") {
+        val v = pv.toVec
+        f(v) mustBe f(x, y, z)
+      }
     }
-  }
-
 
   val VEC_CONV = Seq(
     Vec(1, 2, 3),
@@ -60,7 +65,6 @@ class Tests extends AnyFunSuite with must.Matchers {
       f(v1) mustBe f(v)
     }
   }
-
 
   val VEC_SUB = Seq(
     (Vec(3, 2, 0), Vec(1, 2, 0), Vec(2, 0, 0)),
