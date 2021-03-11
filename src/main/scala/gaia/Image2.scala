@@ -124,5 +124,17 @@ object Image2 {
       }
   }
 
+  def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    val as = stars.toSeq
+      .map { star =>
+        val a = Vec.zero
+        val p = PolarVec(1/star.parallax, X3d.degToRad(star.ra), X3d.degToRad(star.dec))
+        val b = p.toVec
+        //println(s"star.ra: ${star.ra} -- p:${p} -- b:${b}")
+        Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.green)
+      }
+    as ++ shapablesCoordinatesColored(len = 50, bgColor = bc)
+  }
+
 
 }

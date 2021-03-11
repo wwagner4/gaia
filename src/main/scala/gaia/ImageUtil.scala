@@ -37,37 +37,49 @@ object ImageUtil {
 
   lazy val galacicCenter = X3d.PolarVec(r = 8, ra = X3d.degToRad(266.25), dec = X3d.degToRad(-28.94)).toVec
 
-  def nearSunStars(workPath: Path): Seq[Star] = {
+  object StarCollections {
+    def basicStars(workPath: Path): Seq[Star] = {
 
-    def filter(star: Star): Boolean = {
-      if (star.parallax <= 0) return false
-      val dist = 1.0 / star.parallax
-      if (dist >= 0.1) return false
-      true
+      def filter(star: Star): Boolean = {
+        if (star.parallax <= 0) return false
+        if (Random.nextDouble() >= 0.2) return false
+        true
+      }
+
+      val cacheFile = createCacheFile("basic", workPath)
+      starsFilteredAndCached(cacheFile, filter)
     }
 
-    val cacheFile = createCacheFile("near_sun", workPath)
-    starsFilteredAndCached(cacheFile, filter)
-  }
+    def nearSunStars(workPath: Path): Seq[Star] = {
 
-  def basicStars(workPath: Path): Seq[Star] = {
+      def filter(star: Star): Boolean = {
+        if (star.parallax <= 0) return false
+        val dist = 1.0 / star.parallax
+        if (dist >= 0.1) return false
+        true
+      }
 
-    def filter(star: Star): Boolean = {
-      if (star.parallax <= 0) return false
-      if (Random.nextDouble() >= 0.2) return false
-      true
+      val cacheFile = createCacheFile("near_sun", workPath)
+      starsFilteredAndCached(cacheFile, filter)
     }
 
-    val cacheFile = createCacheFile("basic", workPath)
-    starsFilteredAndCached(cacheFile, filter)
-  }
-
-  def testStars(workPath: Path): Seq[Star] = {
-    for (w <- 0 to(355, 5); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
-      val x = 0.01 * math.sin(X3d.degToRad(w))
-      val y = 0.01 * math.cos(X3d.degToRad(w))
-      Star(ra, dec, 1.0 / 600, x, y, 60)
+    object Test {
+      def cones(workPath: Path): Seq[Star] = {
+        for (w <- 0 to(355, 5); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
+          val x = 0.01 * math.sin(X3d.degToRad(w))
+          val y = 0.01 * math.cos(X3d.degToRad(w))
+          Star(ra, dec, 1.0 / 600, x, y, 60)
+        }
+      }
+      def polarToCartTest(workPath: Path): Seq[Star] = {
+        for (t <- 0 to (270, 5); d <- -90 to (60, 1)) yield {
+          val dist = 20 + Random.nextDouble() * 2
+          Star(ra=t, dec=d, parallax = 1.0/dist, 0, 0, 0)
+        }
+      }
+      
     }
+
   }
 
   private def createCacheFile(id: String, workPath: Path): Path = {

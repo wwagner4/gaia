@@ -21,7 +21,7 @@ object Tryout {
       pm.x, pm.y, pm.z)
 
   def doit(args: List[String], workPath: Path): Unit = {
-    val stars = ImageUtil.basicStars(Main.workPath).take(20)
+    val stars = ImageUtil.StarCollections.basicStars(Main.workPath).take(20)
     for (s <- stars) {
       val sm = ImageUtil.properMotionToSpaceMotion(s)
       println(format(s, sm))
