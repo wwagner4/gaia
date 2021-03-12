@@ -17,39 +17,7 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   def f(v: PolarVec): String = f(v.r, v.ra, v.dec)
 
-  val TO_POLAR = Seq(
-    (Vec(1, 0, 0), 1.0, 0.0, 0.0),
-    (Vec(2, 0, 0), 2.0, 0.0, 0.0),
-    (Vec(1, 1, 0), math.sqrt(2), math.Pi / 4.0, 0.0),
-    (Vec(1, -1, 0), math.sqrt(2), X3d.degToRad(-45), 0.0),
-    (Vec(2, 3, 4), 5.3852, 0.9828, 0.8372),
-    (Vec(-2, 3, 4), 5.3852, -0.9828, 0.8372),
-    (Vec(2, -3, 4), 5.3852, -0.9828, 0.8372),
-    (Vec(2, 3, -4), 5.3852, 0.9828, -0.8372),
-    (Vec(0, 1, 0), 1.0, X3d.pihalbe, 0.0),
-    (Vec(0, 0, 1), 1.0, X3d.pihalbe, X3d.pihalbe),
-  )
-
-  for ((v, r, ra, dec) <- TO_POLAR) {
-    test(s"vec to polar vec $v") {
-      val vp = v.toPolarVec
-      f(vp) mustBe f(r, ra, dec)
-    }
-  }
-    val VECS = Seq(
-      (PolarVec(1, 0, 0), 1.0, 0.0, 0.0),
-      (PolarVec(1, X3d.pihalbe, 0), 0.0, 1.0, 0.0),
-      (PolarVec(1, 0, X3d.pihalbe), 0.0, 0.0, 1.0),
-    )
-  
-    for ((pv, x, y, z) <- VECS) {
-      test(s"to cart vec $pv") {
-        val v = pv.toVec
-        f(v) mustBe f(x, y, z)
-      }
-    }
-
-  val VEC_CONV = Seq(
+  val VEC_CONV_CPC = Seq(
     Vec(1, 2, 3),
     Vec(1, -2, 3),
     Vec(-1, -2, 3),
@@ -58,7 +26,7 @@ class Tests extends AnyFunSuite with must.Matchers {
     Vec(0, 0, 1),
   )
 
-  for v <- VEC_CONV do {
+  for v <- VEC_CONV_CPC do {
     test(s"vector convert reconvert ${v}") {
       val vp = v.toPolarVec
       val v1 = vp.toVec
@@ -66,6 +34,29 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
+  /*
+  val VEC_CONV_PCP = Seq(
+    PolarVec(1, 0.0, 0.0),
+    PolarVec(1, 1.0, 0.0),
+    PolarVec(1, 2.0, 0.0),
+    PolarVec(1, 3.0, 0.0),
+    PolarVec(1, 0.0, 1.0),
+    PolarVec(1, 0.0, 2.0),
+    PolarVec(1, 0.0, 3.0),
+    PolarVec(1, 2.0, 1.0),
+    PolarVec(1, 2.0, 2.0),
+    PolarVec(1, 2.0, 3.0),
+  )
+
+  for v <- VEC_CONV_PCP do {
+    test(s"vector convert reconvert pcp ${v}") {
+      val vc = v.toVec
+      val v1 = vc.toPolarVec
+      f(v1) mustBe f(v)
+    }
+  }
+  */
+  
   val VEC_SUB = Seq(
     (Vec(3, 2, 0), Vec(1, 2, 0), Vec(2, 0, 0)),
     (Vec(0, 4, 1), Vec(0, 1, 2), Vec(0, 3, -1)),

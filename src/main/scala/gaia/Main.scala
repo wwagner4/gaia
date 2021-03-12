@@ -618,6 +618,12 @@ object Main {
       backColor = Color.veryDarkBlue,
       text = "",
     ),
+    GaiaImage(id = "ctop",
+      desc = "test for cartesian to polar conversion",
+      fCreateModel = writeModelToFile(s => s, StarCollections.Test.cartToPolarTest)(Image2.ptoc),
+      backColor = Color.veryDarkBlue,
+      text = "",
+    ),
   ))
 
   private def usage(message: Option[String]) = {

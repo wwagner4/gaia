@@ -71,13 +71,32 @@ object ImageUtil {
           Star(ra, dec, 1.0 / 600, x, y, 60)
         }
       }
+
       def polarToCartTest(workPath: Path): Seq[Star] = {
-        for (t <- 0 to (270, 5); d <- -90 to (60, 1)) yield {
+        for (t <- 0 to(270, 5); d <- -90 to(60, 1)) yield {
           val dist = 20 + Random.nextDouble() * 2
-          Star(ra=t, dec=d, parallax = 1.0/dist, 0, 0, 0)
+          Star(ra = t, dec = d, parallax = 1.0 / dist, 0, 0, 0)
         }
       }
-      
+
+      def cartToPolarTest(workPath: Path): Seq[Star] = {
+        val vecs = Seq(
+          (-20 to 20).map(v => Vec(v , 0, 10)),
+          (-20 to 20).map(v => Vec(v , 0, -10)),
+          (-20 to 20).map(v => Vec(v , 10, 0)),
+          (-20 to 20).map(v => Vec(v , -10, 0)),
+          (-20 to 20).map(v => Vec(0, v, 10)),
+          (-20 to 20).map(v => Vec(0, v, -10)),
+          (-20 to 20).map(v => Vec(10, v, 0)),
+          (-20 to 20).map(v => Vec(-10, v, 0)),
+        ).flatten
+        for (vc <- vecs) yield {
+          //println(vc)
+          val v = vc.toPolarVec
+          Star(ra = X3d.radToDeg(v.ra), dec = X3d.radToDeg(v.dec), parallax = 1.0 / v.r, 0, 0, 0)
+        }
+      }
+
     }
 
   }
