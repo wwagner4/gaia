@@ -130,9 +130,10 @@ object X3d {
 
   case class PolarVec(r: Double, ra: Double, dec: Double) {
     def toVec: Vec = {
-      val x = r * math.sin(dec) * math.cos(ra)
-      val y = r * math.sin(dec) * math.sin(ra)
-      val z = r * math.cos(dec)
+      val dec1 = if (dec == 0.0) 0.0000000001 else dec
+      val x = r * math.sin(dec1) * math.cos(ra)
+      val y = r * math.sin(dec1) * math.sin(ra)
+      val z = r * math.cos(dec1)
       Vec(x, y, z)
     }
   }

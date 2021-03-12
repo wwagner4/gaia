@@ -24,6 +24,10 @@ class Tests extends AnyFunSuite with must.Matchers {
     Vec(-1, -2, -3),
     Vec(-1, 2, -3),
     Vec(0, 0, 1),
+    Vec(-3, -2, 3),
+    Vec(-3, -2, -3),
+    Vec(-3, 2, -3),
+    Vec(3, 0, 1),
   )
 
   for v <- VEC_CONV_CPC do {
@@ -34,28 +38,38 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
-  /*
   val VEC_CONV_PCP = Seq(
     PolarVec(1, 0.0, 0.0),
-    PolarVec(1, 1.0, 0.0),
-    PolarVec(1, 2.0, 0.0),
-    PolarVec(1, 3.0, 0.0),
+    PolarVec(1, 1.0, 0.01),
+    PolarVec(1, 2.0, 0.01),
+    PolarVec(1, 3.0, 0.01),
     PolarVec(1, 0.0, 1.0),
     PolarVec(1, 0.0, 2.0),
     PolarVec(1, 0.0, 3.0),
     PolarVec(1, 2.0, 1.0),
     PolarVec(1, 2.0, 2.0),
     PolarVec(1, 2.0, 3.0),
+    PolarVec(10, 0.0, 0.0),
+    PolarVec(14, 1.0, 0.0),
+    PolarVec(15, 2.0, 0.0),
+    PolarVec(3, 3.0, 0.0),
+    PolarVec(4, 0.0, 1.0),
+    PolarVec(2, 0.0, 2.0),
+    PolarVec(7, 0.0, 3.0),
+    PolarVec(3, 2.0, 1.0),
+    PolarVec(4, 2.0, 2.0),
+    PolarVec(6, 2.0, 3.0),
   )
 
   for v <- VEC_CONV_PCP do {
     test(s"vector convert reconvert pcp ${v}") {
       val vc = v.toVec
       val v1 = vc.toPolarVec
+      println(s"-- ${f(v)} --> ${f(vc)} --> ${f(v1)}")
+      println(s"-- ${v} --> ${vc} --> ${v1}")
       f(v1) mustBe f(v)
     }
   }
-  */
   
   val VEC_SUB = Seq(
     (Vec(3, 2, 0), Vec(1, 2, 0), Vec(2, 0, 0)),
