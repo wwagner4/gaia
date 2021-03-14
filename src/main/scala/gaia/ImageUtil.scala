@@ -73,7 +73,7 @@ object ImageUtil {
       }
 
       def polarToCartTest(workPath: Path): Seq[Star] = {
-        for (t <- 0 to(355, 5); d <- 0 to(30, 1)) yield {
+        for (t <- 0 to(355, 5); d <- -80 to(30, 1)) yield {
           val dist = 20 + Random.nextDouble() * 0.1
           Star(ra = t, dec = d, parallax = 1.0 / dist, 0, 0, 0)
         }
@@ -81,13 +81,13 @@ object ImageUtil {
 
       def cartToPolarTest(workPath: Path): Seq[Star] = {
         val vecs = Seq(
-//          (-20 to 20).map(v => Vec(v , 0, 10)),
-//          (-20 to 20).map(v => Vec(v , 0, -10)),
-//          (-20 to 20).map(v => Vec(v , 10, 0)),
-//          (-20 to 20).map(v => Vec(v , -10, 0)),
-//          (-20 to 20).map(v => Vec(0, v, 10)),
-//          (-20 to 20).map(v => Vec(0, v, -10)),
-          (-20 to 20).map(v => Vec(20, v, 0)),
+          (-20 to 20).map(v => Vec(v, 0, 10)),
+          (-20 to 20).map(v => Vec(v, 0, -10)),
+          (-20 to 20).map(v => Vec(v, 10, 0)),
+          (-20 to 20).map(v => Vec(v, -10, 0)),
+          (-20 to 20).map(v => Vec(0, v, 10)),
+          (-20 to 20).map(v => Vec(0, v, -10)),
+          (-20 to 20).map(v => Vec(10, v, 0)),
           (-20 to 20).map(v => Vec(-10, v, 0)),
         ).flatten
         for (vc <- vecs) yield {
