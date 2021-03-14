@@ -51,9 +51,19 @@ object X3d {
     }
   }
 
-  private val degRad = 180.0 / math.Pi
+  def dround(x: Double) = {
+    BigDecimal(x).setScale(13, BigDecimal.RoundingMode.HALF_UP).toDouble
+  }
 
-  val pihalbe = math.Pi * 0.5
+  val pi = math.Pi
+  val pidiv2 = math.Pi / 2.0
+  val pimul2 = math.Pi * 2.0
+
+  val rpi = dround(pi)
+  val rpidiv2 = dround(pidiv2)
+  val rpimul2 = dround(pimul2)
+
+  private val degRad = 180.0 / pi
 
   def degToRad(deg: Double): Double = deg / degRad
 
@@ -105,24 +115,28 @@ object X3d {
 
     def sprod(other: Vec): Double = (x * other.x) + (y * other.y) + (z * other.z)
 
-    def angle(other: Vec): Double = math.acos(sprod(other) / (length * other.length)) * 180 / math.Pi
+    def angle(other: Vec): Double = math.acos(sprod(other) / (length * other.length)) * 180 / pi
 
     def toPolarVec: PolarVec = {
       def atan2: Double = {
         if (x > 0.0) math.atan(y / x)
         else if (x < 0.0) {
-          if (y >= 0.0) math.atan(y / x) + math.Pi
-          else math.atan(y / x) - math.Pi
+          if (y >= 0.0) math.atan(y / x) + pi
+          else math.atan(y / x) - pi
         }
         else {
-          math.signum(y) * math.Pi / 2.0
+          math.signum(y) * pidiv2
         }
       }
 
       val r = math.sqrt(x * x + y * y + z * z)
-      val dec = math.acos(z / r)
-      val ra= atan2
-      PolarVec(r, ra, dec)
+      if (r == 0.0) PolarVec(0.0, 0.0, 0.0)
+      else {
+        val dec = math.acos(z / r)
+        val ra = atan2
+        val dec1 = pidiv2 - dec
+        PolarVec(r, ra, dec1).adjust
+      }
     }
 
     def toVec4(u: Double = 0.0) = Vec4(x, y, z, u)
@@ -130,11 +144,35 @@ object X3d {
 
   case class PolarVec(r: Double, ra: Double, dec: Double) {
     def toVec: Vec = {
-      val dec1 = if (dec == 0.0) 0.0000000001 else dec
+      val dec1 = pidiv2 - dec
       val x = r * math.sin(dec1) * math.cos(ra)
       val y = r * math.sin(dec1) * math.sin(ra)
       val z = r * math.cos(dec1)
-      Vec(x, y, z)
+      Vec(dround(x), dround(y), dround(z))
+    }
+
+    def adjust: PolarVec = {
+
+      def adjustRa(v: Double): Double = {
+        val v1 = dround(v) % rpimul2
+        if (v1 < 0.0) v1 + pimul2 else v1
+      }
+
+      val dec1 = dround(dec) % rpi
+      if (dec1 > pidiv2) {
+        val ra1 = adjustRa(ra + pi)
+        val dec2 = pi - dec1
+        PolarVec(r, ra1, dec2)
+      }
+      else if (dec1 < -pidiv2) {
+        val ra1 = adjustRa(ra + pi)
+        val dec2 = - dec1 - pi
+        PolarVec(r, ra1, dec2)
+      }
+      else {
+        val ra1 = adjustRa(ra)
+        PolarVec(r, dround(ra1), dround(dec1))
+      }
     }
   }
 

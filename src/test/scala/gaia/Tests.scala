@@ -1,6 +1,6 @@
 package gaia
 
-import gaia.X3d.{PolarVec, Vec, pihalbe}
+import gaia.X3d.{PolarVec, Vec}
 
 import java.util.Locale
 import org.scalatest._
@@ -11,24 +11,36 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   val delta = 0.000001
 
-  def f(a: Double, b: Double, c: Double) = "%7.4f | %7.4f | %7.4f".format(a, b, c)
+  def f(prefix: String, a: Double, b: Double, c: Double) = {
+    def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
 
-  def f(v: Vec): String = f(v.x, v.y, v.z)
+    s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
+  }
 
-  def f(v: PolarVec): String = f(v.r, v.ra, v.dec)
+  def f(v: Vec): String = f("C", v.x, v.y, v.z)
 
-  val VEC_CONV_CPC = Seq(
-    Vec(1, 2, 3),
-    Vec(1, -2, 3),
-    Vec(-1, -2, 3),
-    Vec(-1, -2, -3),
-    Vec(-1, 2, -3),
-    Vec(0, 0, 1),
-    Vec(-3, -2, 3),
-    Vec(-3, -2, -3),
-    Vec(-3, 2, -3),
-    Vec(3, 0, 1),
-  )
+  def f(v: PolarVec): String = f("P", v.r, v.ra, v.dec)
+
+  val VEC_CONV_CPC = {
+    val v1 = for (x <- -2 to 2;
+                  y <- -2 to 2;
+                  z <- -2 to 2) yield
+      Vec((x + 0.8768) * 0.123, (y + 0.001) * 0.123123, z * 2.4)
+    val v2 = Seq(
+      Vec(1, 2, 3),
+      Vec(1, 2, -3),
+      Vec(1, -2, 3),
+      Vec(-1, -2, 3),
+      Vec(-1, -2, -3),
+      Vec(-1, 2, -3),
+      Vec(0, 0, 1),
+      Vec(-3, -2, 3),
+      Vec(-3, -2, -3),
+      Vec(-3, 2, -3),
+      Vec(3, 0, 1),
+    )
+    v1 ++ v2
+  }
 
   for v <- VEC_CONV_CPC do {
     test(s"vector convert reconvert ${v}") {
@@ -53,24 +65,29 @@ class Tests extends AnyFunSuite with must.Matchers {
     PolarVec(14, 1.0, 0.0),
     PolarVec(15, 2.0, 0.0),
     PolarVec(3, 3.0, 0.0),
+    PolarVec(3, -3.0, 0.0),
     PolarVec(4, 0.0, 1.0),
     PolarVec(2, 0.0, 2.0),
     PolarVec(7, 0.0, 3.0),
     PolarVec(3, 2.0, 1.0),
     PolarVec(4, 2.0, 2.0),
     PolarVec(6, 2.0, 3.0),
+    PolarVec(6, -2.0, 3.0),
+    PolarVec(6, 2.0, -3.0),
+    PolarVec(6, -2.0, -3.0),
   )
 
   for v <- VEC_CONV_PCP do {
     test(s"vector convert reconvert pcp ${v}") {
+      val va = v.adjust
       val vc = v.toVec
       val v1 = vc.toPolarVec
       println(s"-- ${f(v)} --> ${f(vc)} --> ${f(v1)}")
       println(s"-- ${v} --> ${vc} --> ${v1}")
-      f(v1) mustBe f(v)
+      f(v1) mustBe f(va)
     }
   }
-  
+
   val VEC_SUB = Seq(
     (Vec(3, 2, 0), Vec(1, 2, 0), Vec(2, 0, 0)),
     (Vec(0, 4, 1), Vec(0, 1, 2), Vec(0, 3, -1)),
