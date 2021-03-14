@@ -65,10 +65,10 @@ object ImageUtil {
 
     object Test {
       def cones(workPath: Path): Seq[Star] = {
-        for (w <- 0 to(355, 5); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
+        for (w <- 0 to(355, 5); dec <- -80 to(80, 10); ra <- 0 to(315, 45)) yield {
           val x = 0.01 * math.sin(X3d.degToRad(w))
           val y = 0.01 * math.cos(X3d.degToRad(w))
-          Star(ra, dec, 1.0 / 600, x, y, 60)
+          Star(ra, dec, 1.0 / 600, x, y, 160)
         }
       }
 
@@ -172,20 +172,19 @@ object ImageUtil {
 
   def properMotionToSpaceMotion(star: Star): Vec = {
     val dist = 1 / star.parallax
-    val x = dist * star.pmra * k1
-    val y = dist * star.pmdec * k1
-    val z = star.radialVelocity
+    val y = dist * star.pmra * k1
+    val z = dist * star.pmdec * k1
+    val x = star.radialVelocity
     Vec(x, y, z)
   }
 
   def spaceMotionToGalacticMotion(star: Data.Star, spaceMotion: Vec): Vec = {
-    val smp = spaceMotion.toPolarVec
-    val gmp = smp.copy(
-      dec = smp.dec + X3d.degToRad(star.dec - 90),
-      ra = smp.ra,
-      r = smp.r)
-    gmp.toVec
-  }
+    val rra = X3d.degToRad(star.ra)
+    val rdec = X3d.degToRad(star.dec)
+    spaceMotion
+      .roty(-rdec)
+      .rotz(rra)
+    }
 
   private def toDir(star: Star): Vec = {
     val sm = properMotionToSpaceMotion(star)
