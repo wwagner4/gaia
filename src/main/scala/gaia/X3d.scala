@@ -51,17 +51,9 @@ object X3d {
     }
   }
 
-  def dround(x: Double) = {
-    BigDecimal(x).setScale(13, BigDecimal.RoundingMode.HALF_UP).toDouble
-  }
-
   val pi = math.Pi
   val pidiv2 = math.Pi / 2.0
   val pimul2 = math.Pi * 2.0
-
-  val rpi = dround(pi)
-  val rpidiv2 = dround(pidiv2)
-  val rpimul2 = dround(pimul2)
 
   private val degRad = 180.0 / pi
 
@@ -148,17 +140,17 @@ object X3d {
       val x = r * math.sin(dec1) * math.cos(ra)
       val y = r * math.sin(dec1) * math.sin(ra)
       val z = r * math.cos(dec1)
-      Vec(dround(x), dround(y), dround(z))
+      Vec(x, y, z)
     }
 
     def adjust: PolarVec = {
 
       def adjustRa(v: Double): Double = {
-        val v1 = dround(v) % rpimul2
+        val v1 = v % pimul2
         if (v1 < 0.0) v1 + pimul2 else v1
       }
 
-      val dec1 = dround(dec) % rpi
+      val dec1 = dec % pi
       if (dec1 > pidiv2) {
         val ra1 = adjustRa(ra + pi)
         val dec2 = pi - dec1
@@ -171,7 +163,7 @@ object X3d {
       }
       else {
         val ra1 = adjustRa(ra)
-        PolarVec(r, dround(ra1), dround(dec1))
+        PolarVec(r, ra1, dec1)
       }
     }
   }
