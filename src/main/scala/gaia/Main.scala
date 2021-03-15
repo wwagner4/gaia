@@ -606,19 +606,19 @@ object Main {
         )
       ))
     ),
-    GaiaImage(id = "cones",
-      desc = "test stars for checkin direction",
+    GaiaImage(id = "tdir_cones",
+      desc = "cones around the sun",
       fCreateModel = writeModelToFile(s => s, StarCollections.Test.cones)(Image2.testDir),
       backColor = Color.veryDarkBlue,
       text = "",
     ),
-    GaiaImage(id = "ptoc",
+    GaiaImage(id = "tdir_ptoc",
       desc = "test for polar to carttesian conversion",
       fCreateModel = writeModelToFile(s => s, StarCollections.Test.polarToCartTest)(Image2.ptoc),
       backColor = Color.veryDarkBlue,
       text = "",
     ),
-    GaiaImage(id = "ctop",
+    GaiaImage(id = "tdir_ctop",
       desc = "test for cartesian to polar conversion",
       fCreateModel = writeModelToFile(s => s, StarCollections.Test.cartToPolarTest)(Image2.ptoc),
       backColor = Color.veryDarkBlue,
@@ -666,8 +666,10 @@ object Main {
    * Create an x3d model by calling the fCreateMethod of the image definition
    */
   private def createX3d(args: List[String], workPath: Path): Unit = {
-    val info = "Valid IDs: " + images.values.map(i => i.id).mkString(", ")
-    if (args.size < 1) throw new IllegalArgumentException(s"Define an ID for creating an x3d file. $info")
+    val imagesInfo = images.values.toSeq.sortBy(_.id)
+    val infoList = imagesInfo.map(i => f"${i.id}%15s | ${i.desc}").mkString("\n")
+    val info = "Define an ID for creating an x3d file:\n" + infoList
+    if (args.size < 1) throw new IllegalArgumentException(info)
     val id = args(0)
     images.get(id) match {
       case None => throw new IllegalArgumentException(s"Unknown ID $id for creating an x3d file. $info")
