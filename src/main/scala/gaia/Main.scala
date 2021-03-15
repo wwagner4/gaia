@@ -1,8 +1,5 @@
 package gaia
 
-
-import gaia.X3d.PolarVec
-
 import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
@@ -12,7 +9,8 @@ object Main {
 
   import Data.Star
   import ImageUtil._
-  import X3d.{Color, Vec}
+  import X3d.{Color}
+  import Vector._
 
   lazy val workPath = getCreateWorkPath
 
@@ -22,7 +20,7 @@ object Main {
 
   case class RotAxesDeg(ra: Double, dec: Double) {
     def toVec: Vec = {
-      PolarVec(1, X3d.degToRad(ra), X3d.degToRad(dec)).toVec
+      PolarVec(1, degToRad(ra), degToRad(dec)).toVec
     }
   }
 

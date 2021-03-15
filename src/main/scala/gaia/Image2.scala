@@ -10,6 +10,7 @@ object Image2 {
   import Data.Star
   import ImageUtil._
   import X3d._
+  import Vector._
 
   def aroundGalacticCenterSpheres(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
@@ -34,7 +35,7 @@ object Image2 {
 
     starShapes.toList ++ (2 to(25, 2)).map { r =>
       Shapable.Circle(translation = Vec.zero,
-        rotation = Vec(0, X3d.degToRad(90), 0),
+        rotation = Vec(0, degToRad(90), 0),
         color = Color.gray(0.1), radius = r * 0.1)
     }
     ++ shapablesCoordinatesOneColor(2, Color.gray(0.5), bc)
@@ -71,7 +72,7 @@ object Image2 {
 
     val sphereShapes = (1 to(30, 5)).map { r =>
       Shapable.Circle(translation = Vec.zero,
-        rotation = Vec(0, X3d.degToRad(90), 0),
+        rotation = Vec(0, degToRad(90), 0),
         color = Color.gray(0.1), radius = r * 0.1)
     }
     val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
@@ -128,7 +129,7 @@ object Image2 {
     val as = stars.toSeq
       .map { star =>
         val a = Vec.zero
-        val p = PolarVec(1/star.parallax, X3d.degToRad(star.ra), X3d.degToRad(star.dec))
+        val p = PolarVec(1/star.parallax, degToRad(star.ra), degToRad(star.dec))
         val b = p.toVec
         println(s"star.ra: ${star.ra} -- p:${p} -- b:${b}")
         Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.green)

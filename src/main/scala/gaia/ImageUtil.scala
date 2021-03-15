@@ -10,6 +10,7 @@ object ImageUtil {
   import Data.Star
   import Main._
   import X3d._
+  import Vector._
 
   case class StarPosDir(
                          pos: Vec,
@@ -35,7 +36,7 @@ object ImageUtil {
                        transform: Star => Star = identity,
                      )
 
-  lazy val galacicCenter = X3d.PolarVec(r = 8, ra = X3d.degToRad(266.25), dec = X3d.degToRad(-28.94)).toVec
+  lazy val galacicCenter = PolarVec(r = 8, ra = degToRad(266.25), dec = degToRad(-28.94)).toVec
 
   object StarCollections {
     def basicStars(workPath: Path): Seq[Star] = {
@@ -66,8 +67,8 @@ object ImageUtil {
     object Test {
       def cones(workPath: Path): Seq[Star] = {
         for (w <- 0 to(355, 5); dec <- -80 to(80, 10); ra <- 0 to(315, 45)) yield {
-          val x = 0.01 * math.sin(X3d.degToRad(w))
-          val y = 0.01 * math.cos(X3d.degToRad(w))
+          val x = 0.01 * math.sin(degToRad(w))
+          val y = 0.01 * math.cos(degToRad(w))
           Star(ra, dec, 1.0 / 600, x, y, 160)
         }
       }
@@ -93,7 +94,7 @@ object ImageUtil {
         for (vc <- vecs) yield {
           //println(vc)
           val v = vc.toPolarVec
-          Star(ra = X3d.radToDeg(v.ra), dec = X3d.radToDeg(v.dec), parallax = 1.0 / v.r, 0, 0, 0)
+          Star(ra = radToDeg(v.ra), dec = radToDeg(v.dec), parallax = 1.0 / v.r, 0, 0, 0)
         }
       }
 
@@ -161,7 +162,7 @@ object ImageUtil {
     val dist = 1 / star.parallax
     val ra = star.ra
     val dec = star.dec
-    X3d.PolarVec(dist, X3d.degToRad(ra), X3d.degToRad(dec)).toVec
+    PolarVec(dist, degToRad(ra), degToRad(dec)).toVec
   }
 
   // constants for 'properMotionToSpaceMotion'
@@ -179,8 +180,8 @@ object ImageUtil {
   }
 
   def spaceMotionToGalacticMotion(star: Data.Star, spaceMotion: Vec): Vec = {
-    val rra = X3d.degToRad(star.ra)
-    val rdec = X3d.degToRad(star.dec)
+    val rra = degToRad(star.ra)
+    val rdec = degToRad(star.dec)
     spaceMotion
       .roty(-rdec)
       .rotz(rra)
@@ -349,8 +350,8 @@ object ImageUtil {
 
   def toGalacticCoords(pos: Vec): Vec =
     pos
-      .rotx(X3d.degToRad(-27.13))
-      .roty(X3d.degToRad(-28.94))
+      .rotx(degToRad(-27.13))
+      .roty(degToRad(-28.94))
 
   def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
     val ix = math.floor(pos.x * cubeCount / cubeSize).toInt

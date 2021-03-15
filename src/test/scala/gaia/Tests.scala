@@ -1,13 +1,13 @@
 package gaia
 
-import gaia.X3d.{PolarVec, Vec}
-
 import java.util.Locale
 import org.scalatest._
 import funsuite._
 import matchers._
 
 class Tests extends AnyFunSuite with must.Matchers {
+
+  import Vector._
 
   val delta = 0.000001
 

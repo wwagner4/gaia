@@ -1,7 +1,5 @@
 package gaia
 
-import gaia.X3d.{Color, Vec, degToRad}
-
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
@@ -10,6 +8,10 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 object Util {
+
+  import X3d.{Color}
+  import Vector._
+
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 

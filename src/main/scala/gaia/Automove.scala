@@ -1,11 +1,12 @@
 package gaia
 
-import gaia.Main.{GaiaImage, VideoConfig}
-import gaia.X3d.Vec
 
 import java.nio.file.{Files, Path}
 
 object Automove {
+
+  import Main.{GaiaImage, VideoConfig}
+  import Vector.Vec
 
   override def hashCode(): Int = super.hashCode()
 

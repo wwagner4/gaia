@@ -1,9 +1,5 @@
 package gaia
 
-import gaia.Data.{Star, readBasic}
-import gaia.Main.RotAxesDeg
-import gaia.X3d.{PolarVec, Vec}
-
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.Path
@@ -16,6 +12,10 @@ import scala.util.Random
 
 object Tryout {
 
+  import Data.{Star, readBasic}
+  import Main.RotAxesDeg
+  import Vector._
+
   def f(prefix: String, a: Double, b: Double, c: Double) = {
     def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
     s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
@@ -23,7 +23,7 @@ object Tryout {
 
   def f(v: Vec): String = f("C", v.x, v.y, v.z)
 
-  def f(v: PolarVec): String = f("P", v.r, X3d.radToDeg(v.ra), X3d.radToDeg(v.dec))
+  def f(v: PolarVec): String = f("P", v.r, radToDeg(v.ra), radToDeg(v.dec))
 
 
   def doit(args: List[String], workPath: Path): Unit = {
@@ -109,8 +109,8 @@ object Tryout {
     rs.map(r => (r, r.toVec)).foreach { case (a, b) => println(s"$a -> $b") }
 
     val nearEcl = Vec(0, 45, 30).toPolarVec
-    val ra = X3d.radToDeg(nearEcl.ra)
-    val dec = X3d.radToDeg(nearEcl.dec)
+    val ra = radToDeg(nearEcl.ra)
+    val dec = radToDeg(nearEcl.dec)
     println(s"steep: $ra, $dec")
   }
 

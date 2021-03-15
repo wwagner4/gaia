@@ -13,6 +13,7 @@ object Image1 {
   import X3d._
   import ImageUtil._
   import Data._
+  import Vector._
 
   def dir01(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
     val ranges = Seq((7.9, 8.1))
@@ -108,7 +109,7 @@ object Image1 {
   }
 
   def gc(stars: Iterable[Any], bc: Color): Seq[Shapable] = {
-    val rotation = Vec(X3d.degToRad(-4), X3d.degToRad(96), X3d.degToRad(0))
+    val rotation = Vec(degToRad(-4), degToRad(96), degToRad(0))
     Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
     ++ shapablesCoordinatesColored(5, bc)
     ++ shapablesCoordinatesColored(10, bc, offset = ImageUtil.galacicCenter)
