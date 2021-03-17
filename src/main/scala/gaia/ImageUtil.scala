@@ -208,12 +208,11 @@ object ImageUtil {
     spaceMotionToGalacticMotion(star, sm)
   }
 
-  def writeModelToFile[T](converter: Star => T, reader: Path => Iterable[Star])(fcreateShapables: (Iterable[T], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
+  def writeModelToFile(reader: Path => Iterable[Star])(fcreateShapables: (Iterable[Star], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
     val gaiaImage = Main.images(id)
     val bgColor = gaiaImage.backColor
     val stars = reader(workPath)
-    val starsConverted = stars.map(converter)
-    val shapables = fcreateShapables(starsConverted, bgColor)
+    val shapables = fcreateShapables(stars, bgColor)
     val file = {
       val modelsPath = workPath.resolve("models")
       if (Files.notExists(modelsPath)) Files.createDirectories(modelsPath)

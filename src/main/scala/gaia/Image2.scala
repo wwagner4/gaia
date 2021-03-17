@@ -41,7 +41,7 @@ object Image2 {
     ++ shapablesCoordinatesOneColor(2, Color.gray(0.5), bc)
   }
 
-  def aroundGalacticCenterDirections(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def aroundGalacticCenterDirections(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
     val maxDist = 3
@@ -54,7 +54,7 @@ object Image2 {
       cols(i)
     }
 
-    val stars = stars1
+    val stars = stars1.map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
     println(s"filtered ${stars.size} stars")
 
@@ -80,13 +80,13 @@ object Image2 {
     starShapes ++ sphereShapes ++ coordshapes
   }
 
-  def dens(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def dens(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running density")
 
     val cubeSize = 16
     val cubeCount = 16
 
-    val stars = stars1
+    val stars = stars1.map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= 0.01 && s.pos.length < cubeSize)
 
     val ic = inCube(cubeSize, cubeCount) _

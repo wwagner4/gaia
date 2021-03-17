@@ -15,12 +15,12 @@ object Image1 {
   import Data._
   import Vector._
 
-  def dir01(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def dir01(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val ranges = Seq((7.9, 8.1))
     val colors = Palette.p2c10.colors
     val baseDirectionVec = Vec(1, 0, 1)
     val starShapes =
-      stars
+      stars.map(toStarPosDir)
         .filter(filterShells(ranges)(_))
         .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
@@ -33,7 +33,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dir02(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def dir02(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val ranges = Seq(
       (9.6, 10.0),
       (7.8, 8.0),
@@ -50,7 +50,7 @@ object Image1 {
 
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
-    val starShapables = stars
+    val starShapables = stars.map(toStarPosDir)
       .filter(filterShells(ranges)(_))
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
@@ -63,7 +63,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dirs(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def dirs(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val epsBase = 0.4
     val epsAdj = Seq(
       8 -> 1.0 / 13,
@@ -94,7 +94,7 @@ object Image1 {
 
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
-    val starss = stars1
+    val starss = stars1.map(toStarPosDirGalactic)
       .filter(filterShells(ranges)(_))
       .map(adjust)
       .map { s =>
@@ -108,7 +108,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def gc(stars: Iterable[Any], bc: Color): Seq[Shapable] = {
+  def gc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val rotation = Vec(degToRad(-4), degToRad(96), degToRad(0))
     Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
     ++ shapablesCoordinatesColored(5, bc)
