@@ -132,6 +132,27 @@ object X3d {
       }
     }
 
+    case class Cone(position: Vec, rotation: Vec = Vec.zero, radius: Double = 1.0, height: Double = 1.0, color: Color) extends Shapable {
+      def toShape = {
+        s"""
+           |<Transform translation='${position.strNoComma}'>
+           |<Transform rotation='1 0 0 ${rotation.x}' center='0, 0, 0'>
+           |<Transform rotation='0 1 0 ${rotation.y}' center='0, 0, 0'>
+           |<Transform rotation='0 0 1 ${rotation.z}' center='0, 0, 0'>
+           |  <Shape>
+           |     <Cone bottomRadius='$radius' height='$height'/>
+           |     <Appearance>
+           |       <Material diffuseColor='${color.strNoComma}'/>
+           |     </Appearance>
+           |   </Shape>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |</Transform>
+           |""".stripMargin
+      }
+    }
+
     case class Box(position: Vec, rotaion: Vec = Vec.zero, color: Color = Color.orange, size: Vec = Vec(1, 1, 1),
                    solid: Boolean = true) extends Shapable {
       def toShape = {

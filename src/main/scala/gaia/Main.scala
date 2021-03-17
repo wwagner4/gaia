@@ -1,5 +1,6 @@
 package gaia
 
+
 import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
@@ -11,6 +12,7 @@ object Main {
   import ImageUtil._
   import X3d.{Color}
   import Vector._
+  import gaia.Image2._
 
   lazy val workPath = getCreateWorkPath
 
@@ -562,6 +564,12 @@ object Main {
           |""".stripMargin.trim,
       hpRelevant = false,
     ),
+    GaiaImage(id = "agc1",
+      desc = "around the galactic center",
+      fCreateModel = writeModelToFile(StarCollections.basicStars)(aroundGalacticCenter1),
+      backColor = Color.veryDarkBlue,
+      hpRelevant = false,
+    ),
     GaiaImage(id = "agcd",
       desc = "around the galactic center",
       fCreateModel = writeModelToFile(StarCollections.basicStars)(Image2.aroundGalacticCenterDirections),
@@ -619,19 +627,19 @@ object Main {
         )
       ))
     ),
-    GaiaImage(id = "tdir_cones",
+    GaiaImage(id = "t_cones",
       desc = "cones around the sun",
       fCreateModel = writeModelToFile(StarCollections.Test.cones)(Image2.testDir),
       backColor = Color.veryDarkBlue,
       text = "",
     ),
-    GaiaImage(id = "tdir_ptoc",
+    GaiaImage(id = "t_ptoc",
       desc = "test for polar to carttesian conversion",
       fCreateModel = writeModelToFile(StarCollections.Test.polarToCartTest)(Image2.ptoc),
       backColor = Color.veryDarkBlue,
       text = "",
     ),
-    GaiaImage(id = "tdir_ctop",
+    GaiaImage(id = "t_ctop",
       desc = "test for cartesian to polar conversion",
       fCreateModel = writeModelToFile(StarCollections.Test.cartToPolarTest)(Image2.ptoc),
       backColor = Color.veryDarkBlue,

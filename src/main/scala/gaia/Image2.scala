@@ -47,7 +47,7 @@ object Image2 {
     val maxDist = 3
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
     val cnt = cols.size
-    val dens = 0.1  
+    val dens = 0.1
 
     def colorForDistance(s: StarPosDir): Color = {
       val i = math.floor(cnt * s.pos.length / maxDist).toInt
@@ -78,6 +78,18 @@ object Image2 {
     val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
 
     starShapes ++ sphereShapes ++ coordshapes
+  }
+
+  def aroundGalacticCenter1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    val fs = stars.map(toStarPosDirGalactic)
+      .filter(s => s.pos.z > 2 && s.pos.z < 2.01
+        && s.pos.length < 10)
+    println(s"filtered ${fs.size} stars")
+    val sshapes = fs.toSeq
+      .map(s => Shapable.Cone(position = s.pos,  rotation=s.dir, radius = 0.005, height = 0.1, color = Color.white))
+
+    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
+    sshapes ++ coordshapes
   }
 
   def dens(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
@@ -129,7 +141,7 @@ object Image2 {
     val as = stars.toSeq
       .map { star =>
         val a = Vec.zero
-        val p = PolarVec(1/star.parallax, degToRad(star.ra), degToRad(star.dec))
+        val p = PolarVec(1 / star.parallax, degToRad(star.ra), degToRad(star.dec))
         val b = p.toVec
         println(s"star.ra: ${star.ra} -- p:${p} -- b:${b}")
         Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.green)
