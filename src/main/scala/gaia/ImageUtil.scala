@@ -77,16 +77,17 @@ object ImageUtil {
         }
 
         def cone(offset: Vec): Seq[Star] = {
-          for (w <- 0 to(320, 40); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
-            val x = 0.01 * math.sin(degToRad(w))
-            val y = 0.01 * math.cos(degToRad(w))
-            val cstar = Star(ra, dec, 1.0 / 600, x, y, 160)
+          for (w <- 0 to(350, 10); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
+            val x = 0.005 * math.sin(degToRad(w))
+            val y = 0.005 * math.cos(degToRad(w))
+            val cstar = Star(ra, dec, 1.0 / 600, x, y, 100)
             moveStar(cstar, offset)
           }
         }
 
-        cone(Vec.zero) ++ cone(Vec(800, 800, 0)) ++ cone(Vec(-800, -800, 0))
-        ++ cone (Vec(0, 0, 800)) ++ cone(Vec(0, 0, -800))
+        cone(Vec.zero) 
+        ++ cone(Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
+        ++ cone (Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
       }
 
       def polarToCartTest(workPath: Path): Seq[Star] = {

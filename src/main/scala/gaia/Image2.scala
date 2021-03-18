@@ -142,8 +142,8 @@ object Image2 {
       .map(toStarPosDir)
       .zipWithIndex
       .map { case (spd, i) =>
-        Shapable.Cylinder(
-          position = spd.pos, rotation = spd.dir)
+        Shapable.Cone(
+          position = spd.pos, rotation = spd.dir, height = 100 ,radius = 10)
       }
     println(s"created ${shapes.size} cones")
     shapes
