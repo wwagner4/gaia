@@ -111,7 +111,10 @@ object X3d {
 
   object Shapable {
 
-    case class Cylinder(position: Vec, rotation: Vec = Vec.zero, radius: Double = 1.0, height: Double = 1.0, color: Color) extends Shapable {
+    case class Cylinder(
+                         position: Vec, rotation: Vec = Vec.zero, 
+                         radius: Double = 1.0, height: Double = 1.0, 
+                         color: Color= Color.yellow) extends Shapable {
       def toShape = {
         s"""
            |<Transform translation='${position.strNoComma}'>
@@ -132,7 +135,10 @@ object X3d {
       }
     }
 
-    case class Cone(position: Vec, rotation: Vec = Vec.zero, radius: Double = 1.0, height: Double = 1.0, color: Color) extends Shapable {
+    case class Cone(
+                     position: Vec, rotation: Vec = Vec.zero, 
+                     radius: Double = 1.0, height: Double = 1.0, 
+                     color: Color = Color.green) extends Shapable {
       def toShape = {
         s"""
            |<Transform translation='${position.strNoComma}'>

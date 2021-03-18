@@ -77,7 +77,7 @@ object ImageUtil {
         }
 
         def cone(offset: Vec): Seq[Star] = {
-          for (w <- 0 to(340, 20); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
+          for (w <- 0 to(320, 40); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
             val x = 0.01 * math.sin(degToRad(w))
             val y = 0.01 * math.cos(degToRad(w))
             val cstar = Star(ra, dec, 1.0 / 600, x, y, 160)

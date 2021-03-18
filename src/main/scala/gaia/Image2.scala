@@ -86,7 +86,7 @@ object Image2 {
         && s.pos.length < 10)
     println(s"filtered ${fs.size} stars")
     val sshapes = fs.toSeq
-      .map(s => Shapable.Cone(position = s.pos,  rotation=s.dir, radius = 0.005, height = 0.1, color = Color.white))
+      .map(s => Shapable.Cone(position = s.pos, rotation = s.dir, radius = 0.005, height = 0.1, color = Color.white))
 
     val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
     sshapes ++ coordshapes
@@ -135,6 +135,18 @@ object Image2 {
         val b = spd.pos.add(spd.dir)
         Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.yellow)
       }
+  }
+
+  def conesOfCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    val shapes = stars.toSeq
+      .map(toStarPosDir)
+      .zipWithIndex
+      .map { case (spd, i) =>
+        Shapable.Cylinder(
+          position = spd.pos, rotation = spd.dir)
+      }
+    println(s"created ${shapes.size} cones")
+    shapes
   }
 
   def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
