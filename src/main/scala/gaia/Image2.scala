@@ -127,26 +127,23 @@ object Image2 {
     shapes ++ shapablesCoordinatesGray(3, bc)
   }
 
-  def testDir(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def shapesLines(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     stars.toSeq
       .map(toStarPosDir)
-      .map { spd =>
-        val a = spd.pos
-        val b = spd.pos.add(spd.dir)
-        Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.yellow)
-      }
+      .map (shapeLine(bc, Color.green))
   }
-
-  def conesOfCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  
+  def shapesCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shapes = stars.toSeq
       .map(toStarPosDir)
-      .zipWithIndex
-      .map { case (spd, i) =>
-        Shapable.Cone(
-          position = spd.pos, rotation = spd.dir, height = 100 ,radius = 10)
-      }
+      .map(shapeCone(bc)_)
     println(s"created ${shapes.size} cones")
     shapes
+  }
+  
+  def shapeCone(color: Color)(spd: StarPosDir): Shapable = {
+    Shapable.Cone(
+      position = spd.pos, rotation = spd.dir, height = 100 ,radius = 10)
   }
 
   def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
@@ -160,6 +157,5 @@ object Image2 {
       }
     as ++ shapablesCoordinatesColored(len = 50, bgColor = bc)
   }
-
 
 }

@@ -65,9 +65,9 @@ object ImageUtil {
     }
 
     object Test {
-      def cones(workPath: Path): Seq[Star] = {
 
-        def moveStar(s: Star, o: Vec): Star = {
+      object Cones {
+        private def moveStar(s: Star, o: Vec): Star = {
           val pv = PolarVec(1 / s.parallax, degToRad(s.ra), degToRad(s.dec))
           val cv = pv.toVec
           val mv = cv.add(o)
@@ -76,18 +76,28 @@ object ImageUtil {
             pmra = s.pmra, pmdec = s.pmdec, radialVelocity = s.radialVelocity)
         }
 
-        def cone(offset: Vec): Seq[Star] = {
-          for (w <- 0 to(350, 10); dec <- -80 to(80, 20); ra <- 0 to(315, 45)) yield {
-            val x = 0.005 * math.sin(degToRad(w))
-            val y = 0.005 * math.cos(degToRad(w))
+        private def cone(offset: Vec, 
+                         coneSteps: Int = 10, decSteps: Int = 20, raSteps: Int = 45, 
+                         properMovement: Double = 0.005): Seq[Star] = {
+          for (w <- 0 to(360 - coneSteps, coneSteps); 
+               dec <- (-90 + decSteps) to(90 - decSteps, decSteps); 
+               ra <- 0 to(360 - raSteps, raSteps)) yield {
+            val x = properMovement * math.sin(degToRad(w))
+            val y = properMovement * math.cos(degToRad(w))
             val cstar = Star(ra, dec, 1.0 / 600, x, y, 100)
             moveStar(cstar, offset)
           }
         }
 
-        cone(Vec.zero) 
-        ++ cone(Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
-        ++ cone (Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
+        def rich(workPath: Path): Seq[Star] = {
+          cone(Vec.zero)
+          ++ cone (Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
+          ++ cone (Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
+        }
+
+        def sparse(workPath: Path): Seq[Star] = {
+          cone(Vec.zero, coneSteps = 90, properMovement = 0.01)
+        }
       }
 
       def polarToCartTest(workPath: Path): Seq[Star] = {
@@ -375,5 +385,12 @@ object ImageUtil {
     val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
     ix == i && iy == j && iz == k
   }
+
+  def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
+    val a = starPosDir.pos
+    val b = starPosDir.pos.add(starPosDir.dir)
+    Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
+  }
+
 
 }
