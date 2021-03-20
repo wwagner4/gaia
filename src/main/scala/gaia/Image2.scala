@@ -136,16 +136,11 @@ object Image2 {
   def shapesCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shapes = stars.toSeq
       .map(toStarPosDir)
-      .map(shapeCone(bc)_)
+      .map(shapeCone(Color.white))
     println(s"created ${shapes.size} cones")
-    shapes
+    shapes ++ shapablesCoordinatesColored(2000, bc)
   }
   
-  def shapeCone(color: Color)(spd: StarPosDir): Shapable = {
-    Shapable.Cone(
-      position = spd.pos, rotation = spd.dir, height = 100 ,radius = 10)
-  }
-
   def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val as = stars.toSeq
       .map { star =>

@@ -142,10 +142,10 @@ object X3d {
       def toShape = {
         s"""
            |<Transform translation='${position.strNoComma}'>
-           |<Transform rotation='1 0 0 ${rotation.x}' center='0, 0, 0'>
            |<Transform rotation='0 1 0 ${rotation.y}' center='0, 0, 0'>
            |<Transform rotation='0 0 1 ${rotation.z}' center='0, 0, 0'>
-           |  <Shape>
+           |<Transform rotation='1 0 0 ${rotation.x}' center='0, 0, 0'>
+           |           |  <Shape>
            |     <Cone bottomRadius='$radius' height='$height'/>
            |     <Appearance>
            |       <Material diffuseColor='${color.strNoComma}'/>

@@ -76,11 +76,11 @@ object ImageUtil {
             pmra = s.pmra, pmdec = s.pmdec, radialVelocity = s.radialVelocity)
         }
 
-        private def cone(offset: Vec, 
-                         coneSteps: Int = 10, decSteps: Int = 20, raSteps: Int = 45, 
+        private def cone(offset: Vec,
+                         coneSteps: Int = 10, decSteps: Int = 20, raSteps: Int = 45,
                          properMovement: Double = 0.005): Seq[Star] = {
-          for (w <- 0 to(360 - coneSteps, coneSteps); 
-               dec <- (-90 + decSteps) to(90 - decSteps, decSteps); 
+          for (w <- 0 to(360 - coneSteps, coneSteps);
+               dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
                ra <- 0 to(360 - raSteps, raSteps)) yield {
             val x = properMovement * math.sin(degToRad(w))
             val y = properMovement * math.cos(degToRad(w))
@@ -97,6 +97,15 @@ object ImageUtil {
 
         def sparse(workPath: Path): Seq[Star] = {
           cone(Vec.zero, coneSteps = 90, properMovement = 0.01)
+        }
+
+        def spikes(workPath: Path): Seq[Star] = {
+          val decSteps = 10
+          val raSteps = 10
+          for (dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
+               ra <- 0 to(360 - raSteps, raSteps)) yield {
+            Star(ra, dec, 1.0 / 600, 0, 0, 100)
+          }
         }
       }
 
@@ -390,6 +399,14 @@ object ImageUtil {
     val a = starPosDir.pos
     val b = starPosDir.pos.add(starPosDir.dir)
     Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
+  }
+
+  def shapeCone(color: Color)(spd: StarPosDir): Shapable = {
+    val v = Vector.pidiv2
+    val pv = spd.dir.toPolarVec
+    val rotv = Vec(pv.dec, 0, pv.ra - v)
+    Shapable.Cone(
+      position = spd.pos, rotation = rotv, height = 200, radius = 5, color = color)
   }
 
 
