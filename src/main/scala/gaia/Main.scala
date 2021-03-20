@@ -636,7 +636,7 @@ object Main {
     GaiaImage(id = "t_ccones",
       desc = "cones of cones around the sun",
       fCreateModel = writeModelToFile(StarCollections.Test.Cones.sparse)(Image2.shapesCones),
-      backColor = Color.veryDarkBlue,
+      backColor = Color.veryDarkRed,
     ),
     GaiaImage(id = "t_ptoc",
       desc = "test for polar to carttesian conversion",

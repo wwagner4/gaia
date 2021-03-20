@@ -96,7 +96,7 @@ object ImageUtil {
         }
 
         def sparse(workPath: Path): Seq[Star] = {
-          cone(Vec.zero, coneSteps = 90, properMovement = 0.01)
+          cone(Vec.zero, coneSteps = 20, properMovement = 0.01)
         }
 
         def spikes(workPath: Path): Seq[Star] = {
@@ -104,7 +104,9 @@ object ImageUtil {
           val raSteps = 10
           for (dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
                ra <- 0 to(360 - raSteps, raSteps)) yield {
-            Star(ra, dec, 1.0 / 600, 0, 0, 100)
+            val dist = 600 + Random.nextInt(200)
+            val velo = 50 + Random.nextInt(100)
+            Star(ra, dec, 1.0 / dist, 0, 0, velo)
           }
         }
       }
