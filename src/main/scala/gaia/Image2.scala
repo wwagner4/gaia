@@ -124,7 +124,7 @@ object Image2 {
           Some(Shapable.Sphere(position = pos, color = Color.green, radius = v * 0.6))
         }
       }
-    shapes ++ shapablesCoordinatesGray(3, bc)
+    shapes
   }
 
   def shapesLines(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
@@ -138,7 +138,7 @@ object Image2 {
       .map(toStarPosDir)
       .map(shapeCone(Color.white))
     println(s"created ${shapes.size} cones")
-    shapes ++ shapablesCoordinatesColored(2000, bc)
+    shapes
   }
   
   def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {

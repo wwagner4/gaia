@@ -405,9 +405,9 @@ object ImageUtil {
     val v = Vector.pidiv2
     val pv = spd.dir.toPolarVec
     val rotv = Vec(pv.dec, 0, pv.ra - v)
+    val height = -spd.dir.length
     Shapable.Cone(
-      position = spd.pos, rotation = rotv, height = 200, radius = 5, color = color)
+      position = spd.pos, rotation = rotv, height = height, radius = height / 30.0, color = color)
   }
-
 
 }
