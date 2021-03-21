@@ -144,7 +144,7 @@ object Image2 {
   def shapesCyl(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shapes = stars.toSeq
       .map(toStarPosDir)
-      .map(shapeCone(Color.white))
+      .map(shapeCylinder(Color.white))
     println(s"created ${shapes.size} cones")
     shapes
   }

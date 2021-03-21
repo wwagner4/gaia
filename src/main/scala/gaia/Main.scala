@@ -589,7 +589,7 @@ object Main {
     ),
     GaiaImage(id = "tccones",
       desc = "test cones of cones",
-      fCreateModel = writeModelToFile(StarCollections.Test.Cones.sparse)(Image2.shapesCones),
+      fCreateModel = writeModelToFile(StarCollections.Test.Cones.sparse)(Image2.shapesCyl),
       backColor = Color.veryDarkRed,
     ),
     GaiaImage(id = "tptoc",
