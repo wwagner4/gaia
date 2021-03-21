@@ -406,7 +406,7 @@ object ImageUtil {
   def shapeCone(color: Color, lengthFactor: Double = 1.0)(starPosDir: StarPosDir): Shapable = {
     val pv = starPosDir.dir.toPolarVec
     val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
-    val height = -starPosDir.dir.length * lengthFactor
+    val height = starPosDir.dir.length * lengthFactor
     val radius = height / 30.0
     Shapable.Cone(
       position = starPosDir.pos, rotation = rotv, height = height, radius = radius, color = color)
@@ -415,8 +415,8 @@ object ImageUtil {
   def shapeCylinder(color: Color, lengthFactor: Double = 1.0)(starPosDir: StarPosDir): Shapable = {
     val pv = starPosDir.dir.toPolarVec
     val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
-    val height = -starPosDir.dir.length * lengthFactor
-    val radius = height / 30.0
+    val height = starPosDir.dir.length * lengthFactor
+    val radius = height / 200.0
     Shapable.Cylinder(position = starPosDir.pos, rotation = rotv, radius = radius, height = height, color = color)
   }
 

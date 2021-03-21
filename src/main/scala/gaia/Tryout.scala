@@ -1,5 +1,8 @@
 package gaia
 
+import gaia.ImageUtil.StarPosDir
+import gaia.X3d.Color
+
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.Path
@@ -18,6 +21,7 @@ object Tryout {
 
   def f(prefix: String, a: Double, b: Double, c: Double) = {
     def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
+
     s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
   }
 
@@ -27,7 +31,24 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    vecConvert
+    cylinder()
+  }
+
+  private def cylinder(): Unit = {
+    def fromDef = {
+      val dirVecs = for (ra <- 0 to (350, 10); dec <- -70 to (70, 10)) yield {
+        PolarVec(1, ra, dec).toVec
+      }
+      dirVecs.map{dv =>
+        val spd = StarPosDir(pos = Vec.zero, dir = dv)
+        ImageUtil.shapeCylinder(Color.green, lengthFactor = 0.001)(starPosDir = spd),
+      }
+    }
+    val shapables = fromDef
+    val file = Main.workPath.resolve("tryout_cylinder.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.1))
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def vecConvert: Unit = {
@@ -71,6 +92,7 @@ object Tryout {
       def dround(x: Double) = {
         BigDecimal(x).setScale(13, BigDecimal.RoundingMode.HALF_UP).toDouble
       }
+
       for (scale <- 0 to 40) {
         val y = Random.nextDouble() * Random.nextInt(100)
         val x = dround(y)
@@ -78,7 +100,7 @@ object Tryout {
         println("%22.18f".format(x))
       }
     }
-    
+
     pcp
 
   }
