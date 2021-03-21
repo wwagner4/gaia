@@ -170,7 +170,7 @@ object Image1 {
         .map { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           val c = Color.orange.mul(br)
-          shapeCone(c, lengthFactor = 0.001)(s)
+          shapeCylinder(c, lengthFactor = 0.00005)(s)
         }
     }
 

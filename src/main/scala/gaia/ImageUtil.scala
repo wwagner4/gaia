@@ -407,7 +407,7 @@ object ImageUtil {
     val pv = starPosDir.dir.toPolarVec
     val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
     val height = starPosDir.dir.length * lengthFactor
-    val radius = height / 30.0
+    val radius = height / 100.0
     Shapable.Cone(
       position = starPosDir.pos, rotation = rotv, height = height, radius = radius, color = color)
   }
