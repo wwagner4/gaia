@@ -403,13 +403,21 @@ object ImageUtil {
     Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
   }
 
-  def shapeCone(color: Color)(spd: StarPosDir): Shapable = {
-    val v = Vector.pidiv2
-    val pv = spd.dir.toPolarVec
-    val rotv = Vec(pv.dec, 0, pv.ra - v)
-    val height = -spd.dir.length
+  def shapeCone(color: Color, lengthFactor: Double = 1.0)(starPosDir: StarPosDir): Shapable = {
+    val pv = starPosDir.dir.toPolarVec
+    val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
+    val height = -starPosDir.dir.length * lengthFactor
+    val radius = height / 30.0
     Shapable.Cone(
-      position = spd.pos, rotation = rotv, height = height, radius = height / 30.0, color = color)
+      position = starPosDir.pos, rotation = rotv, height = height, radius = radius, color = color)
+  }
+
+  def shapeCylinder(color: Color, lengthFactor: Double = 1.0)(starPosDir: StarPosDir): Shapable = {
+    val pv = starPosDir.dir.toPolarVec
+    val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
+    val height = -starPosDir.dir.length * lengthFactor
+    val radius = height / 30.0
+    Shapable.Cylinder(position = starPosDir.pos, rotation = rotv, radius = radius, height = height, color = color)
   }
 
 }

@@ -167,10 +167,10 @@ object Image1 {
     def shapabels(radius: Double)(stars: Iterable[Star]): Iterable[Shapable] = {
       stars
         .map(toStarPosDir)
-        .flatMap { s =>
+        .map { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           val c = Color.orange.mul(br)
-          Seq(Shapable.Cylinder(position = s.pos, rotation = s.dir, radius = radius, height = radius * 100, color = c))
+          shapeCone(c, lengthFactor = 0.001)(s)
         }
     }
 

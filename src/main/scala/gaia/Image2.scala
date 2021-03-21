@@ -132,7 +132,7 @@ object Image2 {
       .map(toStarPosDir)
       .map (shapeLine(bc, Color.green))
   }
-  
+
   def shapesCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shapes = stars.toSeq
       .map(toStarPosDir)
@@ -140,7 +140,15 @@ object Image2 {
     println(s"created ${shapes.size} cones")
     shapes
   }
-  
+
+  def shapesCyl(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    val shapes = stars.toSeq
+      .map(toStarPosDir)
+      .map(shapeCone(Color.white))
+    println(s"created ${shapes.size} cones")
+    shapes
+  }
+
   def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val as = stars.toSeq
       .map { star =>

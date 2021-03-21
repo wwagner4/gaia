@@ -118,9 +118,9 @@ object X3d {
       def toShape = {
         s"""
            |<Transform translation='${position.strNoComma}'>
-           |<Transform rotation='1 0 0 ${rotation.x}' center='0, 0, 0'>
            |<Transform rotation='0 1 0 ${rotation.y}' center='0, 0, 0'>
            |<Transform rotation='0 0 1 ${rotation.z}' center='0, 0, 0'>
+           |<Transform rotation='1 0 0 ${rotation.x}' center='0, 0, 0'>
            |  <Shape>
            |     <Cylinder radius='$radius' height='$height'/>
            |     <Appearance>
@@ -140,12 +140,12 @@ object X3d {
                      radius: Double = 1.0, height: Double = 1.0, 
                      color: Color = Color.green) extends Shapable {
       def toShape = {
-        val h1 = height / 2.0
+        val rotCenter = height / 2.0
         s"""
            |<Transform translation='${position.strNoComma}'>
-           |<Transform rotation='0 1 0 ${rotation.y}' center='0, $h1, 0'>
-           |<Transform rotation='0 0 1 ${rotation.z}' center='0, $h1, 0'>
-           |<Transform rotation='1 0 0 ${rotation.x}' center='0, $h1, 0'>
+           |<Transform rotation='0 1 0 ${rotation.y}' center='0, $rotCenter, 0'>
+           |<Transform rotation='0 0 1 ${rotation.z}' center='0, $rotCenter, 0'>
+           |<Transform rotation='1 0 0 ${rotation.x}' center='0, $rotCenter, 0'>
            |  <Shape>
            |     <Cone bottomRadius='$radius' height='$height'/>
            |     <Appearance>
