@@ -344,7 +344,8 @@ object ImageUtil {
     Seq(Shapable.PointSet(positions = vecs, color = color))
   }
 
-  def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color], lengthFactor: Double): Seq[Shapable] = {
+  def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color], 
+                  lengthFactor: Double, geo: Geo): Seq[Shapable] = {
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
     val starsFiltered = stars.filter { s =>
@@ -356,11 +357,10 @@ object ImageUtil {
 
     val starsShapable = starsFiltered.toSeq
       .map(toStarPosDir)
-      .flatMap { s =>
-        val e = s.pos.add(s.dir.mul(0.00005 * lengthFactor))
+      .map { s =>
         val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(a)
-        Seq(Shapable.Line(start = e, end = s.pos, startColor = c, endColor = bgColor))
+        shapeCylinder(color=c, lengthFactor = lengthFactor, geo = geo)(s)
       }
 
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)

@@ -15,7 +15,7 @@ object Image1 {
   import Data._
   import Vector._
 
-  def dir01(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund4(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val ranges = Seq((7.9, 8.1))
     val colors = Palette.p2c10.colors
     val baseDirectionVec = Vec(1, 0, 1)
@@ -25,7 +25,7 @@ object Image1 {
         .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(ci)
-          X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.005)), startColor = bc, endColor = c)
+          shapeCone(color = c, lengthFactor = 0.005, geo = Geo.Absolute(0.01))(s)
         }
     println(s"filtered ${stars.size} stars")
     starShapes.toSeq
@@ -33,7 +33,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dir02(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund5(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val ranges = Seq(
       (9.6, 10.0),
       (7.8, 8.0),
@@ -55,7 +55,7 @@ object Image1 {
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(ci)
-        X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.003)), startColor = bc, endColor = c)
+        shapeCone(color = c, lengthFactor=0.003, geo = Geo.Absolute(0.03))(s)
       }
     println(s"filtered ${starShapables.size} stars")
     starShapables.toSeq
@@ -115,15 +115,16 @@ object Image1 {
     ++ shapablesCoordinatesColored(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def nearSunVeloInner(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.0
-    val maxDist = 0.04
+    val maxDist = 0.03
     val colors = Palette.p1c10.colors
-    val lengthFactor = 0.8
-    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor)
+    val lengthFactor = 0.00003
+    val geo = Geo.Absolute(0.0002)
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo)
   }
 
-  def nearSunDirtest(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.03
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
@@ -151,12 +152,13 @@ object Image1 {
     ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
   }
 
-  def nearSunVeloOuter(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund3(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.04
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
-    val lengthFactor = 2.0
-    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor)
+    val lengthFactor = 0.00008
+    val geo = Geo.Absolute(0.00006)
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo = geo)
   }
 
   def nearSunDirections27pc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
@@ -189,7 +191,7 @@ object Image1 {
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def oneShellPoints(stars1: Iterable[Star], bc: Color): Seq[Shapable]  = {
+  def oneShellPoints(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
     val min = 7.0
     val max = 9.0
@@ -209,7 +211,7 @@ object Image1 {
     multiShells(stars1, bc, shells)
   }
 
-  def shellsPoints(stars: Iterable[Star], bc: Color): Seq[Shapable]  = {
+  def shellsPoints(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
 

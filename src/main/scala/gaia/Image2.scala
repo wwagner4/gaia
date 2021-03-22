@@ -12,7 +12,7 @@ object Image2 {
   import X3d._
   import Vector._
 
-  def aroundGalacticCenterSpheres(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def gc1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
     val maxDist = 1.7
@@ -41,7 +41,7 @@ object Image2 {
     ++ shapablesCoordinatesOneColor(2, Color.gray(0.5), bc)
   }
 
-  def aroundGalacticCenterDirections(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def gcd1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
     val maxDist = 3
@@ -80,16 +80,27 @@ object Image2 {
     starShapes ++ sphereShapes ++ coordshapes
   }
 
-  def aroundGalacticCenter1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
-    val fs = stars.map(toStarPosDirGalactic)
-      .filter(s => s.pos.z > 2 && s.pos.z < 2.01
-        && s.pos.length < 10)
-    println(s"filtered ${fs.size} stars")
-    val sshapes = fs.toSeq
-      .map(s => Shapable.Cone(position = s.pos, rotation = s.dir, radius = 0.005, height = 0.1, color = Color.white))
+  def gcd2(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    val stars1: Seq[Star] = stars.toSeq
+    val discs = Seq(
+      (2.0, 0.005, Color.red),
+      (3.0, 0.01, Color.orange),
+      (4.0, 0.1, Color.yellow),
+      (5.0, 0.1, Color.white),
+      (6.0, 0.1, Color.gray(0.8)),
+      (7.0, 0.1, Color.gray(0.6)),
+      (8.0, 0.1, Color.gray(0.4)),
+    )
 
-    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
-    sshapes ++ coordshapes
+    val starShapes = discs.flatMap { case (dist, thik, col) =>
+      stars1
+        .map(toStarPosDirGalactic)
+        .filter(s => s.pos.z > dist && s.pos.z < dist + thik && s.pos.length < 10)
+        .map(spds => shapeCone(color = col, lengthFactor = 0.006, geo = Geo.Absolute(0.008))(spds))
+    }
+    println(s"Filtered ${starShapes.size} stars")
+    val coordShapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
+    starShapes ++ coordShapes
   }
 
   def dens(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
@@ -130,7 +141,7 @@ object Image2 {
   def shapesLines(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     stars.toSeq
       .map(toStarPosDir)
-      .map (shapeLine(bc, Color.green))
+      .map(shapeLine(bc, Color.green))
   }
 
   def shapesCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
