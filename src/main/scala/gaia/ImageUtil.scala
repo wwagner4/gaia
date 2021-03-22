@@ -396,6 +396,11 @@ object ImageUtil {
     val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
     ix == i && iy == j && iz == k
   }
+  
+  enum Geo {
+    case Absolute(width: Double)
+    case Relative(width: Double)
+  }
 
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
     val a = starPosDir.pos
@@ -403,20 +408,26 @@ object ImageUtil {
     Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
   }
 
-  def shapeCone(color: Color, lengthFactor: Double = 1.0)(starPosDir: StarPosDir): Shapable = {
+  def shapeCone(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.01))(starPosDir: StarPosDir): Shapable = {
     val pv = starPosDir.dir.toPolarVec
     val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
     val height = starPosDir.dir.length * lengthFactor
-    val radius = height / 100.0
+    val radius = geo match {
+      case Geo.Relative(rw) => height * rw
+      case Geo.Absolute(aw) => aw.toDouble
+    }
     Shapable.Cone(
       position = starPosDir.pos, rotation = rotv, height = height, radius = radius, color = color)
   }
 
-  def shapeCylinder(color: Color, lengthFactor: Double = 1.0)(starPosDir: StarPosDir): Shapable = {
+  def shapeCylinder(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.03))(starPosDir: StarPosDir): Shapable = {
     val pv = starPosDir.dir.toPolarVec
     val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
     val height = starPosDir.dir.length * lengthFactor
-    val radius = height / 300.0
+    val radius = geo match {
+      case Geo.Relative(rw) => height * rw
+      case Geo.Absolute(aw) => aw.toDouble
+    }
     Shapable.Cylinder(position = starPosDir.pos, rotation = rotv, radius = radius, height = height, color = color)
   }
 
