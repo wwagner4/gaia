@@ -83,20 +83,14 @@ object Image2 {
   def gcd2(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val stars1: Seq[Star] = stars.toSeq
     val discs = Seq(
-      (2.0, 0.005, Color.red),
-      (3.0, 0.01, Color.orange),
-      (4.0, 0.1, Color.yellow),
-      (5.0, 0.1, Color.white),
       (6.0, 0.1, Color.gray(0.8)),
-      (7.0, 0.1, Color.gray(0.6)),
-      (8.0, 0.1, Color.gray(0.4)),
     )
 
     val starShapes = discs.flatMap { case (dist, thik, col) =>
       stars1
         .map(toStarPosDirGalactic)
-        .filter(s => s.pos.z > dist && s.pos.z < dist + thik && s.pos.length < 10)
-        .map(spds => shapeCone(color = col, lengthFactor = 0.006, geo = Geo.Absolute(0.008))(spds))
+        .filter(s => s.pos.z > dist && s.pos.z < dist + thik && s.pos.length < 20)
+        .map(spds => shapeCone(color = col, lengthFactor = 0.001, geo = Geo.Absolute(0.008))(spds))
     }
     println(s"Filtered ${starShapes.size} stars")
     val coordShapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
@@ -127,8 +121,7 @@ object Image2 {
     val shapes = densities
       .flatMap { case (k, v) =>
         if (v <= 0.01) {
-          val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
-          Some(Shapable.Sphere(position = pos, color = Color.gray(0.4), radius = 0.01 * 0.6))
+          None
         }
         else {
           val pos = Vec(k._1 + 0.5, k._2 + 0.5, k._3 + 0.5)
