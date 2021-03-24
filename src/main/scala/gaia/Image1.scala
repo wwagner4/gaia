@@ -63,7 +63,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dirs(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund6(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val epsBase = 0.4
     val epsAdj = Seq(
       8 -> 1.0 / 13,
@@ -81,7 +81,7 @@ object Image1 {
       epsAdj.get(dist).map(adj => adj * epsBase).getOrElse(epsBase)
     }
 
-    val ranges = (8 to 23)
+    val ranges = (5 to (20, 5))
       .toSeq
       .map(v => (v.toDouble - eps(v), v.toDouble))
 
@@ -95,17 +95,17 @@ object Image1 {
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
     val starss = stars1.map(toStarPosDirGalactic)
+      .filter(_ => Random.nextDouble() < 0.3)
       .filter(filterShells(ranges)(_))
       .map(adjust)
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c: Color = colors(ci)
-        X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.05)
+        X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.01)
       }
     println(s"filtered ${starss.size} stars")
     starss.toSeq
-    ++ shapablesCoordinatesGray(5, bc)
-    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
+    ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
   }
 
   def gc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {

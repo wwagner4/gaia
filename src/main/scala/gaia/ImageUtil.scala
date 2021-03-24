@@ -247,8 +247,8 @@ object ImageUtil {
     println(s"Created image for $id at ${file.toAbsolutePath}")
   }
 
-  def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
-    shapablesCoordinatesOneColor(len, Color.gray(0.9), bgColor, offset)
+  def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero, brightness: Double = 0.9): Seq[Shapable] = {
+    shapablesCoordinatesOneColor(len, Color.gray(brightness), bgColor, offset)
   }
 
   def shapablesCoordinatesOneColor(len: Double, color: Color, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {

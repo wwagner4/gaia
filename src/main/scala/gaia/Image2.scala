@@ -12,7 +12,7 @@ object Image2 {
   import X3d._
   import Vector._
 
-  def gc1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def gc1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
 
     val maxDist = 1.7
@@ -25,15 +25,16 @@ object Image2 {
       cols(i)
     }
 
-    val stars = stars1
+    val spd = stars
       .map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
-    println(s"filtered ${stars.size} stars")
+    println(s"filtered ${spd.size} stars")
 
-    val starShapes = stars.map(s => Shapable.Sphere(s.pos, radius = 0.01, color = colorForDistance(s)))
+    val starShapes = spd.map(s => Shapable.Sphere(s.pos, radius = 0.01, color = colorForDistance(s)))
     val sun = toGalacticCoords(ImageUtil.galacicCenter.mul(-1))
 
-    starShapes.toList ++ (2 to(25, 2)).map { r =>
+    starShapes.toList 
+    ++ (2 to(25, 2)).map { r =>
       Shapable.Circle(translation = Vec.zero,
         rotation = Vec(0, degToRad(90), 0),
         color = Color.gray(0.1), radius = r * 0.1)
@@ -81,20 +82,26 @@ object Image2 {
   }
 
   def gcd2(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
-    val stars1: Seq[Star] = stars.toSeq
-    val discs = Seq(
-      (6.0, 0.1, Color.gray(0.8)),
-    )
-
-    val starShapes = discs.flatMap { case (dist, thik, col) =>
-      stars1
-        .map(toStarPosDirGalactic)
-        .filter(s => s.pos.z > dist && s.pos.z < dist + thik && s.pos.length < 20)
-        .map(spds => shapeCone(color = col, lengthFactor = 0.001, geo = Geo.Absolute(0.008))(spds))
+    val maxDist = 2.0
+    val colors = Palette.p5c8.colors
+    val baseDirectionVec = Vec(1, 1, 1)
+    val shapes = stars
+      .map(toStarPosDirGalactic)
+      .filter(_ => Random.nextDouble() < 0.3)
+      .filter(s => s.pos.length < maxDist)
+      .toSeq
+      .map{s =>
+        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
+        ImageUtil.shapeCone(color = colors(ci), lengthFactor = 0.001, geo= Geo.Absolute(0.01))(s)}
+    println(s"created ${shapes.size} shapes")
+    shapes
+    ++ (10 to(40, 10)).map { r =>
+      Shapable.Circle(translation = Vec.zero,
+        rotation = Vec(0, degToRad(90), 0),
+        color = Color.gray(0.1), radius = r * 0.1)
     }
-    println(s"Filtered ${starShapes.size} stars")
-    val coordShapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
-    starShapes ++ coordShapes
+    ++ shapablesCoordinatesOneColor(3, Color.gray(0.4), bc)
+
   }
 
   def dens(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {

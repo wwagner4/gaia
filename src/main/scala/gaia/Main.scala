@@ -464,7 +464,7 @@ object Main {
     ),
     GaiaImage(id = "sund6",
       desc = "stars as spheres with direction color coded. 8 to 23 kpc",
-      fCreateModel = writeModelToFile(StarCollections.basicStars)(Image1.dirs),
+      fCreateModel = writeModelToFile(StarCollections.basicStars)(Image1.sund6),
       hpOrder = Some(150),
       backColor = Color.black,
       video = Some("https://www.youtube.com/embed/j1GaECAYAi8"),
