@@ -1,6 +1,7 @@
 package gaia
 
 
+import gaia.{Data, X3d}
 import java.nio.file.{Files, Path}
 import scala.util.Random
 
@@ -9,6 +10,7 @@ object ImageUtil {
   import Data.Star
   import Main._
   import X3d._
+  import Vector._
 
   case class StarPosDir(
                          pos: Vec,
@@ -34,37 +36,108 @@ object ImageUtil {
                        transform: Star => Star = identity,
                      )
 
-  val galacicCenter = X3d.toVec(266.25, -28.94, 8)
+  lazy val galacicCenter = PolarVec(r = 8, ra = degToRad(266.25), dec = degToRad(-28.94)).toVec
 
-  def nearSunStars(workPath: Path): Seq[Star] = {
+  object StarCollections {
+    def basicStars(workPath: Path): Seq[Star] = {
 
-    def filter(star: Star): Boolean = {
-      if (star.parallax <= 0) return false
-      val dist = 1.0 / star.parallax
-      if (dist >= 0.1) return false
-      true
+      def filter(star: Star): Boolean = {
+        if (star.parallax <= 0) return false
+        if (Random.nextDouble() >= 0.2) return false
+        true
+      }
+
+      val cacheFile = createCacheFile("basic", workPath)
+      starsFilteredAndCached(cacheFile, filter)
     }
 
-    val cacheFile = createCacheFile("near_sun", workPath)
-    starsFilteredAndCached(cacheFile, filter)
-  }
+    def nearSunStars(workPath: Path): Seq[Star] = {
 
-  def basicStars(workPath: Path): Seq[Star] = {
+      def filter(star: Star): Boolean = {
+        if (star.parallax <= 0) return false
+        val dist = 1.0 / star.parallax
+        if (dist >= 0.1) return false
+        true
+      }
 
-    def filter(star: Star): Boolean = {
-      if (star.parallax <= 0) return false
-      if (Random.nextDouble() >= 0.2) return false
-      true
+      val cacheFile = createCacheFile("near_sun", workPath)
+      starsFilteredAndCached(cacheFile, filter)
     }
 
-    val cacheFile = createCacheFile("basic", workPath)
-    starsFilteredAndCached(cacheFile, filter)
-  }
+    object Test {
 
-  def testStars(workPath: Path): Seq[Star] = {
-    for (dec <- -80 to(80, 20); ra <- 0 to(359, 1)) yield {
-      Star(ra, dec, 1.0 / 200, 0, 0, 50)
+      object Cones {
+        private def moveStar(s: Star, o: Vec): Star = {
+          val pv = PolarVec(1 / s.parallax, degToRad(s.ra), degToRad(s.dec))
+          val cv = pv.toVec
+          val mv = cv.add(o)
+          val pv1 = mv.toPolarVec
+          Star(parallax = 1 / pv1.r, ra = radToDeg(pv1.ra), dec = radToDeg(pv1.dec),
+            pmra = s.pmra, pmdec = s.pmdec, radialVelocity = s.radialVelocity)
+        }
+
+        private def cone(offset: Vec,
+                         coneSteps: Int = 10, decSteps: Int = 20, raSteps: Int = 45,
+                         properMovement: Double = 0.005): Seq[Star] = {
+          for (w <- 0 to(360 - coneSteps, coneSteps);
+               dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
+               ra <- 0 to(360 - raSteps, raSteps)) yield {
+            val x = properMovement * math.sin(degToRad(w))
+            val y = properMovement * math.cos(degToRad(w))
+            val cstar = Star(ra, dec, 1.0 / 600, x, y, 100)
+            moveStar(cstar, offset)
+          }
+        }
+
+        def rich(workPath: Path): Seq[Star] = {
+          cone(Vec.zero)
+          ++ cone (Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
+          ++ cone (Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
+        }
+
+        def sparse(workPath: Path): Seq[Star] = {
+          cone(Vec.zero, coneSteps = 20, properMovement = 0.01)
+        }
+
+        def spikes(workPath: Path): Seq[Star] = {
+          val decSteps = 10
+          val raSteps = 10
+          for (dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
+               ra <- 0 to(360 - raSteps, raSteps)) yield {
+            val dist = 600 + Random.nextInt(200)
+            val velo = 50 + Random.nextInt(100)
+            Star(ra, dec, 1.0 / dist, 0, 0, velo)
+          }
+        }
+      }
+
+      def polarToCartTest(workPath: Path): Seq[Star] = {
+        for (t <- 0 to(355, 5); d <- -80 to(30, 1)) yield {
+          val dist = 20 + Random.nextDouble() * 0.1
+          Star(ra = t, dec = d, parallax = 1.0 / dist, 0, 0, 0)
+        }
+      }
+
+      def cartToPolarTest(workPath: Path): Seq[Star] = {
+        val vecs = Seq(
+          (-20 to 20).map(v => Vec(v, 0, 10)),
+          (-20 to 20).map(v => Vec(v, 0, -10)),
+          (-20 to 20).map(v => Vec(v, 10, 0)),
+          (-20 to 20).map(v => Vec(v, -10, 0)),
+          (-20 to 20).map(v => Vec(0, v, 10)),
+          (-20 to 20).map(v => Vec(0, v, -10)),
+          (-20 to 20).map(v => Vec(10, v, 0)),
+          (-20 to 20).map(v => Vec(-10, v, 0)),
+        ).flatten
+        for (vc <- vecs) yield {
+          //println(vc)
+          val v = vc.toPolarVec
+          Star(ra = radToDeg(v.ra), dec = radToDeg(v.dec), parallax = 1.0 / v.r, 0, 0, 0)
+        }
+      }
+
     }
+
   }
 
   private def createCacheFile(id: String, workPath: Path): Path = {
@@ -127,38 +200,41 @@ object ImageUtil {
     val dist = 1 / star.parallax
     val ra = star.ra
     val dec = star.dec
-    X3d.toVec(ra, dec, dist)
+    PolarVec(dist, degToRad(ra), degToRad(dec)).toVec
   }
 
-  // constants for 'toDir'
-  private val parsecToMeter = 3.08567758e16
-  private val yearToSeconds = 3.154e7
-  private val k0 = math.Pi * 1e-6 / (3 * 180)
-  private val k1 = k0 * parsecToMeter / yearToSeconds
+  // constants for 'properMotionToSpaceMotion'
+  private lazy val parsecToMeter = 3.08567758e16
+  private lazy val yearToSeconds = 3.154e7
+  private lazy val k0 = math.Pi * 1e-6 / (3 * 180)
+  private lazy val k1 = k0 * parsecToMeter / yearToSeconds
 
-  private def toDir(star: Star): Vec = {
+  def properMotionToSpaceMotion(star: Star): Vec = {
     val dist = 1 / star.parallax
     val y = dist * star.pmra * k1
     val z = dist * star.pmdec * k1
     val x = star.radialVelocity
-    val sp = Vec(x, y, z).toPolarVec
-    val sp1 = if x > 0 then
-      sp.copy(
-        dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(180 - star.dec))
-    else
-      sp.copy(
-        dec = sp.dec + X3d.degToRad(star.ra),
-        ra = sp.ra - X3d.degToRad(star.dec))
-    sp1.toVec
+    Vec(x, y, z)
   }
 
-  def writeModelToFile[T](converter: Star => T, reader: Path => Iterable[Star])(fcreateShapables: (Iterable[T], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
+  def spaceMotionToGalacticMotion(star: Data.Star, spaceMotion: Vec): Vec = {
+    val rra = degToRad(star.ra)
+    val rdec = degToRad(star.dec)
+    spaceMotion
+      .roty(-rdec)
+      .rotz(rra)
+  }
+
+  private def toDir(star: Star): Vec = {
+    val sm = properMotionToSpaceMotion(star)
+    spaceMotionToGalacticMotion(star, sm)
+  }
+
+  def writeModelToFile(reader: Path => Iterable[Star])(fcreateShapables: (Iterable[Star], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
     val gaiaImage = Main.images(id)
     val bgColor = gaiaImage.backColor
     val stars = reader(workPath)
-    val starsConverted = stars.map(converter)
-    val shapables = fcreateShapables(starsConverted, bgColor)
+    val shapables = fcreateShapables(stars, bgColor)
     val file = {
       val modelsPath = workPath.resolve("models")
       if (Files.notExists(modelsPath)) Files.createDirectories(modelsPath)
@@ -171,8 +247,8 @@ object ImageUtil {
     println(s"Created image for $id at ${file.toAbsolutePath}")
   }
 
-  def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
-    shapablesCoordinatesOneColor(len, Color.gray(0.9), bgColor, offset)
+  def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero, brightness: Double = 0.9): Seq[Shapable] = {
+    shapablesCoordinatesOneColor(len, Color.gray(brightness), bgColor, offset)
   }
 
   def shapablesCoordinatesOneColor(len: Double, color: Color, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
@@ -268,7 +344,8 @@ object ImageUtil {
     Seq(Shapable.PointSet(positions = vecs, color = color))
   }
 
-  def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color], lengthFactor: Double): Seq[Shapable] = {
+  def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color], 
+                  lengthFactor: Double, geo: Geo): Seq[Shapable] = {
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
     val starsFiltered = stars.filter { s =>
@@ -280,11 +357,10 @@ object ImageUtil {
 
     val starsShapable = starsFiltered.toSeq
       .map(toStarPosDir)
-      .flatMap { s =>
-        val e = s.pos.add(s.dir.mul(0.00005 * lengthFactor))
+      .map { s =>
         val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(a)
-        Seq(Shapable.Line(start = e, end = s.pos, startColor = c, endColor = bgColor))
+        shapeCylinder(color=c, lengthFactor = lengthFactor, geo = geo)(s)
       }
 
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
@@ -311,14 +387,48 @@ object ImageUtil {
 
   def toGalacticCoords(pos: Vec): Vec =
     pos
-      .rotx(X3d.degToRad(-27.13))
-      .roty(X3d.degToRad(-28.94))
+      .rotx(degToRad(-27.13))
+      .roty(degToRad(-28.94))
 
   def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
     val ix = math.floor(pos.x * cubeCount / cubeSize).toInt
     val iy = math.floor(pos.y * cubeCount / cubeSize).toInt
     val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
     ix == i && iy == j && iz == k
+  }
+  
+  enum Geo {
+    case Absolute(width: Double)
+    case Relative(width: Double)
+  }
+
+  def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
+    val a = starPosDir.pos
+    val b = starPosDir.pos.add(starPosDir.dir)
+    Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
+  }
+
+  def shapeCone(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.01))(starPosDir: StarPosDir): Shapable = {
+    val pv = starPosDir.dir.toPolarVec
+    val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
+    val height = starPosDir.dir.length * lengthFactor
+    val radius = geo match {
+      case Geo.Relative(rw) => height * rw
+      case Geo.Absolute(aw) => aw.toDouble
+    }
+    Shapable.Cone(
+      position = starPosDir.pos, rotation = rotv, height = height, radius = radius, color = color)
+  }
+
+  def shapeCylinder(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.03))(starPosDir: StarPosDir): Shapable = {
+    val pv = starPosDir.dir.toPolarVec
+    val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
+    val height = starPosDir.dir.length * lengthFactor
+    val radius = geo match {
+      case Geo.Relative(rw) => height * rw
+      case Geo.Absolute(aw) => aw.toDouble
+    }
+    Shapable.Cylinder(position = starPosDir.pos, rotation = rotv, radius = radius, height = height, color = color)
   }
 
 }

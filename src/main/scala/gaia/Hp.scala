@@ -18,7 +18,7 @@ object Hp {
     val imgs = images.values
       .toSeq
       .filter(i => i.hpRelevant)
-      .sortBy(i => -i.hpOrder)
+      .sortBy(i => -i.hpOrder.get)
 
     imgs.foreach(i => createHtml(i, htmlDir))
     createIndexHtml(htmlDir, imgs)

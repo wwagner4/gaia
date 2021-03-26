@@ -13,18 +13,19 @@ object Image1 {
   import X3d._
   import ImageUtil._
   import Data._
+  import Vector._
 
-  def dir01(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def sund4(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val ranges = Seq((7.9, 8.1))
     val colors = Palette.p2c10.colors
     val baseDirectionVec = Vec(1, 0, 1)
     val starShapes =
-      stars
+      stars.map(toStarPosDir)
         .filter(filterShells(ranges)(_))
         .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(ci)
-          X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.005)), startColor = bc, endColor = c)
+          shapeCone(color = c, lengthFactor = 0.005, geo = Geo.Absolute(0.01))(s)
         }
     println(s"filtered ${stars.size} stars")
     starShapes.toSeq
@@ -32,7 +33,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dir02(stars: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def sund5(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val ranges = Seq(
       (9.6, 10.0),
       (7.8, 8.0),
@@ -49,12 +50,12 @@ object Image1 {
 
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
-    val starShapables = stars
+    val starShapables = stars.map(toStarPosDir)
       .filter(filterShells(ranges)(_))
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(ci)
-        X3d.Shapable.Line(start = s.pos, end = s.pos.add(s.dir.mul(0.003)), startColor = bc, endColor = c)
+        shapeCone(color = c, lengthFactor=0.003, geo = Geo.Absolute(0.03))(s)
       }
     println(s"filtered ${starShapables.size} stars")
     starShapables.toSeq
@@ -62,7 +63,7 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def dirs(stars1: Iterable[StarPosDir], bc: Color): Seq[Shapable] = {
+  def sund6(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val epsBase = 0.4
     val epsAdj = Seq(
       8 -> 1.0 / 13,
@@ -80,7 +81,7 @@ object Image1 {
       epsAdj.get(dist).map(adj => adj * epsBase).getOrElse(epsBase)
     }
 
-    val ranges = (8 to 23)
+    val ranges = (5 to (20, 5))
       .toSeq
       .map(v => (v.toDouble - eps(v), v.toDouble))
 
@@ -93,36 +94,37 @@ object Image1 {
 
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
-    val starss = stars1
+    val starss = stars1.map(toStarPosDirGalactic)
+      .filter(_ => Random.nextDouble() < 0.3)
       .filter(filterShells(ranges)(_))
       .map(adjust)
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c: Color = colors(ci)
-        X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.05)
+        X3d.Shapable.Sphere(position = s.pos, color = c, radius = 0.01)
       }
     println(s"filtered ${starss.size} stars")
     starss.toSeq
-    ++ shapablesCoordinatesGray(5, bc)
-    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
+    ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
   }
 
-  def gc(stars: Iterable[Any], bc: Color): Seq[Shapable] = {
-    val rotation = Vec(X3d.degToRad(-4), X3d.degToRad(96), X3d.degToRad(0))
+  def gc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+    val rotation = Vec(degToRad(-4), degToRad(96), degToRad(0))
     Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
     ++ shapablesCoordinatesColored(5, bc)
     ++ shapablesCoordinatesColored(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def nearSunVeloInner(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.0
-    val maxDist = 0.04
+    val maxDist = 0.03
     val colors = Palette.p1c10.colors
-    val lengthFactor = 0.8
-    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor)
+    val lengthFactor = 0.00003
+    val geo = Geo.Absolute(0.0002)
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo)
   }
 
-  def nearSunDirtest(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.03
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
@@ -150,12 +152,13 @@ object Image1 {
     ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
   }
 
-  def nearSunVeloOuter(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund3(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val minDist = 0.04
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
-    val lengthFactor = 2.0
-    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor)
+    val lengthFactor = 0.00008
+    val geo = Geo.Absolute(0.00006)
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo = geo)
   }
 
   def nearSunDirections27pc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
@@ -166,10 +169,10 @@ object Image1 {
     def shapabels(radius: Double)(stars: Iterable[Star]): Iterable[Shapable] = {
       stars
         .map(toStarPosDir)
-        .flatMap { s =>
+        .map { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           val c = Color.orange.mul(br)
-          Seq(Shapable.Cylinder(position = s.pos, rotation = s.dir, radius = radius, height = radius * 100, color = c))
+          shapeCylinder(c, lengthFactor = 0.00005)(s)
         }
     }
 
@@ -188,7 +191,7 @@ object Image1 {
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def oneShellPoints(stars1: Iterable[Star], bc: Color): Seq[Shapable]  = {
+  def oneShellPoints(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
     val min = 7.0
     val max = 9.0
@@ -208,7 +211,7 @@ object Image1 {
     multiShells(stars1, bc, shells)
   }
 
-  def shellsPoints(stars: Iterable[Star], bc: Color): Seq[Shapable]  = {
+  def shellsPoints(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
 

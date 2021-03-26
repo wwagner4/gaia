@@ -1,8 +1,7 @@
 package gaia
 
-import gaia.Data.{Star, readBasic}
-import gaia.Main.RotAxesDeg
-import gaia.X3d.{PolarVecDeg, Vec}
+import gaia.ImageUtil.StarPosDir
+import gaia.X3d.Color
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -12,14 +11,104 @@ import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.zip.GZIPInputStream
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
+import scala.util.Random
 
 object Tryout {
 
-  def doit(args: List[String], workPath: Path): Unit = {
-    println(s"Some tests ${workPath.toAbsolutePath} ${args.mkString("[", ",", "]")}")
+  import Data.{Star, readBasic}
+  import Main.RotAxesDeg
+  import Vector._
 
-    println(ImageUtil.galacicCenter)
+  def f(prefix: String, a: Double, b: Double, c: Double) = {
+    def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
+
+    s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
   }
+
+  def f(v: Vec): String = f("C", v.x, v.y, v.z)
+
+  def f(v: PolarVec): String = f("P", v.r, radToDeg(v.ra), radToDeg(v.dec))
+
+
+  def doit(args: List[String], workPath: Path): Unit = {
+    cylinder()
+  }
+
+  private def cylinder(): Unit = {
+    def fromDef = {
+      val dirVecs = for (ra <- 0 to (350, 10); dec <- -70 to (70, 10)) yield {
+        PolarVec(1, degToRad(ra), degToRad(dec)).toVec
+      }
+      dirVecs.map{dv =>
+        val spd = StarPosDir(pos = Vec.zero, dir = dv)
+        ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd),
+      }
+    }
+    val shapables = fromDef
+    val file = Main.workPath.resolve("tryout_cylinder.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
+  }
+
+  private def vecConvert: Unit = {
+
+
+    def adj: Unit = {
+      def ad(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
+
+      val y = -0.0
+      val x = ad(y)
+      val v1 = "%7.2f %7.2f".format(y, x)
+      println(v1)
+    }
+
+    def norm: Unit = {
+      val v = PolarVec(1.0000, 4.1416, 3.1316)
+      val vn = v.adjust
+      println(s"norm $v -> $vn")
+    }
+
+    /*
+    [info] - vector convert reconvert pcp PolarVec(6.0,2.0,-3.0) *** FAILED ***
+    [info]   "... 6.0000 |  5.1416 | [-]0.1416)" was not equal to "... 6.0000 |  5.1416 | [ ]0.1416)" (Tests.scala:82)
+     */
+    def pcp: Unit = {
+      val p1 = PolarVec(0, 0, 0)
+      val p1a = p1.adjust
+      val v1 = p1.toVec
+      val pl2 = v1.toPolarVec
+      println(s"pcp [${f(p1)} ${f(p1a)}] -> ${f(v1)} -> ${f(pl2)}")
+    }
+
+    def cpc: Unit = {
+      val v0 = Vec(0.0, 0.0, 1.0)
+      val vp = v0.toPolarVec
+      val v1 = vp.toVec
+      println(s"cpc ${f(v0)} -> ${f(vp)} -> ${f(v1)}")
+    }
+
+    def round: Unit = {
+      def dround(x: Double) = {
+        BigDecimal(x).setScale(13, BigDecimal.RoundingMode.HALF_UP).toDouble
+      }
+
+      for (scale <- 0 to 40) {
+        val y = Random.nextDouble() * Random.nextInt(100)
+        val x = dround(y)
+        println("%22.18f".format(y))
+        println("%22.18f".format(x))
+      }
+    }
+
+    pcp
+
+  }
+
+  private def format(s: Star, pm: Vec): String =
+    "  %7.2f %7.2f %7.2f | %7.2f %7.2f %7.2f ".format(
+      s.pmra, s.pmdec, s.radialVelocity,
+      pm.x, pm.y, pm.z)
 
   private def execCmds = {
     val cmds = Seq(
@@ -42,8 +131,8 @@ object Tryout {
     rs.map(r => (r, r.toVec)).foreach { case (a, b) => println(s"$a -> $b") }
 
     val nearEcl = Vec(0, 45, 30).toPolarVec
-    val ra = X3d.radToDeg(nearEcl.ra)
-    val dec = X3d.radToDeg(nearEcl.dec)
+    val ra = radToDeg(nearEcl.ra)
+    val dec = radToDeg(nearEcl.dec)
     println(s"steep: $ra, $dec")
   }
 
