@@ -1,7 +1,7 @@
 package gaia
 
 import gaia.ImageUtil.StarPosDir
-import gaia.X3d.Color
+import gaia.X3d.{Color, Shapable}
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -35,33 +35,42 @@ object Tryout {
   }
 
   private def displySpikes(): Unit = {
+    
+    import ImageUtil._
+    val bc = Color.veryDarkBlue
+
     def fromDef = {
-      val dirVecs = for (ra <- 0 to (350, 10); dec <- -70 to (70, 10)) yield {
+      val dirVecs = for (ra <- 0 to(350, 45); dec <- -80 to(80, 40)) yield {
         PolarVec(1, degToRad(ra), degToRad(dec)).toVec
       }
-      dirVecs.flatMap{dv =>
+      dirVecs.flatMap { dv =>
         Seq(
-          X3d.Shapable.Sphere(position = dv, color = Color.green, radius = 0.01)          
+          X3d.Shapable.Sphere(position = dv, color = Color.green, radius = 0.05),
+          X3d.Shapable.Cone(position = dv, rotation = Vec(1, 0, 0), color = Color.orange, radius = 0.05, height = 0.5),
+          X3d.Shapable.Cylinder(position = dv, rotation = Vec(1, 0, 0), color = Color.yellow, radius = 0.02, height = 0.5),
         )
       }
     }
-    val shapables = fromDef
+
+    val shapables = fromDef ++ shapablesCoordinatesColored(5, bc)
     val file = Main.workPath.resolve("tryout_spikes_spheres.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
   }
 
   private def cylinder(): Unit = {
     def fromDef = {
-      val dirVecs = for (ra <- 0 to (350, 10); dec <- -70 to (70, 10)) yield {
+      val dirVecs = for (ra <- 0 to(350, 10); dec <- -70 to(70, 10)) yield {
         PolarVec(1, degToRad(ra), degToRad(dec)).toVec
       }
-      dirVecs.map{dv =>
+      dirVecs.map { dv =>
         val spd = StarPosDir(pos = Vec.zero, dir = dv)
-        ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd),
+        ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd)
+        ,
       }
     }
+
     val shapables = fromDef
     val file = Main.workPath.resolve("tryout_cylinder.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
