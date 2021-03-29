@@ -31,7 +31,25 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    cylinder()
+    displySpikes()
+  }
+
+  private def displySpikes(): Unit = {
+    def fromDef = {
+      val dirVecs = for (ra <- 0 to (350, 10); dec <- -70 to (70, 10)) yield {
+        PolarVec(1, degToRad(ra), degToRad(dec)).toVec
+      }
+      dirVecs.flatMap{dv =>
+        Seq(
+          X3d.Shapable.Sphere(position = dv, color = Color.green, radius = 0.01)          
+        )
+      }
+    }
+    val shapables = fromDef
+    val file = Main.workPath.resolve("tryout_spikes_spheres.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def cylinder(): Unit = {
