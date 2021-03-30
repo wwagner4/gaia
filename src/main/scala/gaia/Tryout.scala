@@ -1,8 +1,5 @@
 package gaia
 
-import gaia.ImageUtil.StarPosDir
-import gaia.X3d.{Color, Shapable}
-
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.Path
@@ -15,20 +12,11 @@ import scala.util.Random
 
 object Tryout {
 
-  import Data.{Star, readBasic}
+  import ImageUtil._
+  import X3d._
+  import Data._
   import Main.RotAxesDeg
   import Vector._
-
-  def f(prefix: String, a: Double, b: Double, c: Double) = {
-    def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
-
-    s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
-  }
-
-  def f(v: Vec): String = f("C", v.x, v.y, v.z)
-
-  def f(v: PolarVec): String = f("P", v.r, radToDeg(v.ra), radToDeg(v.dec))
-
 
   def doit(args: List[String], workPath: Path): Unit = {
     displyDirections()
@@ -45,7 +33,6 @@ object Tryout {
         ra <- 0 to(350, 45);
         dec <- -80 to(80, 40)) yield {
         val vp = PolarVec(1, degToRad(ra), degToRad(dec)).toVec
-        println(s"$vr")
         (vp, vr)
       }
       dirVecs.flatMap { (dv, rot) =>
@@ -65,7 +52,6 @@ object Tryout {
   }
 
   private def vecConvert: Unit = {
-
 
     def adj: Unit = {
       def ad(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
@@ -222,4 +208,16 @@ object Tryout {
       .zipWithIndex
       .foreach { case (nam, i) => println("%4d - %s".format(i, nam)) }
   }
+
+  def f(prefix: String, a: Double, b: Double, c: Double) = {
+    def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
+
+    s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
+  }
+
+  def f(v: Vec): String = f("C", v.x, v.y, v.z)
+
+  def f(v: PolarVec): String = f("P", v.r, radToDeg(v.ra), radToDeg(v.dec))
+
+
 }
