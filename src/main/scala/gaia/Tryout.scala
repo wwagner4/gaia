@@ -51,8 +51,8 @@ object Tryout {
       dirVecs.flatMap { (dv, rot) =>
         Seq(
           X3d.Shapable.Box(position = dv, color = Color.green, size = Vec(0.05, 0.05, 0.05)),
-          X3d.Shapable.Cone(position = dv, rotation = rot, color = Color.yellow, radius = 0.01, height = 0.4),
-          X3d.Shapable.Cylinder(position = dv, rotation = rot, color = Color.orange, radius = 0.005, height = 0.1),
+          X3d.Shapable.Cone(position = dv, direction = rot, color = Color.yellow, radius = 0.01),
+          X3d.Shapable.Cylinder(position = dv, direction = rot, color = Color.orange, radius = 0.005),
         )
       }
     }
@@ -60,24 +60,6 @@ object Tryout {
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
     val file = Main.workPath.resolve("tryout_directions.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
-  }
-
-  private def cylinder(): Unit = {
-    def fromDef = {
-      val dirVecs = for (ra <- 0 to(350, 10); dec <- -70 to(70, 10)) yield {
-        PolarVec(1, degToRad(ra), degToRad(dec)).toVec
-      }
-      dirVecs.map { dv =>
-        val spd = StarPosDir(pos = Vec.zero, dir = dv)
-        ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd)
-      }
-    }
-
-    val shapables = fromDef
-    val file = Main.workPath.resolve("tryout_cylinder.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
   }

@@ -419,26 +419,22 @@ object ImageUtil {
   }
 
   def shapeCone(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.01))(starPosDir: StarPosDir): Shapable = {
-    val pv = starPosDir.dir.toPolarVec
-    val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
-    val height = starPosDir.dir.length * lengthFactor
+    val dir = starPosDir.dir.mul(lengthFactor)
     val radius = geo match {
-      case Geo.Relative(rw) => height * rw
+      case Geo.Relative(rw) => dir.length * rw
       case Geo.Absolute(aw) => aw.toDouble
     }
     Shapable.Cone(
-      position = starPosDir.pos, rotation = rotv, height = height, radius = radius, color = color)
+      position = starPosDir.pos, direction = dir, radius = radius, color = color)
   }
 
   def shapeCylinder(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.03))(starPosDir: StarPosDir): Shapable = {
-    val pv = starPosDir.dir.toPolarVec
-    val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
-    val height = starPosDir.dir.length * lengthFactor
+    val dir = starPosDir.dir.mul(lengthFactor)
     val radius = geo match {
-      case Geo.Relative(rw) => height * rw
+      case Geo.Relative(rw) => dir.length * rw
       case Geo.Absolute(aw) => aw.toDouble
     }
-    Shapable.Cylinder(position = starPosDir.pos, rotation = rotv, radius = radius, height = height, color = color)
+    Shapable.Cylinder(position = starPosDir.pos, direction = dir, radius = radius, color = color)
   }
 
 }

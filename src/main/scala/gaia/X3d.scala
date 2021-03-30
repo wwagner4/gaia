@@ -6,7 +6,7 @@ import java.nio.file.Path
 import scala.util.Random
 
 object X3d {
-  
+
   import Vector._
 
   /**
@@ -52,7 +52,7 @@ object X3d {
       }
     }
   }
-  
+
   case class Color(r: Double, g: Double, b: Double) {
     def strNoComma = s"$r $g $b"
 
@@ -112,14 +112,13 @@ object X3d {
   object Shapable {
 
     case class Cylinder(
-                         position: Vec, rotation: Vec = Vec.zero, 
-                         radius: Double = 1.0, height: Double = 1.0, 
-                         color: Color= Color.yellow) extends Shapable {
+                         position: Vec, direction: Vec = Vec(1, 0, 0),
+                         radius: Double = 1.0, color: Color = Color.yellow) extends Shapable {
       def toShape = {
-        val rotPol = rotation.toPolarVec
+        val rotPol = direction.toPolarVec
         val ry = -rotPol.dec
         val rz = rotPol.ra
-        val offset = Vec(0, - height / 2.0, 0)
+        val offset = Vec(0, -direction.length / 2.0, 0)
         s"""
            |<Transform translation='${position.strNoComma}'>
            |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
@@ -127,7 +126,7 @@ object X3d {
            |<Transform rotation='0 0 1 ${pidiv2}' center='0, 0, 0'>
            |<Transform translation='${offset.strNoComma}'>
            |   <Shape>
-           |     <Cylinder radius='$radius' height='$height'/>
+           |     <Cylinder radius='$radius' height='${direction.length}'/>
            |     <Appearance>
            |       <Material diffuseColor='${color.strNoComma}'/>
            |     </Appearance>
@@ -142,14 +141,14 @@ object X3d {
     }
 
     case class Cone(
-                     position: Vec, rotation: Vec = Vec.zero, 
-                     radius: Double = 1.0, height: Double = 1.0, 
+                     position: Vec, direction: Vec = Vec(1, 0, 0),
+                     radius: Double = 1.0, height: Double = 1.0,
                      color: Color = Color.green) extends Shapable {
       def toShape = {
-        val rotPol = rotation.toPolarVec
+        val rotPol = direction.toPolarVec
         val ry = -rotPol.dec
         val rz = rotPol.ra
-        val offset = Vec(0, - height / 2.0, 0)
+        val offset = Vec(0, -height / 2.0, 0)
         s"""
            |<Transform translation='${position.strNoComma}'>
            |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
