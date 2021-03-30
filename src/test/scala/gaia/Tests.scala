@@ -8,6 +8,7 @@ import matchers._
 class Tests extends AnyFunSuite with must.Matchers {
 
   import Vector._
+  import Cam._
 
   val delta = 0.000001
 
@@ -124,28 +125,24 @@ class Tests extends AnyFunSuite with must.Matchers {
       ic(v, i, j, k) == result
     }
   }
+  
+  val degStepsTestVals = Seq(
+    (2, List(0.0, 180.0)),
+    (3, List(0.0, 360.0/ 3, 2.0 * 360.0/ 3)),
+    (4, List(0.0, 90.0, 180.0, 270.0)),
+  )
+  
+  for (n, l) <- degStepsTestVals do {
+    def f(vals: Iterable[Double]): String = {
+      vals.map(v => "%.5f".format(v)).mkString("|")
+    }
 
-  test("polar to cartesian 45") {
-    val vp = PolarVec(1, 0, degToRad(45))
-    val v = vp.toVec
-    v.x mustBe 0.7071067 +- 0.001
-    v.y mustBe 0.0 +- 0.001
-    v.z mustBe 0.7071067 +- 0.001
+    test(s"360 steps ${n}") {
+      val l1 = degSteps(n)
+      f(l1) mustBe f(l)
+      
+
+    }
   }
-
-  test("polar to cartesian 135") {
-    val vp = PolarVec(1, 0, degToRad(135))
-    val v = vp.toVec
-    v.x mustBe -0.7071067 +- 0.001
-    v.y mustBe 0.0 +- 0.001
-    v.z mustBe 0.7071067 +- 0.001
-  }
-
-  test("cartesian to polar 135") {
-    val v = Vec(-0.7071067, 0, 0.7071067)
-    val vp = v.toPolarVec
-    radToDeg(vp.ra) mustBe 180.0 +- 0.001
-    radToDeg(vp.dec) mustBe 45.0 +- 0.001
-  }
-
+  
 }

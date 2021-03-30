@@ -51,8 +51,11 @@ object X3d {
         Color(r, g, b)
       }
     }
+    def lazyColors: LazyList[Color] = {
+      LazyList.continually(colors).flatten
+    }
   }
-
+  
   case class Color(r: Double, g: Double, b: Double) {
     def strNoComma = s"$r $g $b"
 
@@ -268,9 +271,11 @@ object X3d {
 
   }
 
-  def createXml(shapables: Seq[Shapable], title: String, backColor: Color): String = {
+  def createXml(shapables: Seq[Shapable], title: String, backColor: Color, camera: Seq[Cam.Camera] = Seq.empty[Cam.Camera]): String = {
 
     val shapablesStr = shapables.map(_.toShape).mkString("\n")
+    val viewpointStr = camera.map(c => s"""<Viewpoint description='${c.name}' position='${c.pos.strNoComma}' orientation='${c.dir.strNoComma} 0'/>""").mkString("\n")
+    
     s"""<?xml version="1.0" encoding="UTF-8"?>
        |<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "https://www.web3d.org/specifications/x3d-3.3.dtd">
        |<X3D profile='Interchange' version='3.3' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-3.3.xsd'>
@@ -278,6 +283,7 @@ object X3d {
        |    <meta content='http://entelijan.net' name='reference'/>
        |  </head>
        |  <Scene>
+       |    $viewpointStr   
        |    <WorldInfo title='$title'/>
        |    <Background skyColor='${backColor.strNoComma}'/>
        |    $shapablesStr
