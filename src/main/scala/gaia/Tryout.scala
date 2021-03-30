@@ -18,8 +18,100 @@ object Tryout {
   import Main.RotAxesDeg
   import Vector._
 
-  def doit(args: List[String], workPath: Path): Unit = {
-    displyDirections()
+  object TestStars {
+
+    object Cones {
+      private def moveStar(s: Star, o: Vec): Star = {
+        val pv = PolarVec(1 / s.parallax, degToRad(s.ra), degToRad(s.dec))
+        val cv = pv.toVec
+        val mv = cv.add(o)
+        val pv1 = mv.toPolarVec
+        Star(parallax = 1 / pv1.r, ra = radToDeg(pv1.ra), dec = radToDeg(pv1.dec),
+          pmra = s.pmra, pmdec = s.pmdec, radialVelocity = s.radialVelocity)
+      }
+
+      private def cone(offset: Vec,
+                       coneSteps: Int = 10, decSteps: Int = 20, raSteps: Int = 45,
+                       properMovement: Double = 0.005): Seq[Star] = {
+        for (w <- 0 to(360 - coneSteps, coneSteps);
+             dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
+             ra <- 0 to(360 - raSteps, raSteps)) yield {
+          val x = properMovement * math.sin(degToRad(w))
+          val y = properMovement * math.cos(degToRad(w))
+          val cstar = Star(ra, dec, 1.0 / 600, x, y, 100)
+          moveStar(cstar, offset)
+        }
+      }
+
+      def rich: Seq[Star] = {
+        cone(Vec.zero)
+        ++ cone (Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
+        ++ cone (Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
+      }
+
+      def sparse: Seq[Star] = {
+        cone(Vec.zero, coneSteps = 20, properMovement = 0.01)
+      }
+
+      def spikes: Seq[Star] = {
+        val decSteps = 10
+        val raSteps = 10
+        for (dec <- (-90 + decSteps) to(90 - decSteps, decSteps);
+             ra <- 0 to(360 - raSteps, raSteps)) yield {
+          val dist = 600 + Random.nextInt(200)
+          val velo = 50 + Random.nextInt(100)
+          Star(ra, dec, 1.0 / dist, 0, 0, velo)
+        }
+      }
+    }
+
+    def polarToCartTest(workPath: Path): Seq[Star] = {
+      for (t <- 0 to(355, 5); d <- -80 to(30, 1)) yield {
+        val dist = 20 + Random.nextDouble() * 0.1
+        Star(ra = t, dec = d, parallax = 1.0 / dist, 0, 0, 0)
+      }
+    }
+
+    def cartToPolarTest(workPath: Path): Seq[Star] = {
+      val vecs = Seq(
+        (-20 to 20).map(v => Vec(v, 0, 10)),
+        (-20 to 20).map(v => Vec(v, 0, -10)),
+        (-20 to 20).map(v => Vec(v, 10, 0)),
+        (-20 to 20).map(v => Vec(v, -10, 0)),
+        (-20 to 20).map(v => Vec(0, v, 10)),
+        (-20 to 20).map(v => Vec(0, v, -10)),
+        (-20 to 20).map(v => Vec(10, v, 0)),
+        (-20 to 20).map(v => Vec(-10, v, 0)),
+      ).flatten
+      for (vc <- vecs) yield {
+        //println(vc)
+        val v = vc.toPolarVec
+        Star(ra = radToDeg(v.ra), dec = radToDeg(v.dec), parallax = 1.0 / v.r, 0, 0, 0)
+      }
+    }
+
+  }
+
+
+  def doit(args: List[String], workPath: Path): Unit ={
+    displayCones()
+  }
+
+  private def displayCones(): Unit = {
+
+    import ImageUtil._
+    val bc = Color.veryDarkBlue
+
+    val stars = TestStars.Cones.sparse
+    val fromDef = stars.map(toStarPosDir).map(spd => 
+      Shapable.Cylinder(position = spd.pos, direction = spd.dir)
+    )
+
+    val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
+    val file = Main.workPath.resolve("tryout_cones.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def displyDirections(): Unit = {

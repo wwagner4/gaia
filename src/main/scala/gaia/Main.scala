@@ -577,31 +577,6 @@ object Main {
         )
       ))
     ),
-    GaiaImage(id = "tspikes",
-      desc = "test spikes",
-      fCreateModel = writeModelToFile(StarCollections.Test.Cones.spikes)(Image2.shapesCyl),
-      backColor = Color.veryDarkGreen,
-    ),
-    GaiaImage(id = "tccones",
-      desc = "test cones of cones",
-      fCreateModel = writeModelToFile(StarCollections.Test.Cones.sparse)(Image2.shapesCyl),
-      backColor = Color.veryDarkRed,
-    ),
-    GaiaImage(id = "tptoc",
-      desc = "test for polar to carttesian conversion",
-      fCreateModel = writeModelToFile(StarCollections.Test.polarToCartTest)(Image2.ptoc),
-      backColor = Color.veryDarkBlue,
-    ),
-    GaiaImage(id = "tctop",
-      desc = "test for cartesian to polar conversion",
-      fCreateModel = writeModelToFile(StarCollections.Test.cartToPolarTest)(Image2.ptoc),
-      backColor = Color.veryDarkBlue,
-    ),
-    GaiaImage("info", "Info about the coordinates and distance in the galaxy",
-      writeModelToFile((p: Path) => Seq.empty[Star])(Image1.gc),
-      video = Some("https://www.youtube.com/embed/bZ0KkVM-Kwc"),
-      backColor = Color.veryDarkRed,
-    ),
   ))
 
   private def usage(message: Option[String]) = {
