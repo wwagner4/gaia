@@ -117,13 +117,14 @@ object X3d {
                          color: Color= Color.yellow) extends Shapable {
       def toShape = {
         val rotPol = rotation.toPolarVec
-        val ry = rotPol.dec
+        val ry = -rotPol.dec
         val rz = rotPol.ra
-        val offset = Vec(0, height / 2.0, 0)
+        val offset = Vec(0, - height / 2.0, 0)
         s"""
            |<Transform translation='${position.strNoComma}'>
-           |<Transform rotation='0 1 0 ${ry}' center='0, 0, 0'>
            |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
+           |<Transform rotation='0 1 0 ${ry}' center='0, 0, 0'>
+           |<Transform rotation='0 0 1 ${pidiv2}' center='0, 0, 0'>
            |<Transform translation='${offset.strNoComma}'>
            |   <Shape>
            |     <Cylinder radius='$radius' height='$height'/>
@@ -131,6 +132,7 @@ object X3d {
            |       <Material diffuseColor='${color.strNoComma}'/>
            |     </Appearance>
            |   </Shape>
+           |</Transform>
            |</Transform>
            |</Transform>
            |</Transform>

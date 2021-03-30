@@ -31,24 +31,17 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    displySpikes()
+    displyDirections()
   }
 
-  private def displySpikes(): Unit = {
+  private def displyDirections(): Unit = {
 
     import ImageUtil._
     val bc = Color.veryDarkBlue
 
     def fromDef = {
       val dirVecs = for (
-        vr <- (45 to (200, 10)).map(a => PolarVec(1, degToRad(45), degToRad(a)).toVec);
-//        vr <- Seq(
-//          Vec(1, 0, 0),
-//          Vec(1, 1, 0),
-//          Vec(0, 1, 0),
-//          Vec(0, 0, 1),
-//          Vec(0, 1, 0),
-//        );
+        vr <- (0 to(340, 20)).map(a => PolarVec(1, degToRad(45), degToRad(a)).toVec);
         ra <- 0 to(350, 45);
         dec <- -80 to(80, 40)) yield {
         val vp = PolarVec(1, degToRad(ra), degToRad(dec)).toVec
@@ -57,15 +50,15 @@ object Tryout {
       }
       dirVecs.flatMap { (dv, rot) =>
         Seq(
-          X3d.Shapable.Sphere(position = dv, color = Color.green, radius = 0.01),
-          X3d.Shapable.Cone(position = dv, rotation = rot, color = Color.orange, radius = 0.01, height = 0.2),
-          // X3d.Shapable.Cylinder(position = dv, rotation = rot, color = Color.yellow, radius = 0.02, height = 0.5),
+          X3d.Shapable.Box(position = dv, color = Color.green, size = Vec(0.05, 0.05, 0.05)),
+          X3d.Shapable.Cone(position = dv, rotation = rot, color = Color.yellow, radius = 0.01, height = 0.4),
+          X3d.Shapable.Cylinder(position = dv, rotation = rot, color = Color.orange, radius = 0.005, height = 0.1),
         )
       }
     }
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Main.workPath.resolve("tryout_spikes_spheres.x3d")
+    val file = Main.workPath.resolve("tryout_directions.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
