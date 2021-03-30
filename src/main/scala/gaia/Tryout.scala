@@ -36,8 +36,7 @@ object Tryout {
       (-100 to 100).map(v => Vec(0, 0, v)).map(v =>Shapable.Sphere(position = v, color = Color.green, radius = 0.3)),
     ).flatten
 
-    val cams = cameras(degStep = 20, ra = 0, dec = 0, 20.0)
-    //val cams = (0 to (315, 45)).map(a => Camera(pos=Vec(10, 0, 0), dir= PolarVec(1, 0, degToRad(a)).toVec, name=s"cam_${a}"))
+    val cams = cameras(degStep = 10, ra = 90, dec = 45, 120.0)
     
     val shapables = objShapes
     val file = Main.workPath.resolve("tryout_viewpoint.x3d")
