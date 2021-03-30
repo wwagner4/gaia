@@ -17,19 +17,18 @@ object Tryout {
   import Data._
   import Main.RotAxesDeg
   import Vector._
+  import Cam._
 
-
+  
   def doit(args: List[String], workPath: Path): Unit = {
-    cam()
+    viewpoint()
   }
-
-
 
   private def viewpoint(): Unit = {
 
     import Cam._
 
-    val bc = Color.gray(0.1)
+    val bc = Color.veryDarkRed
 
     val camShapes = (0 to(340, 20))
       .zip(X3d.Palette.p6c6.lazyColors)
@@ -38,7 +37,7 @@ object Tryout {
           .toSeq
           .flatMap { cam =>
             Seq(
-              X3d.Shapable.Cone(position = cam.pos, direction = cam.dir, radius = 0.03, color = c),
+              X3d.Shapable.Cone(position = cam.pos, direction = cam.dir, radius = 0.1, color = c),
             )
           }
       }
@@ -54,26 +53,23 @@ object Tryout {
 
   private def cam(): Unit = {
 
-    import Cam._
-
-    val bc = Color.gray(0.7)
+    val bc = Color.veryDarkRed
 
     val camShapes = (0 to(270, 90))
       .zip(X3d.Palette.p5c8.lazyColors)
       .flatMap { case (ra, c) =>
-        cameras(degStep = 20, ra = ra, dec = 60, 1.0)
+        cameras(degStep = 20, ra = ra, dec = 60, 4.0)
           .toSeq
           .flatMap { cam =>
-            val pv = cam.dir.toPolarVec
-            val rotv = Vec(pv.dec, 0, pv.ra - Vector.pidiv2)
+            val dir = cam.dir.mul(0.05)
             Seq(
-              X3d.Shapable.Cone(position = cam.pos, direction = cam.dir, radius = 0.02, color = c),
+              X3d.Shapable.Cone(position = cam.pos, direction = dir, radius = 0.1, color = c),
               X3d.Shapable.Sphere(position = cam.pos, radius = 0.03, color = c),
             )
           }
       }
-
     val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc)
+
     val file = Main.workPath.resolve("tryout_cam.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)

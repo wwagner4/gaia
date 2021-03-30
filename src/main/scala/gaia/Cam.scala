@@ -21,9 +21,9 @@ object Cam {
     rs(0, List.empty[Double]).reverse
   }
 
-  def cameras(degStep: Int, ra: Int, dec: Int, radius: Double, name: String = "gaiadefinded"): Seq[Camera] = {
+  def cameras(degStep: Int, ra: Int, dec: Int, radius: Double, name: String = "gaiadefined"): Seq[Camera] = {
     degSteps(degStep)
-      .zip(LazyList.continually(PolarVec(1, 0, 0)))
+      .zip(LazyList.continually(PolarVec(radius, 0, 0)))
       .map { case (d, v) => v.copy(ra = degToRad(d)) }
       .map(pv => pv.toVec)
       .map(v => v.roty(degToRad(dec)))
@@ -31,7 +31,8 @@ object Cam {
       .zipWithIndex
       .map { case (v, i) =>
         val nam = f"${name}_${i}%04d"
-        Camera(nam, v, v.sub(Vec.zero)) }
+        val dir = Vec.zero.sub(v)
+        Camera(nam, v, dir) }
   }
 
 
