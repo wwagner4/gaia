@@ -30,26 +30,24 @@ object Tryout {
 
     val bc = Color.veryDarkRed
 
-    val camShapes = (0 to(340, 20))
-      .zip(X3d.Palette.p6c6.lazyColors)
-      .flatMap { case (ra, c) =>
-        cameras(degStep = 20, ra = ra, dec = 30, 1.0)
-          .toSeq
-          .flatMap { cam =>
-            Seq(
-              X3d.Shapable.Cone(position = cam.pos, direction = cam.dir, radius = 0.1, color = c),
-            )
-          }
-      }
+    val objShapes = Seq(
+      (-100 to 100).map(v => Vec(v, 0, 0)).map(v =>Shapable.Sphere(position = v, color = Color.red, radius = 0.3)),
+      (-100 to 100).map(v => Vec(0, v, 0)).map(v =>Shapable.Sphere(position = v, color = Color.yellow, radius = 0.3)),
+      (-100 to 100).map(v => Vec(0, 0, v)).map(v =>Shapable.Sphere(position = v, color = Color.green, radius = 0.3)),
+    ).flatten
 
-
-    val cams = cameras(degStep = 20, ra = 0, dec = 0, 15.0)
-    val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc)
+    val cams = cameras(degStep = 20, ra = 0, dec = 0, 20.0)
+    //val cams = (0 to (315, 45)).map(a => Camera(pos=Vec(10, 0, 0), dir= PolarVec(1, 0, degToRad(a)).toVec, name=s"cam_${a}"))
+    
+    val shapables = objShapes
     val file = Main.workPath.resolve("tryout_viewpoint.x3d")
+    
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc, cams)
+    
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
   }
+      
 
   private def cam(): Unit = {
 

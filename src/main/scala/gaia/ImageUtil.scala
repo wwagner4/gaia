@@ -206,9 +206,9 @@ object ImageUtil {
     }
 
     val signShapes = Seq(
-      Shapable.Sphere(position = Vec(1, 0, 0), radius = len / 50.0, color = Color.white),
-      Shapable.Sphere(position = Vec(0, 1, 0), radius = len / 50.0, color = Color.white),
-      Shapable.Sphere(position = Vec(0, 0, 1), radius = len / 50.0, color = Color.white))
+      Shapable.Sphere(position = Vec(len, 0, 0), radius = len / 50.0, color = Color.white),
+      Shapable.Sphere(position = Vec(0, len, 0), radius = len / 50.0, color = Color.white),
+      Shapable.Sphere(position = Vec(0, 0, len), radius = len / 50.0, color = Color.white))
 
     val shapes = ends.flatMap {
       coord

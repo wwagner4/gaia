@@ -51,11 +51,12 @@ object X3d {
         Color(r, g, b)
       }
     }
+
     def lazyColors: LazyList[Color] = {
       LazyList.continually(colors).flatten
     }
   }
-  
+
   case class Color(r: Double, g: Double, b: Double) {
     def strNoComma = s"$r $g $b"
 
@@ -274,8 +275,24 @@ object X3d {
   def createXml(shapables: Seq[Shapable], title: String, backColor: Color, camera: Seq[Cam.Camera] = Seq.empty[Cam.Camera]): String = {
 
     val shapablesStr = shapables.map(_.toShape).mkString("\n")
-    val viewpointStr = camera.map(c => s"""<Viewpoint description='${c.name}' position='${c.pos.strNoComma}' orientation='${c.dir.strNoComma} 0'/>""").mkString("\n")
-    
+    val viewpointStr = camera.map { c =>
+      val rotPol = c.dir.mul(-1).toPolarVec
+      val ry = -rotPol.dec
+      val rz = rotPol.ra
+      val ry1 = pidiv2
+      s"""
+         |<Transform translation='${c.pos.strNoComma}'>
+         |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
+         |<Transform rotation='0 1 0 ${ry}' center='0, 0, 0'>
+         |<Transform rotation='0 1 0 ${ry1}' center='0, 0, 0'>
+         |  <Viewpoint description='${c.name}' position='0 0 0'/>
+         |</Transform>
+         |</Transform>
+         |</Transform>
+         |</Transform>
+         |""".stripMargin
+    }.mkString("\n")
+
     s"""<?xml version="1.0" encoding="UTF-8"?>
        |<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "https://www.web3d.org/specifications/x3d-3.3.dtd">
        |<X3D profile='Interchange' version='3.3' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-3.3.xsd'>
@@ -283,7 +300,7 @@ object X3d {
        |    <meta content='http://entelijan.net' name='reference'/>
        |  </head>
        |  <Scene>
-       |    $viewpointStr   
+       |    $viewpointStr
        |    <WorldInfo title='$title'/>
        |    <Background skyColor='${backColor.strNoComma}'/>
        |    $shapablesStr
@@ -292,3 +309,17 @@ object X3d {
   }
 
 }
+
+/*
+        val rotPol = direction.toPolarVec
+        val ry = -rotPol.dec
+        val rz = rotPol.ra
+        val offset = Vec(0, -height / 2.0, 0)
+        s"""
+           |<Transform translation='${position.strNoComma}'>
+           |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
+           |<Transform rotation='0 1 0 ${ry}' center='0, 0, 0'>
+           |<Transform rotation='0 0 1 ${pidiv2}' center='0, 0, 0'>
+           |<Transform translation='${offset.strNoComma}'>
+
+ */
