@@ -75,6 +75,8 @@ class Tests extends AnyFunSuite with must.Matchers {
     PolarVec(6, -2.0, 3.0),
     PolarVec(6, 2.0, -3.0),
     PolarVec(6, -2.0, -3.0),
+    PolarVec(1, 0, degToRad(100)),
+    PolarVec(1, degToRad(100), 0),
   )
 
   for v <- VEC_CONV_PCP do {
@@ -122,4 +124,28 @@ class Tests extends AnyFunSuite with must.Matchers {
       ic(v, i, j, k) == result
     }
   }
+
+  test("polar to cartesian 45") {
+    val vp = PolarVec(1, 0, degToRad(45))
+    val v = vp.toVec
+    v.x mustBe 0.7071067 +- 0.001
+    v.y mustBe 0.0 +- 0.001
+    v.z mustBe 0.7071067 +- 0.001
+  }
+
+  test("polar to cartesian 135") {
+    val vp = PolarVec(1, 0, degToRad(135))
+    val v = vp.toVec
+    v.x mustBe -0.7071067 +- 0.001
+    v.y mustBe 0.0 +- 0.001
+    v.z mustBe 0.7071067 +- 0.001
+  }
+
+  test("cartesian to polar 135") {
+    val v = Vec(-0.7071067, 0, 0.7071067)
+    val vp = v.toPolarVec
+    radToDeg(vp.ra) mustBe 180.0 +- 0.001
+    radToDeg(vp.dec) mustBe 45.0 +- 0.001
+  }
+
 }

@@ -35,24 +35,36 @@ object Tryout {
   }
 
   private def displySpikes(): Unit = {
-    
+
     import ImageUtil._
     val bc = Color.veryDarkBlue
 
     def fromDef = {
-      val dirVecs = for (ra <- 0 to(350, 45); dec <- -80 to(80, 40)) yield {
-        PolarVec(1, degToRad(ra), degToRad(dec)).toVec
+      val dirVecs = for (
+        vr <- (45 to (200, 10)).map(a => PolarVec(1, degToRad(45), degToRad(a)).toVec);
+//        vr <- Seq(
+//          Vec(1, 0, 0),
+//          Vec(1, 1, 0),
+//          Vec(0, 1, 0),
+//          Vec(0, 0, 1),
+//          Vec(0, 1, 0),
+//        );
+        ra <- 0 to(350, 45);
+        dec <- -80 to(80, 40)) yield {
+        val vp = PolarVec(1, degToRad(ra), degToRad(dec)).toVec
+        println(s"$vr")
+        (vp, vr)
       }
-      dirVecs.flatMap { dv =>
+      dirVecs.flatMap { (dv, rot) =>
         Seq(
-          X3d.Shapable.Sphere(position = dv, color = Color.green, radius = 0.05),
-          X3d.Shapable.Cone(position = dv, rotation = Vec(1, 0, 0), color = Color.orange, radius = 0.05, height = 0.5),
-          X3d.Shapable.Cylinder(position = dv, rotation = Vec(1, 0, 0), color = Color.yellow, radius = 0.02, height = 0.5),
+          X3d.Shapable.Sphere(position = dv, color = Color.green, radius = 0.01),
+          X3d.Shapable.Cone(position = dv, rotation = rot, color = Color.orange, radius = 0.01, height = 0.2),
+          // X3d.Shapable.Cylinder(position = dv, rotation = rot, color = Color.yellow, radius = 0.02, height = 0.5),
         )
       }
     }
 
-    val shapables = fromDef ++ shapablesCoordinatesColored(5, bc)
+    val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
     val file = Main.workPath.resolve("tryout_spikes_spheres.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
@@ -67,7 +79,6 @@ object Tryout {
       dirVecs.map { dv =>
         val spd = StarPosDir(pos = Vec.zero, dir = dv)
         ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd)
-        ,
       }
     }
 

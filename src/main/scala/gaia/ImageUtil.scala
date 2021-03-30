@@ -253,18 +253,18 @@ object ImageUtil {
 
   def shapablesCoordinatesOneColor(len: Double, color: Color, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
     val ccs = CoordinatesColors(color, bgColor, color, bgColor, color, bgColor)
-    shapablesCoordinates(len, ccs, offset)
+    shapablesCoordinates(len, ccs, offset, false)
   }
 
-  def shapablesCoordinatesColored(len: Double, bgColor: Color, offset: Vec = Vec.zero): Seq[Shapable] = {
+  def shapablesCoordinatesColored(len: Double, bgColor: Color, offset: Vec = Vec.zero, showSign: Boolean = false): Seq[Shapable] = {
     val ccs = CoordinatesColors(
       Color.red, bgColor,
       Color.yellow, bgColor,
       Color.green, bgColor)
-    shapablesCoordinates(len, ccs, offset)
+    shapablesCoordinates(len, ccs, offset, showSign)
   }
 
-  private def shapablesCoordinates(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero): Seq[Shapable] = {
+  private def shapablesCoordinates(len: Double, coordinatesColors: CoordinatesColors, offset: Vec = Vec.zero, showSign: Boolean): Seq[Shapable] = {
     def ends = Seq(
       (Vec(1, 0, 0).mul(len).add(offset), Vec(-1, 0, 0).mul(len).add(offset), coordinatesColors.xStart, coordinatesColors.xEnd),
       (Vec(0, 1, 0).mul(len).add(offset), Vec(0, -1, 0).mul(len).add(offset), coordinatesColors.yStart, coordinatesColors.yEnd),
@@ -278,9 +278,16 @@ object ImageUtil {
       )
     }
 
-    ends.flatMap {
+    val signShapes = Seq(
+      Shapable.Sphere(position = Vec(1, 0, 0), radius = len / 50.0, color = Color.white),
+      Shapable.Sphere(position = Vec(0, 1, 0), radius = len / 50.0, color = Color.white),
+      Shapable.Sphere(position = Vec(0, 0, 1), radius = len / 50.0, color = Color.white))
+
+    val shapes = ends.flatMap {
       coord
     }
+    if showSign then shapes ++ signShapes
+    else shapes
   }
 
   def sphere(stars1: Iterable[Star], bc: Color, shellCnt: Int, shellThikness: Double,
@@ -344,7 +351,7 @@ object ImageUtil {
     Seq(Shapable.PointSet(positions = vecs, color = color))
   }
 
-  def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color], 
+  def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color],
                   lengthFactor: Double, geo: Geo): Seq[Shapable] = {
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
@@ -360,7 +367,7 @@ object ImageUtil {
       .map { s =>
         val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(a)
-        shapeCylinder(color=c, lengthFactor = lengthFactor, geo = geo)(s)
+        shapeCylinder(color = c, lengthFactor = lengthFactor, geo = geo)(s)
       }
 
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
@@ -396,10 +403,13 @@ object ImageUtil {
     val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
     ix == i && iy == j && iz == k
   }
-  
+
   enum Geo {
+
     case Absolute(width: Double)
+
     case Relative(width: Double)
+
   }
 
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
