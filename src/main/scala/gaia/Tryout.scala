@@ -28,34 +28,44 @@ object Tryout {
 
     import Cam._
 
-    val bc = Color.veryDarkRed
+    val bc = Color.veryDarkGreen
 
-    val objShapes = Seq(
-      (-100 to 100).map(v => Vec(v, 0, 0)).map(v => Shapable.Sphere(position = v, color = Color.red, radius = 0.3)),
-      (-100 to 100).map(v => Vec(0, v, 0)).map(v => Shapable.Sphere(position = v, color = Color.yellow, radius = 0.3)),
-      (-100 to 100).map(v => Vec(0, 0, v)).map(v => Shapable.Sphere(position = v, color = Color.green, radius = 0.3)),
-    ).flatten
+    def someSpheres(color: Color): Seq[Shapable] = {
+      
+      def ran(range: Double): Double = {
+        Random.nextDouble * range - range / 2.0
+      }
+      
+      val center = Vec(ran(30), ran(30), ran(30))
+      (1 to 10)
+        .map{_ =>
+          val offset = Vec(ran(5), ran(5), ran(5))
+          Shapable.Sphere(position = center.add(offset), color = color, radius = 0.5)          
+        }
+    } 
+    
+    val objShapes = Palette.p6c6.lazyColors.take(30).flatMap(c => someSpheres(c))
 
-    val cams = cameras(degStep = 10, ra = 90, dec = 45, 120.0)
-
-    val shapables = objShapes
     val file = Main.workPath.resolve("tryout_viewpoint.x3d")
     val outDir = Main.workPath.resolve("cam")
     if Files.notExists(outDir) then Files.createDirectories(outDir)
 
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc, cams)
+    val cams = cameras(degStep = 40, ra = 90, dec = 20, 40.0)
+    val xml = X3d.createXml(objShapes, file.getFileName.toString, bc, cams)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
 
-    val commands = cams.map { c =>
-      val model = file.toAbsolutePath.toString
-      val image = outDir.resolve(s"cam_${c.name}.png").toAbsolutePath.toString
-      Seq("view3dscene", model, "--screenshot", "0", "--viewpoint", c.name, image)
-    }
-   
-    println(commands.map(c=> c.mkString(" ")).mkString("\n")) 
-    Util.runAllCommands(commands)
-    println(s"finished ${commands.size} commands")    
+    val commands = cams
+      .zipWithIndex
+      .map { (c, i) =>
+        val model = file.toAbsolutePath.toString
+        val image = outDir.resolve(s"cam_${c.name}.png").toAbsolutePath.toString
+        Seq("view3dscene", model, "--viewpoint", i.toString, "--screenshot", "0", image)
+      }
+
+    println(commands.map(c => c.mkString(" ")).mkString("\n"))
+    Util.runAllCommands(commands, waitForStartMs = 4000)
+    println(s"finished ${commands.size} commands")
   }
 
 

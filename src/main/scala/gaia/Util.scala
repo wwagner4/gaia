@@ -123,39 +123,28 @@ object Util {
       }
 
       override def run(): Unit = {
-        println("--- Stream gobble handle input streams")
         handleInputStream(inputStream)
         handleInputStream(errorStream)
       }
 
     }
 
-    val executor: ExecutorService = Executors.newSingleThreadExecutor
+    val executor: ExecutorService = Executors.newCachedThreadPool()
     try {
-      def start(cmd: List[String]): CompletableFuture[Process] = {
+      def start(cmd: List[String]): Int = {
         val process = new ProcessBuilder()
           .command(cmd.asJava)
-          .start
+          .start()
 
         val streamGobbler = StreamGobbler(process.getInputStream(), process.getErrorStream)
         executor.submit(streamGobbler)
         println("--- started command: " + cmd.mkString(" "))
-        process.onExit()
+        process.waitFor()
       }
 
-      val fs = for (cmd <- cmds) yield {
-        Thread.sleep(waitForStartMs)
+      val exits = for (cmd <- cmds) yield {
         start(cmd.toList)
       }
-      var states = fs.map(f => f.isDone)
-      while (!states.forall(s => s)) {
-        Thread.sleep(3000)
-        val all = states.size
-        val done = states.filter(v => v).size
-        println(s"--- Check futures. $done of $all done")
-        states =  fs.map(f => f.isDone)
-      }
-      val exits = fs.map(f => f.get().exitValue()).mkString(", ")
       println(s"--- finished all commands. Exit values: $exits")
     } finally {
       executor.shutdownNow()
