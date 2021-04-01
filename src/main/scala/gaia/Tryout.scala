@@ -2,7 +2,7 @@ package gaia
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import java.util.function.Consumer
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.zip.GZIPInputStream
@@ -19,7 +19,7 @@ object Tryout {
   import Vector._
   import Cam._
 
-  
+
   def doit(args: List[String], workPath: Path): Unit = {
     viewpoint()
   }
@@ -31,22 +31,33 @@ object Tryout {
     val bc = Color.veryDarkRed
 
     val objShapes = Seq(
-      (-100 to 100).map(v => Vec(v, 0, 0)).map(v =>Shapable.Sphere(position = v, color = Color.red, radius = 0.3)),
-      (-100 to 100).map(v => Vec(0, v, 0)).map(v =>Shapable.Sphere(position = v, color = Color.yellow, radius = 0.3)),
-      (-100 to 100).map(v => Vec(0, 0, v)).map(v =>Shapable.Sphere(position = v, color = Color.green, radius = 0.3)),
+      (-100 to 100).map(v => Vec(v, 0, 0)).map(v => Shapable.Sphere(position = v, color = Color.red, radius = 0.3)),
+      (-100 to 100).map(v => Vec(0, v, 0)).map(v => Shapable.Sphere(position = v, color = Color.yellow, radius = 0.3)),
+      (-100 to 100).map(v => Vec(0, 0, v)).map(v => Shapable.Sphere(position = v, color = Color.green, radius = 0.3)),
     ).flatten
 
     val cams = cameras(degStep = 10, ra = 90, dec = 45, 120.0)
-    
+
     val shapables = objShapes
     val file = Main.workPath.resolve("tryout_viewpoint.x3d")
-    
+    val outDir = Main.workPath.resolve("cam")
+    if Files.notExists(outDir) then Files.createDirectories(outDir)
+
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc, cams)
-    
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
+
+    val commands = cams.map { c =>
+      val model = file.toAbsolutePath.toString
+      val image = outDir.resolve(s"cam_${c.name}.png").toAbsolutePath.toString
+      Seq("view3dscene", model, "--screenshot", "0", "--viewpoint", c.name, image)
+    }
+   
+    println(commands.map(c=> c.mkString(" ")).mkString("\n")) 
+    Util.runAllCommands(commands)
+    println(s"finished ${commands.size} commands")    
   }
-      
+
 
   private def cam(): Unit = {
 
