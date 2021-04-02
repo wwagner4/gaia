@@ -64,7 +64,7 @@ object Tryout {
       }
 
     println(commands.map(c => c.mkString(" ")).mkString("\n"))
-    Util.runAllCommands(commands, waitForStartMs = 4000)
+    Util.runAllCommands(commands)
     println(s"finished ${commands.size} commands")
   }
 

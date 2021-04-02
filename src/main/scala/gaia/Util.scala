@@ -110,7 +110,7 @@ object Util {
     })
   }
 
-  def runAllCommands(cmds: Iterable[Iterable[String]], waitForStartMs: Int = 1000): Unit = {
+  def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
 
     class StreamGobbler(val inputStream: InputStream,   val errorStream: InputStream) extends Runnable {
       private def handleInputStream(in: InputStream) = {
@@ -159,6 +159,7 @@ object Util {
       }
       val exits = futures.map(f => f.get()).mkString(", ")
       println(s"--- finished all commands. Exit values: $exits")
+      if !exits.filterNot(_ == 0).isEmpty then throw IllegalStateException("At least one of the processes finichd with error")
     } finally {
       gobbleExec.shutdownNow()
       procExec.shutdownNow()
