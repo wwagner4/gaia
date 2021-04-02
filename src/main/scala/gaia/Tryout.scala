@@ -73,8 +73,8 @@ object Tryout {
       case _4kwide extends VideoQuality(VQuality(1620, (4098, 2160), Seq(27, 54, 108), 1))
 
     }
-    
-    
+
+
     def mkVideo(
                  id: String,
                  shapables: Seq[Shapable],
@@ -122,11 +122,13 @@ object Tryout {
       print("wrote video to " + videoOutDir + " - " + videoId)
     }
 
-    mkVideo("cam_tryout",
-      Palette.p6c6.lazyColors.take(10).flatMap(c => someSpheres(c)),
-      cameras(ra = 0, dec = 60, 100.0),
-      VideoQuality.VGA
-    )
+    VideoQuality.values.map { vq =>
+      mkVideo("cam_tryout",
+        Palette.p6c6.lazyColors.take(10).flatMap(c => someSpheres(c)),
+        cameras(ra = 0, dec = 60, 100.0),
+        vq
+      )
+    }
   }
 
   private def cam(): Unit = {
