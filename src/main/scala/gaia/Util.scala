@@ -2,7 +2,7 @@ package gaia
 
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
-import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
+import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, Future}
 import java.util.{Locale, stream}
 import scala.collection.JavaConverters._
 import scala.util.Random
@@ -129,7 +129,8 @@ object Util {
 
     }
 
-    val executor: ExecutorService = Executors.newCachedThreadPool()
+    val gobbleExec: ExecutorService = Executors.newSingleThreadExecutor()
+    val procExec: ExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors)
     try {
       def start(cmd: List[String]): Int = {
         val process = new ProcessBuilder()
@@ -137,17 +138,30 @@ object Util {
           .start()
 
         val streamGobbler = StreamGobbler(process.getInputStream(), process.getErrorStream)
-        executor.submit(streamGobbler)
+        gobbleExec.submit(streamGobbler)
         println("--- started command: " + cmd.mkString(" "))
-        process.waitFor()
+        val procResult = process.waitFor()
+        println("--- finished command: " + cmd.mkString(" ") + " " + procResult)
+        procResult
       }
 
-      val exits = for (cmd <- cmds) yield {
-        start(cmd.toList)
+      val futures = for (cmd <- cmds) yield {
+        Thread.sleep(500)
+        procExec.submit(() => start(cmd.toList))
       }
+      var states = futures.map(f => f.isDone)
+      while (!states.forall(s => s)) {
+        Thread.sleep(500)
+        val all = states.size
+        val done = states.filter(v => v).size
+        println(s"--- Check futures. $done of $all done")
+        states =  futures.map(f => f.isDone)
+      }
+      val exits = futures.map(f => f.get()).mkString(", ")
       println(s"--- finished all commands. Exit values: $exits")
     } finally {
-      executor.shutdownNow()
+      gobbleExec.shutdownNow()
+      procExec.shutdownNow()
     }
   }
 
