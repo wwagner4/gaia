@@ -3,6 +3,7 @@ package gaia
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
+import java.util.UUID
 import java.util.function.Consumer
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.zip.GZIPInputStream
@@ -31,43 +32,61 @@ object Tryout {
     val bc = Color.veryDarkGreen
 
     def someSpheres(color: Color): Seq[Shapable] = {
-      
+
       def ran(range: Double): Double = {
         Random.nextDouble * range - range / 2.0
       }
-      
+
+      def ranRange(from: Double, to: Double): Double = {
+        from + Random.nextDouble * (to - from)
+      }
+
       val center = Vec(ran(30), ran(30), ran(30))
-      (1 to 10)
-        .map{_ =>
-          val offset = Vec(ran(5), ran(5), ran(5))
-          Shapable.Sphere(position = center.add(offset), color = color, radius = 0.5)          
+      (1 to 100)
+        .map { _ =>
+          val offset = Vec(ran(10), ran(10), ran(10))
+          Shapable.Sphere(position = center.add(offset), color = color, radius = ranRange(0.1, 2))
         }
-    } 
-    
+    }
+
     val objShapes = Palette.p6c6.lazyColors.take(30).flatMap(c => someSpheres(c))
 
-    val file = Main.workPath.resolve("tryout_viewpoint.x3d")
-    val outDir = Main.workPath.resolve("cam")
+    val id = "cam_tryout"
+    val outDir = Files.createTempDirectory(id)
     if Files.notExists(outDir) then Files.createDirectories(outDir)
+    val videoOutDir = Main.workPath.resolve("videos")
+    if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
+    val numlen = 4
 
-    val cams = cameras(degStep = 40, ra = 90, dec = 20, 40.0)
-    val xml = X3d.createXml(objShapes, file.getFileName.toString, bc, cams)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
-
+    val cams = cameras(degStep = 300, ra = 0, dec = 60, 60.0)
     val commands = cams
       .zipWithIndex
       .map { (c, i) =>
-        val model = file.toAbsolutePath.toString
-        val image = outDir.resolve(s"cam_${c.name}.png").toAbsolutePath.toString
+        val iFmt = "%0" + numlen + "d"
+        val iStr = iFmt.format(i)
+
+        val x3dFile = outDir.resolve(s"${id}_${iStr}.x3d")
+        val xml = X3d.createXml(objShapes, x3dFile.getFileName.toString, bc, cams)
+        gaia.Util.writeString(x3dFile, xml)
+        println(s"wrote to $x3dFile")
+
+        val model = x3dFile.toAbsolutePath.toString
+        val image = outDir.resolve(s"${id}_${iStr}.png").toAbsolutePath.toString
         Seq("view3dscene", model, "--viewpoint", i.toString, "--screenshot", "0", image)
       }
 
     println(commands.map(c => c.mkString(" ")).mkString("\n"))
     Util.runAllCommands(commands)
     println(s"finished ${commands.size} commands")
+    val iFmtFf = "%0" + numlen + "d"
+    val imgFile = outDir.resolve(s"${id}_$iFmtFf.png").toAbsolutePath.toString
+    val outFile = videoOutDir.resolve(s"${id}_${UUID.randomUUID().toString()}.mp4").toAbsolutePath.toString
+    val cmd = Seq(
+      Seq("ffmpeg", "-i", imgFile, outFile)
+    )
+    Util.runAllCommands(cmd) 
+    print("wrote video to " + outFile)
   }
-
 
   private def cam(): Unit = {
 
