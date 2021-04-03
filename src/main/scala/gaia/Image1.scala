@@ -231,8 +231,7 @@ object Image1 {
     multiShells(stars, bc, shells)
   }
 
-  // TODO rename
-  def sphere2(workPath: Path, bc: Color): Seq[Shapable] = {
+  def sunnear1(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
 
     val startProb = 0.0001
@@ -244,8 +243,7 @@ object Image1 {
     sphere(stars, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  // TODO rename
-  def sphere5(workPath: Path, bc: Color): Seq[Shapable] = {
+  def sunnear2(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
 
     val shellCnt = 10
@@ -257,8 +255,7 @@ object Image1 {
     sphere(stars, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  // TODO rename
-  def sphere8(workPath: Path, bc: Color): Seq[Shapable] = {
+  def sunnear3(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
 
     val shellCnt = 20
@@ -270,8 +267,7 @@ object Image1 {
     sphere(stars, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  // TODO rename
-  def sphere16(workPath: Path, bc: Color): Seq[Shapable] = {
+  def sun16(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars1 = StarCollections.basicStars(workPath)
 
     val shellCnt = 40

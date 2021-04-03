@@ -255,7 +255,7 @@ object Main {
       )),
     ),
     GaiaImage("sunnear1", "Stars near the sun (2kpc). Stars as spheres",
-      writeModelToFile(Image1.sphere2),
+      writeModelToFile(Image1.sunnear1),
       hpOrder = Some(80),
       backColor = Color.black,
       video = Some("https://www.youtube.com/embed/lp-Y_jpYmnw"),
@@ -302,7 +302,7 @@ object Main {
 
     ),
     GaiaImage("sunnear2", "Stars near thes sun (5kpc). Stars as spheres",
-      writeModelToFile(Image1.sphere5),
+      writeModelToFile(Image1.sunnear2),
       hpOrder = Some(70),
       backColor = Color.black,
       textVal = Some(
@@ -314,7 +314,7 @@ object Main {
       )
     ),
     GaiaImage("sunnear3", "stars within a distance of 8 kpc to the sun",
-      writeModelToFile(Image1.sphere8),
+      writeModelToFile(Image1.sunnear3),
       hpOrder = Some(60),
       video = Some("https://www.youtube.com/embed/LbW1O-GUPS8"),
       backColor = Color.black,
@@ -327,7 +327,7 @@ object Main {
       )
     ),
     GaiaImage("sun16", "stars within a distance of 16 kpc to the sun",
-      writeModelToFile(Image1.sphere16),
+      writeModelToFile(Image1.sun16),
       hpOrder = Some(50),
       backColor = Color.black,
       textVal = Some(
