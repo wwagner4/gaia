@@ -1,7 +1,6 @@
 package gaia
 
 
-
 import java.nio.file.{Files, Path}
 
 object Automove {
@@ -91,11 +90,84 @@ object Automove {
   override def hashCode(): Int = super.hashCode()
 
   def sunos2(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "One shell 8kpc",
+      references = Seq(
+        "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2000,
+      moves = Seq(
+        MoveConfig(
+          id = "01",
+          viewpoint = Vec(0, 0, 10),
+          cycleInterval = 120,
+          rotationAxis = RotAxesDeg.aroundX,
+          rotation = RotAxesDeg(0, 10)
+        ),
+        MoveConfig(
+          id = "02",
+          viewpoint = Vec(0, 0, 20),
+          cycleInterval = 120,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(0, 10)
+        ),
+        MoveConfig(
+          id = "03",
+          viewpoint = Vec(5, -1.5, 6),
+          cycleInterval = 120,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(90, 70)
+        ),
+        MoveConfig(
+          id = "04",
+          viewpoint = Vec(0, 0, 25),
+          cycleInterval = 120,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(180, 20)
+        ),
+      ),
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def sunms2(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "Three shells",
+      references = Seq(
+        "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2000,
+      moves = Seq(
+        MoveConfig(
+          id = "01",
+          viewpoint = Vec(2, 3, 10),
+          cycleInterval = 80,
+          rotationAxis = RotAxesDeg(90, 45),
+          rotation = RotAxesDeg.aroundX
+        ),
+        MoveConfig(
+          id = "02",
+          viewpoint = Vec(0, 0, 20),
+          cycleInterval = 80,
+          rotationAxis = RotAxesDeg(-90, 45),
+          rotation = RotAxesDeg.aroundY
+        ),
+        MoveConfig(
+          id = "03",
+          viewpoint = Vec(0, 0, 25),
+          cycleInterval = 80,
+          rotationAxis = RotAxesDeg.aroundX,
+          rotation = RotAxesDeg.nearEcliptic
+        ),
+      ),
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def sunnear1(gcfg: GaiaImage, workDir: Path): Unit = {
@@ -136,29 +208,184 @@ object Automove {
   }
 
   def sund27(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "Around the sun 27pc",
+      references = Seq(
+        "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2000,
+      moves = Seq(
+        MoveConfig(
+          id = "nearEcliptic",
+          viewpoint = Vec(0, 0, 0.01),
+          cycleInterval = 60,
+          rotation = RotAxesDeg.nearEcliptic
+        ),
+        MoveConfig(
+          id = "steep",
+          viewpoint = Vec(0, 0, 0.07),
+          cycleInterval = 120,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg.steep
+        )
+      )
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def sund3(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "Movements near the sun",
+      references = Seq(
+        "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2000,
+      moves = Seq(
+        MoveConfig(
+          id = "nearEcliptic",
+          viewpoint = Vec(0, 0, 5),
+          cycleInterval = 60,
+          rotation = RotAxesDeg.nearEcliptic
+        ),
+        MoveConfig(
+          id = "steep",
+          viewpoint = Vec(0, 0, 3),
+          cycleInterval = 60,
+          rotationAxis = RotAxesDeg.aroundZ,
+          rotation = RotAxesDeg.steep
+        )
+      )
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def sund5(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "Directions in 3 shells",
+      references = Seq(
+        "Music Try The Other Door by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch/MUSIC_FOR_TV_FILM__GAMES_VOL1/Try_The_Other_Door",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2500,
+      moves = Seq(
+        MoveConfig(
+          id = "01",
+          viewpoint = Vec(0, 0, 30),
+          cycleInterval = 200,
+          rotationAxis = RotAxesDeg.aroundX,
+          rotation = RotAxesDeg.nearEcliptic
+        ),
+        MoveConfig(
+          id = "02",
+          viewpoint = Vec(0, 0, 15),
+          cycleInterval = 200,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(0, 0)
+        ),
+        MoveConfig(
+          id = "03",
+          viewpoint = Vec(2, 0, 8),
+          cycleInterval = 200,
+          rotationAxis = RotAxesDeg(80, 5),
+          rotation = RotAxesDeg(90, 45)
+        ),
+      ),
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def sund6(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "Stars as spheres",
+      references = Seq(
+        "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2500,
+      moves = Seq(
+        MoveConfig(
+          id = "01",
+          viewpoint = Vec(0, 0, 20),
+          cycleInterval = 60,
+          rotationAxis = RotAxesDeg.aroundX,
+          rotation = RotAxesDeg.nearEcliptic,
+        ),
+        MoveConfig(
+          id = "02",
+          viewpoint = Vec(0, -5, 30),
+          cycleInterval = 60,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(0, 0),
+        ),
+        MoveConfig(
+          id = "03",
+          viewpoint = Vec(2, 0, 10),
+          cycleInterval = 60,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(180, 190),
+        ),
+        MoveConfig(
+          id = "04",
+          viewpoint = Vec(0, 0, 50),
+          cycleInterval = 60,
+          rotationAxis = RotAxesDeg.aroundZ,
+          rotation = RotAxesDeg(0, 0),
+        ),
+      )
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def dens1(gcfg: GaiaImage, workDir: Path): Unit = {
-    ???
+    val cfg = VideoConfig(
+      name = "Stars density",
+      references = Seq(
+        "Music by Daniel Birch: https://freemusicarchive.org/music/Daniel_Birch",
+        "More: http://entelijan.net/wolfi-hp/gaia/"
+      ),
+      resolution = Resolution._4k,
+      frameRate = FrameRate._60,
+      frameCount = 2500,
+      moves = Seq(
+        MoveConfig(
+          id = "01",
+          viewpoint = Vec(-2, 0, 20),
+          cycleInterval = 100,
+          rotationAxis = RotAxesDeg.aroundX,
+          rotation = RotAxesDeg(20, 40),
+        ),
+        MoveConfig(
+          id = "02",
+          viewpoint = Vec(-2, 0, 10),
+          cycleInterval = 60,
+          rotationAxis = RotAxesDeg.aroundY,
+          rotation = RotAxesDeg(110, 20),
+        ),
+        MoveConfig(
+          id = "03",
+          viewpoint = Vec(-1, 0, 25),
+          cycleInterval = 80,
+          rotationAxis = RotAxesDeg.aroundX,
+          rotation = RotAxesDeg(120, 155),
+        ),
+      )
+    )
+    createAutomove(gcfg, workDir, cfg)
   }
 
   def createAutomove(gcfg: GaiaImage, workDir: Path, cfg: VideoConfig): Unit = {
     println(s"Automove: ${gcfg.id}")
 
-    val dry = false
     val commands = for (moveCfg <- cfg.moves) yield {
       val automoveDir = workDir.resolve("automove")
       if (Files.notExists(automoveDir)) Files.createDirectories(automoveDir)
@@ -213,12 +440,7 @@ object Automove {
          |$refStr
          |------------------------------------------------
          |""".stripMargin)
-    if (dry) {
-      commands.map(l => l.mkString(" ")).foreach(println)
-    } else {
-      throw IllegalStateException("Not yet implemented")
-    }
-
+    commands.map(l => l.mkString(" ")).foreach(println)
     createCredits(gcfg, cfg, workDir)
 
   }

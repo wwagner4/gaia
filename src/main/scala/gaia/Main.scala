@@ -34,7 +34,6 @@ object Main {
                         hpOrder: Option[Int] = None,
                         textVal: Option[String] = None,
                         realCreatable: Boolean = true,
-                        hpRelevant: Boolean = true,
                         videoConfig: Option[(gcfg: GaiaImage, workDir: Path) => Unit] = None,
                         backColor: Color = Color.black,
                       ) extends Identifiable {
@@ -46,8 +45,7 @@ object Main {
   val actions = identifiableToMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     Action("x3d", "create x3d files for an image", createX3d),
-    Action("vidDry", "create video sniplets from an existing x3d model", createVideo(true)(_, _)),
-    Action("vid", "create video sniplets from an existing x3d model", createVideo(false)(_, _)),
+    Action("vid", "create video sniplets from an existing x3d model", createVideo(_, _)),
     Action("tryout", "Tryout something during development by callin doIt()", Tryout.doit),
   ))
 
@@ -301,7 +299,7 @@ object Main {
   /**
    * Creates a video by passing the imige definition to the Automove method createAutomove
    */
-  private def createVideo(isDry: Boolean)(args: List[String], workPath: Path): Unit = {
+  private def createVideo(args: List[String], workPath: Path): Unit = {
     val info = "Valid IDs: " + images.values.filter(i => i.videoConfig.isDefined).map(i => i.id).mkString(", ")
     if (args.size < 1) throw IllegalArgumentException(s"Define an ID for creating videos. $info")
     val id = args(0)
