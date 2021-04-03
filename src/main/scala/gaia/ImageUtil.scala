@@ -1,8 +1,6 @@
 package gaia
 
 
-import gaia.{Data, X3d}
-
 import java.nio.file.Files._
 import java.nio.file.{Files, Path}
 import scala.util.Random
@@ -11,8 +9,8 @@ object ImageUtil {
 
   import Data.Star
   import Main._
-  import X3d._
   import Vector._
+  import X3d._
 
   case class StarPosDir(
                          pos: Vec,
