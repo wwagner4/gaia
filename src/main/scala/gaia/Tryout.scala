@@ -22,7 +22,46 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    viewpoint()
+    sphereCoordinatesModel
+  }
+
+  private def viewport: Unit = {
+
+    import Cam._
+
+    val bc = Color.veryDarkGreen
+
+    mkVideo("cam_tryout",
+      sphereCoordinates,
+      cameras(ra = 0, dec = 0, 200.0),
+      VideoQuality.VGA,
+      bc
+    )
+  }
+
+  def sphereCoordinates: Seq[Shapable] = {
+    val min = -50
+    val max = 50
+
+    def sphere(value: Int, color: Color, f: Int => Vec): Shapable = {
+      val c = if value == max then Color.white else color
+      Shapable.Sphere(position = f(value), color = c, radius = 0.3)
+    }
+
+    Seq(
+      (min to max).map(v => sphere(v, Color.red, v => Vec(v, 0, 0))),
+      (min to max).map(v => sphere(v, Color.yellow, v => Vec(0, v, 0))),
+      (min to max).map(v => sphere(v, Color.green, v => Vec(0, 0, v))),
+    ).flatten
+  }
+
+  private def sphereCoordinatesModel: Unit = {
+    val bc = Color.black
+    val shapables = sphereCoordinates
+    val file = Main.workPath.resolve("tryout_sphere_coordinates.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def viewpoint(): Unit = {
@@ -31,32 +70,12 @@ object Tryout {
 
     val bc = Color.veryDarkGreen
 
-    def someSpheres(color: Color): Seq[Shapable] = {
-
-      def ran(range: Double): Double = {
-        Random.nextDouble * range - range / 2.0
-      }
-
-      def ranRange(from: Double, to: Double): Double = {
-        from + Random.nextDouble * (to - from)
-      }
-
-      val center = Vec(ran(30), ran(30), ran(30))
-      (1 to 100)
-        .map { _ =>
-          val offset = Vec(ran(10), ran(10), ran(10))
-          Shapable.Sphere(position = center.add(offset), color = color, radius = ranRange(0.1, 2))
-        }
-    }
-
-
-    VideoQuality.values.map { vq =>
-      mkVideo("cam_tryout",
-        Palette.p6c6.lazyColors.take(10).flatMap(c => someSpheres(c)),
-        cameras(ra = 0, dec = 60, 100.0),
-        vq, bc
-      )
-    }
+    mkVideo("cam_tryout",
+      sphereCoordinates,
+      cameras(ra = 0, dec = 0, 100.0),
+      VideoQuality.SVGA,
+      bc
+    )
   }
 
   private def cam(): Unit = {
