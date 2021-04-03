@@ -16,9 +16,9 @@ object Tryout {
   import ImageUtil._
   import X3d._
   import Data._
-  import Main.RotAxesDeg
   import Vector._
   import Cam._
+  import Automove._
 
 
   def doit(args: List[String], workPath: Path): Unit = {
