@@ -15,7 +15,9 @@ object Image1 {
   import Data._
   import Vector._
 
-  def sund4(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund4(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+
     val ranges = Seq((7.9, 8.1))
     val colors = Palette.p2c10.colors
     val baseDirectionVec = Vec(1, 0, 1)
@@ -27,13 +29,15 @@ object Image1 {
           val c = colors(ci)
           shapeCone(color = c, lengthFactor = 0.005, geo = Geo.Absolute(0.01))(s)
         }
-    println(s"filtered ${stars.size} stars")
+    println(s"created ${starShapes.size} shapes")
     starShapes.toSeq
     ++ shapablesCoordinatesGray(5, bc)
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def sund5(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund5(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+
     val ranges = Seq(
       (9.6, 10.0),
       (7.8, 8.0),
@@ -57,13 +61,15 @@ object Image1 {
         val c = colors(ci)
         shapeCone(color = c, lengthFactor=0.003, geo = Geo.Absolute(0.03))(s)
       }
-    println(s"filtered ${starShapables.size} stars")
+    println(s"created ${starShapables.size} shapes")
     starShapables.toSeq
     ++ shapablesCoordinatesGray(5, bc)
     ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def sund6(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund6(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+
     val epsBase = 0.4
     val epsAdj = Seq(
       8 -> 1.0 / 13,
@@ -94,7 +100,7 @@ object Image1 {
 
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
-    val starss = stars1.map(toStarPosDirGalactic)
+    val starss = stars.map(toStarPosDirGalactic)
       .filter(_ => Random.nextDouble() < 0.3)
       .filter(filterShells(ranges)(_))
       .map(adjust)
@@ -107,15 +113,17 @@ object Image1 {
     starss.toSeq
     ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
   }
-
-  def gc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  
+  // TODO move to tryout
+  def gc(workPath: Path, bc: Color): Seq[Shapable] = {
     val rotation = Vec(degToRad(-4), degToRad(96), degToRad(0))
     Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
     ++ shapablesCoordinatesColored(5, bc)
     ++ shapablesCoordinatesColored(10, bc, offset = ImageUtil.galacicCenter)
   }
 
-  def sund1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund1(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.nearSunStars(workPath)
     val minDist = 0.0
     val maxDist = 0.03
     val colors = Palette.p1c10.colors
@@ -124,7 +132,8 @@ object Image1 {
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo)
   }
 
-  def sund2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund2(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.nearSunStars(workPath)
     val minDist = 0.03
     val maxDist = 0.04
     val colors = Palette.p1c10.colors
@@ -143,16 +152,18 @@ object Image1 {
         }
     }
 
-    val stars = stars1.filter { s =>
+    val starsFiltered = stars.filter { s =>
       val dist = 1 / s.parallax
       dist < maxDist && dist > minDist
     }
-    println(s"There are ${stars.size} stars near the sun")
-    shapabels(stars = stars).toSeq
+    println(s"There are ${starsFiltered.size} stars near the sun")
+    shapabels(stars = starsFiltered).toSeq
     ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
   }
 
-  def sund3(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund3(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.nearSunStars(workPath)
+
     val minDist = 0.04
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
@@ -161,7 +172,8 @@ object Image1 {
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo = geo)
   }
 
-  def sund27(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund27(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.nearSunStars(workPath)
 
     val radius = 0.00005
     val maxDist = 0.027
@@ -183,7 +195,8 @@ object Image1 {
   }
 
 
-  def sunos1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunos1(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars1 = StarCollections.basicStars(workPath)
     val starsToShapable = shapabelsStarsToSpheres(0.02, Color.gray(1.0))(_)
     val min = 7.0
     val max = 9.0
@@ -191,7 +204,8 @@ object Image1 {
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def sunos2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunos2(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars1 = StarCollections.basicStars(workPath)
     val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
     val min = 7.0
     val max = 9.0
@@ -199,8 +213,8 @@ object Image1 {
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def sunms1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
-
+  def sunms1(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars1 = StarCollections.basicStars(workPath)
     val shapeSize = 0.02
     val shells = Seq(
       ShellDef("05", 5.0, 5.2, 200 / 1000.0, shapabelsStarsToSpheres(0.04, Color.darkRed)(_)),
@@ -211,7 +225,7 @@ object Image1 {
     multiShells(stars1, bc, shells)
   }
 
-  def sunms2(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunms2(workPath: Path, bc: Color): Seq[Shapable] = {
 
     def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
 
@@ -221,41 +235,53 @@ object Image1 {
       ShellDef("b", 8.0, 9.0, 700 / 1000.0, shapabelsStarsToPoints(Color.orange)(_), equalDist(8) _),
       ShellDef("c", 11.0, 12.0, 1000 / 1000.0, shapabelsStarsToPoints(Color.darkRed)(_), equalDist(10.5) _),
     )
-
+    val stars = StarCollections.basicStars(workPath)
     multiShells(stars, bc, shells)
   }
 
-  def sphere2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  // TODO rename
+  def sphere2(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+
     val startProb = 0.0001
     val endProb = 0.1
     val shellCnt = 10
     val shellThikness = 0.2
     val startColor = Color.red
     val endColor = Color.yellow
-    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere5(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  // TODO rename
+  def sphere5(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+
     val shellCnt = 10
     val shellThikness = 0.5
     val startProb = 0.0001
     val endProb = 0.2
     val startColor = Color.blue
     val endColor = Color.green
-    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere8(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  // TODO rename
+  def sphere8(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+
     val shellCnt = 20
     val shellThikness = 0.4
     val startProb = 0.0001
     val endProb = 0.15
     val startColor = Color.darkRed
     val endColor = Color.orange
-    sphere(stars1, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
+    sphere(stars, bc, shellCnt, shellThikness, startProb, endProb, startColor, endColor)
   }
 
-  def sphere16(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  // TODO rename
+  def sphere16(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars1 = StarCollections.basicStars(workPath)
+
     val shellCnt = 40
     val shellThikness = 0.4
     val startProb = 0.0001

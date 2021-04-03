@@ -12,8 +12,9 @@ object Image2 {
   import X3d._
   import Vector._
 
-  def gc1(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def gc1(workPath: Path, bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
+    val stars = StarCollections.basicStars(workPath)
 
     val maxDist = 1.7
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
@@ -42,8 +43,9 @@ object Image2 {
     ++ shapablesCoordinatesOneColor(2, Color.gray(0.5), bc)
   }
 
-  def gcd1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def gcd1(workPath: Path, bc: Color): Seq[Shapable] = {
     println("running around the galactic center")
+    val stars = StarCollections.basicStars(workPath)
 
     val maxDist = 3
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
@@ -55,13 +57,13 @@ object Image2 {
       cols(i)
     }
 
-    val stars = stars1.map(toStarPosDirGalactic)
+    val starsFiltered = stars.map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= dens && s.pos.length < maxDist)
-    println(s"filtered ${stars.size} stars")
+    println(s"filtered ${starsFiltered.size} stars")
 
     val baseDirectionVec = Vec(1, -1, 1)
     val colors = Palette.p5c8.colors
-    val starShapes = stars.toList.flatMap { s =>
+    val starShapes = starsFiltered.toList.flatMap { s =>
       val d = s.dir.mul(0.0002)
       val e = s.pos.add(d)
       val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
@@ -81,7 +83,8 @@ object Image2 {
     starShapes ++ sphereShapes ++ coordshapes
   }
 
-  def gcd2(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def gcd2(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
     val maxDist = 2.0
     val colors = Palette.p5c8.colors
     val baseDirectionVec = Vec(1, 1, 1)
@@ -104,20 +107,21 @@ object Image2 {
 
   }
 
-  def dens(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def dens(workPath: Path, bc: Color): Seq[Shapable] = {
     println("running density")
+    val stars = StarCollections.basicStars(workPath)
 
     val cubeSize = 16
     val cubeCount = 16
 
-    val stars = stars1.map(toStarPosDirGalactic)
+    val starsFiltered = stars.map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= 0.01 && s.pos.length < cubeSize)
 
     val ic = inCube(cubeSize, cubeCount) _
     val counts = for (i <- -cubeCount until cubeCount;
                       j <- -cubeCount until cubeCount;
                       k <- -cubeCount until cubeCount) yield {
-      val sc = stars.map { s => if (ic(s.pos, i, j, k)) 1 else 0 }
+      val sc = starsFiltered.map { s => if (ic(s.pos, i, j, k)) 1 else 0 }
       ((i, j, k), sc.sum)
     }
     val maxCount = counts.map { case (_, v) => v }.max
@@ -138,12 +142,14 @@ object Image2 {
     shapes
   }
 
+  // TODO remove
   def shapesLines(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     stars.toSeq
       .map(toStarPosDir)
       .map(shapeLine(bc, Color.green))
   }
 
+  // TODO remove
   def shapesCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shapes = stars.toSeq
       .map(toStarPosDir)
@@ -152,6 +158,7 @@ object Image2 {
     shapes
   }
 
+  // TODO remove
   def shapesCyl(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val shapes = stars.toSeq
       .map(toStarPosDir)
@@ -160,6 +167,7 @@ object Image2 {
     shapes
   }
 
+  // TODO remove
   def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
     val as = stars.toSeq
       .map { star =>

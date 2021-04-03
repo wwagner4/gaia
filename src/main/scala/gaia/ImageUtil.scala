@@ -2,6 +2,8 @@ package gaia
 
 
 import gaia.{Data, X3d}
+
+import java.nio.file.Files._
 import java.nio.file.{Files, Path}
 import scala.util.Random
 
@@ -69,7 +71,7 @@ object ImageUtil {
 
   private def createCacheFile(id: String, workPath: Path): Path = {
     val cacheDir = workPath.resolve("cache")
-    if (Files.notExists(cacheDir)) Files.createDirectories(cacheDir)
+    if (notExists(cacheDir)) createDirectories(cacheDir)
     cacheDir.resolve(s"cache_$id.csv")
   }
 
@@ -106,7 +108,7 @@ object ImageUtil {
       Util.toCsv(starts, convert, cache)
     }
 
-    if (Files.exists(cache)) {
+    if (exists(cache)) {
       val stars = fromCsv()
       println(s"filtered (cached) basic to ${stars.size} stars")
       stars
@@ -157,14 +159,13 @@ object ImageUtil {
     spaceMotionToGalacticMotion(star, sm)
   }
 
-  def writeModelToFile(reader: Path => Iterable[Star])(fcreateShapables: (Iterable[Star], X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
+  def writeModelToFile(fcreateShapables: (Path, X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
+    val modelsPath = workPath.resolve("models")
+    if (notExists(modelsPath)) createDirectories(modelsPath)
     val gaiaImage = Main.images(id)
     val bgColor = gaiaImage.backColor
-    val stars = reader(workPath)
-    val shapables = fcreateShapables(stars, bgColor)
+    val shapables = fcreateShapables(modelsPath, bgColor)
     val file = {
-      val modelsPath = workPath.resolve("models")
-      if (Files.notExists(modelsPath)) Files.createDirectories(modelsPath)
       val fnam = s"$id.x3d"
       modelsPath.resolve(fnam)
     }
