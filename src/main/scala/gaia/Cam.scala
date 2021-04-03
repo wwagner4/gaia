@@ -42,13 +42,17 @@ object Cam {
   }
 
 
-  def gc1(gaiaImage: GaiaImage, workPath:Path) : Unit = {
-    ???
+  def gc1(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    g1cBase(gaiaImage, workPath, VideoQuality._4k)
   }
 
-  def gc1Prev(gaiaImage: GaiaImage, workPath: Path) : Unit = {
+  def gc1Prev(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    g1cBase(gaiaImage, workPath, VideoQuality.VGA)
+  }
+
+  private def g1cBase(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    mkVideo(gaiaImage.id, shapables, cameras(0, 0, 10), VideoQuality.VGA, gaiaImage.backColor)
+    mkVideo(gaiaImage.id, shapables, cameras(0, 0, 10), quality, gaiaImage.backColor)
   }
 
   def mkVideo(
@@ -122,7 +126,8 @@ object Cam {
       .map { case (v, i) =>
         val nam = f"${name}_${i}%04d"
         val dir = Vec.zero.sub(v)
-        Camera(nam, v, dir) }
+        Camera(nam, v, dir)
+      }
   }
 
 
