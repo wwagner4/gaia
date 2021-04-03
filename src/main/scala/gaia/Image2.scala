@@ -141,43 +141,4 @@ object Image2 {
       }
     shapes
   }
-
-  // TODO remove
-  def shapesLines(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
-    stars.toSeq
-      .map(toStarPosDir)
-      .map(shapeLine(bc, Color.green))
-  }
-
-  // TODO remove
-  def shapesCones(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
-    val shapes = stars.toSeq
-      .map(toStarPosDir)
-      .map(shapeCone(Color.white))
-    println(s"created ${shapes.size} cones")
-    shapes
-  }
-
-  // TODO remove
-  def shapesCyl(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
-    val shapes = stars.toSeq
-      .map(toStarPosDir)
-      .map(shapeCylinder(Color.white))
-    println(s"created ${shapes.size} cones")
-    shapes
-  }
-
-  // TODO remove
-  def ptoc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
-    val as = stars.toSeq
-      .map { star =>
-        val a = Vec.zero
-        val p = PolarVec(1 / star.parallax, degToRad(star.ra), degToRad(star.dec))
-        val b = p.toVec
-        println(s"star.ra: ${star.ra} -- p:${p} -- b:${b}")
-        Shapable.Line(start = a, end = b, startColor = bc, endColor = Color.green)
-      }
-    as ++ shapablesCoordinatesColored(len = 50, bgColor = bc)
-  }
-
 }

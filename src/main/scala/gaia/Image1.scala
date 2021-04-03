@@ -114,14 +114,6 @@ object Image1 {
     ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
   }
   
-  // TODO move to tryout
-  def gc(workPath: Path, bc: Color): Seq[Shapable] = {
-    val rotation = Vec(degToRad(-4), degToRad(96), degToRad(0))
-    Seq(Shapable.Circle(Vec(0, 0, 0), rotation = rotation, radius = 8))
-    ++ shapablesCoordinatesColored(5, bc)
-    ++ shapablesCoordinatesColored(10, bc, offset = ImageUtil.galacicCenter)
-  }
-
   def sund1(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.nearSunStars(workPath)
     val minDist = 0.0
