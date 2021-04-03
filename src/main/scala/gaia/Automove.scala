@@ -10,10 +10,42 @@ object Automove {
 
   override def hashCode(): Int = super.hashCode()
 
-  def createAutomove(dry: Boolean)(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sunos2(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def sunms2(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def sunnear1(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def sund27(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def sund3(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def sund5(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def sund6(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def dens1(gcfg: GaiaImage, workDir: Path): Unit = {
+    ???
+  }
+
+  def createAutomove(gcfg: GaiaImage, workDir: Path, cfg: VideoConfig): Unit = {
     println(s"Automove: ${gcfg.id}")
 
-    val cfg = gcfg.videoConfig.getOrElse(throw IllegalArgumentException("Illegal model id. No video config defined"))
+    val dry = false
     val commands = for (moveCfg <- cfg.moves) yield {
       val automoveDir = workDir.resolve("automove")
       if (Files.notExists(automoveDir)) Files.createDirectories(automoveDir)
