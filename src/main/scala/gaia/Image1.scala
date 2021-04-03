@@ -161,7 +161,7 @@ object Image1 {
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo = geo)
   }
 
-  def nearSunDirections27pc(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sund27(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     val radius = 0.00005
     val maxDist = 0.027
@@ -183,7 +183,7 @@ object Image1 {
   }
 
 
-  def oneShellSpheres(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunos1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val starsToShapable = shapabelsStarsToSpheres(0.02, Color.gray(1.0))(_)
     val min = 7.0
     val max = 9.0
@@ -191,7 +191,7 @@ object Image1 {
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def oneShellPoints(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunos2(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
     val starsToShapable = shapabelsStarsToPoints(Color.yellow)(_)
     val min = 7.0
     val max = 9.0
@@ -199,7 +199,7 @@ object Image1 {
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
-  def shellsSphere(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunms1(stars1: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     val shapeSize = 0.02
     val shells = Seq(
@@ -211,7 +211,7 @@ object Image1 {
     multiShells(stars1, bc, shells)
   }
 
-  def shellsPoints(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
+  def sunms2(stars: Iterable[Star], bc: Color): Seq[Shapable] = {
 
     def equalDist(dist: Double)(star: Star): Star = star.copy(parallax = 1.0 / dist)
 

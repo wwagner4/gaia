@@ -131,7 +131,7 @@ object Main {
 
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
     GaiaImage("sunos1", "One shell around the sun. Stars as spheres",
-      writeModelToFile(StarCollections.basicStars)(Image1.oneShellSpheres),
+      writeModelToFile(StarCollections.basicStars)(Image1.sunos1),
       hpOrder = Some(20),
       video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
       backColor = Color.darkBlue,
@@ -143,7 +143,7 @@ object Main {
       )
     ),
     GaiaImage("sunos2", "One shell around the sun. Stars as points",
-      writeModelToFile(StarCollections.basicStars)(Image1.oneShellPoints),
+      writeModelToFile(StarCollections.basicStars)(Image1.sunos2),
       hpOrder = Some(10),
       backColor = Color.darkBlue,
       video = Some("https://www.youtube.com/embed/cEVH0IhlJ4Y"),
@@ -196,7 +196,7 @@ object Main {
 
     ),
     GaiaImage("sunms1", "Multiple shells around the sun. Stars as spheres",
-      writeModelToFile(StarCollections.basicStars)(Image1.shellsSphere),
+      writeModelToFile(StarCollections.basicStars)(Image1.sunms1),
       hpOrder = Some(40),
       video = Some("https://www.youtube.com/embed/irbUh9Y_Ifg"),
       backColor = Color.darkBlue,
@@ -209,7 +209,7 @@ object Main {
       )
     ),
     GaiaImage("sunms2", "Multiple shells around the sun. Stars as points",
-      writeModelToFile(StarCollections.basicStars)(Image1.shellsPoints),
+      writeModelToFile(StarCollections.basicStars)(Image1.sunms2),
       hpOrder = Some(30),
       backColor = Color.darkBlue,
       textVal = Some(
@@ -339,7 +339,7 @@ object Main {
       )
     ),
     GaiaImage("sund27", "direction of stars within a distance of 27 pc to sun",
-      writeModelToFile(StarCollections.nearSunStars)(Image1.nearSunDirections27pc),
+      writeModelToFile(StarCollections.nearSunStars)(Image1.sund27),
       hpOrder = Some(90),
       backColor = Color.veryDarkGreen,
       video = Some("https://www.youtube.com/embed/JuK80k5m4vU"),
