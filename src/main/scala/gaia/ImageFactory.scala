@@ -7,8 +7,10 @@ import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.util.Random
 
-
-object Image1 {
+/**
+ * Creates X3d images as a sequence of Shapable
+ */
+object ImageFactory {
 
   import X3d._
   import ImageUtil._
