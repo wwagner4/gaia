@@ -12,7 +12,6 @@ object Main {
   import ImageUtil._
   import X3d.{Color}
   import Vector._
-  import gaia.Image2._
 
   lazy val workPath = getCreateWorkPath
 
@@ -517,22 +516,22 @@ object Main {
     ),
     GaiaImage(id = "gc1",
       desc = "around the galactic center",
-      fCreateModel = writeModelToFile(gc1),
+      fCreateModel = writeModelToFile(Image1.gc1),
       backColor = Color.veryDarkBlue,
     ),
     GaiaImage(id = "gcd1",
       desc = "around the galactic center",
-      fCreateModel = writeModelToFile(Image2.gcd1),
+      fCreateModel = writeModelToFile(Image1.gcd1),
       backColor = Color.veryDarkBlue,
     ),
     GaiaImage(id = "gcd2",
       desc = "around the galactic center",
-      fCreateModel = writeModelToFile(gcd2),
+      fCreateModel = writeModelToFile(Image1.gcd2),
       backColor = Color.veryDarkBlue,
     ),
     GaiaImage(id = "dens1",
       desc = "density of stars as shown by gaia",
-      fCreateModel = writeModelToFile(Image2.dens),
+      fCreateModel = writeModelToFile(Image1.dens),
       hpOrder = Some(170),
       backColor = Color.veryDarkBlue,
       video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
@@ -637,10 +636,10 @@ object Main {
    */
   private def createVideo(isDry: Boolean)(args: List[String], workPath: Path): Unit = {
     val info = "Valid IDs: " + images.values.filter(i => i.videoConfig.isDefined).map(i => i.id).mkString(", ")
-    if (args.size < 1) throw new IllegalArgumentException(s"Define an ID for creating videos. $info")
+    if (args.size < 1) throw IllegalArgumentException(s"Define an ID for creating videos. $info")
     val id = args(0)
     images.get(id) match {
-      case None => throw new IllegalArgumentException(s"Unknown ID $id for creating videos. $info")
+      case None => throw IllegalArgumentException(s"Unknown ID $id for creating videos. $info")
       case Some(gaiaImage) =>
         println(s"Creating a video for ID ${gaiaImage.id}. ${gaiaImage.desc}")
         Automove.createAutomove(isDry)(gaiaImage, workPath)
