@@ -17,7 +17,7 @@ object Hp {
 
     val imgs = images.values
       .toSeq
-      .filter(i => i.hpRelevant)
+      .filter(i => i.hpOrder.isDefined)
       .sortBy(i => -i.hpOrder.get)
 
     imgs.foreach(i => createHtml(i, htmlDir))
