@@ -2,7 +2,7 @@ package gaia
 
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
-import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
+import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, Future}
 import java.util.{Locale, stream}
 import scala.collection.JavaConverters._
 import scala.util.Random
@@ -110,7 +110,7 @@ object Util {
     })
   }
 
-  def runAllCommands(cmds: Iterable[Iterable[String]], waitForStartMs: Int = 1000): Unit = {
+  def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
 
     class StreamGobbler(val inputStream: InputStream,   val errorStream: InputStream) extends Runnable {
       private def handleInputStream(in: InputStream) = {
@@ -123,42 +123,47 @@ object Util {
       }
 
       override def run(): Unit = {
-        println("--- Stream gobble handle input streams")
         handleInputStream(inputStream)
         handleInputStream(errorStream)
       }
 
     }
 
-    val executor: ExecutorService = Executors.newSingleThreadExecutor
+    val gobbleExec: ExecutorService = Executors.newSingleThreadExecutor()
+    val procExec: ExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors)
     try {
-      def start(cmd: List[String]): CompletableFuture[Process] = {
+      def start(cmd: List[String]): Int = {
         val process = new ProcessBuilder()
           .command(cmd.asJava)
-          .start
+          .start()
 
         val streamGobbler = StreamGobbler(process.getInputStream(), process.getErrorStream)
-        executor.submit(streamGobbler)
+        gobbleExec.submit(streamGobbler)
         println("--- started command: " + cmd.mkString(" "))
-        process.onExit()
+        val procResult = process.waitFor()
+        println("--- finished command: " + cmd.mkString(" ") + " " + procResult)
+        procResult
       }
 
-      val fs = for (cmd <- cmds) yield {
-        Thread.sleep(waitForStartMs)
-        start(cmd.toList)
+      val futures = for (cmd <- cmds) yield {
+        Thread.sleep(500)
+        procExec.submit(() => start(cmd.toList))
       }
-      var states = fs.map(f => f.isDone)
+      var states = futures.map(f => f.isDone)
       while (!states.forall(s => s)) {
-        Thread.sleep(3000)
+        Thread.sleep(500)
         val all = states.size
         val done = states.filter(v => v).size
         println(s"--- Check futures. $done of $all done")
-        states =  fs.map(f => f.isDone)
+        states =  futures.map(f => f.isDone)
       }
-      val exits = fs.map(f => f.get().exitValue()).mkString(", ")
-      println(s"--- finished all commands. Exit values: $exits")
+      val exits = futures.map(f => f.get())
+      println(s"--- finished all commands. Exit values: ${exits.mkString(",")}")
+      val errros = exits.filter(_ != 0)
+      if !errros.isEmpty then throw IllegalStateException("At least one of the processes finiched with error")
     } finally {
-      executor.shutdownNow()
+      gobbleExec.shutdownNow()
+      procExec.shutdownNow()
     }
   }
 
