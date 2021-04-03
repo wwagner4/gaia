@@ -25,6 +25,8 @@ object Main {
                      call: (args: List[String], workPath: Path) => Unit
                    ) extends Identifiable
 
+  
+  type FuncVideoConfig = (gcfg: GaiaImage, workDir: Path) => Unit
 
   case class GaiaImage(
                         id: String,
@@ -34,7 +36,7 @@ object Main {
                         hpOrder: Option[Int] = None,
                         textVal: Option[String] = None,
                         realCreatable: Boolean = true,
-                        videoConfig: Option[(gcfg: GaiaImage, workDir: Path) => Unit] = None,
+                        videoConfig: Seq[FuncVideoConfig] = Seq.empty[FuncVideoConfig],
                         backColor: Color = Color.black,
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
@@ -73,7 +75,7 @@ object Main {
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
       ),
-      videoConfig = Some(Automove.sunos2),
+      videoConfig = Seq(Automove.sunos2),
     ),
     GaiaImage("sunms1", "Multiple shells around the sun. Stars as spheres",
       writeModelToFile(ImageFactory.sunms1),
@@ -100,7 +102,7 @@ object Main {
           |""".stripMargin.trim
       ),
       video = Some("https://www.youtube.com/embed/JelflHQSamo"),
-      videoConfig = Some(Automove.sunms2)
+      videoConfig = Seq(Automove.sunms2)
     ),
     GaiaImage("sunnear1", "Stars near the sun (2kpc). Stars as spheres",
       writeModelToFile(ImageFactory.sunnear1),
@@ -114,7 +116,7 @@ object Main {
           |to avoid bulges around the sun.
           |""".stripMargin.trim
       ),
-      videoConfig = Some(Automove.sunnear1),
+      videoConfig = Seq(Automove.sunnear1),
     ),
     GaiaImage("sunnear2", "Stars near thes sun (5kpc). Stars as spheres",
       writeModelToFile(ImageFactory.sunnear2),
@@ -158,7 +160,7 @@ object Main {
       hpOrder = Some(90),
       backColor = Color.veryDarkGreen,
       video = Some("https://www.youtube.com/embed/JuK80k5m4vU"),
-      videoConfig = Some(Automove.sund27),
+      videoConfig = Seq(Automove.sund27),
     ),
     GaiaImage("sund1", "direction and velocety of stars to a distace of 40 pc",
       writeModelToFile(ImageFactory.sund1),
@@ -175,7 +177,7 @@ object Main {
       hpOrder = Some(110),
       video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
       backColor = Color.veryDarkGreen,
-      videoConfig = Some(Automove.sund3),
+      videoConfig = Seq(Automove.sund3),
     ),
     GaiaImage("sund4", "direction and velocety of stars  8 kpc from the sun",
       writeModelToFile(ImageFactory.sund4),
@@ -195,7 +197,7 @@ object Main {
           |Crosshairs indicate the sun and the center of the galaxy
           |""".stripMargin.trim
       ),
-      videoConfig = Some(Automove.sund5),
+      videoConfig = Seq(Automove.sund5),
     ),
     GaiaImage(id = "sund6",
       desc = "stars as spheres with direction color coded. 8 to 23 kpc",
@@ -209,7 +211,7 @@ object Main {
           |Crosshairs indicate the sun and the center of the galaxy
           |""".stripMargin.trim
       ),
-      videoConfig = Some(Automove.sund6),
+      videoConfig = Seq(Automove.sund6),
     ),
     GaiaImage(id = "gc1",
       desc = "around the galactic center",
@@ -239,7 +241,7 @@ object Main {
           |The center of the galaxy is marked with a crosshair.
           |""".stripMargin.trim
       ),
-      videoConfig = Some(Automove.dens1),
+      videoConfig = Seq(Automove.dens1),
     ),
   ))
 
@@ -300,15 +302,14 @@ object Main {
    * Creates a video by passing the imige definition to the Automove method createAutomove
    */
   private def createVideo(args: List[String], workPath: Path): Unit = {
-    val info = "Valid IDs: " + images.values.filter(i => i.videoConfig.isDefined).map(i => i.id).mkString(", ")
+    val info = "Valid IDs: " + images.values.filter(i => !i.videoConfig.isEmpty).map(i => i.id).mkString(", ")
     if (args.size < 1) throw IllegalArgumentException(s"Define an ID for creating videos. $info")
     val id = args(0)
     images.get(id) match {
       case None => throw IllegalArgumentException(s"Unknown ID $id for creating videos. $info")
       case Some(gaiaImage) =>
         println(s"Creating a video for ID ${gaiaImage.id}. ${gaiaImage.desc}")
-        val f = gaiaImage.videoConfig.get
-        f(gaiaImage, workPath)
+        gaiaImage.videoConfig.foreach(_(gaiaImage, workPath))
     }
   }
 
