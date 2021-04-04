@@ -317,10 +317,13 @@ object ImageUtil {
   def toStarPosDir(star: Star): StarPosDir =
     StarPosDir(starToVec(star), toDir(star))
 
-  def toGalacticCoords(pos: Vec): Vec =
-    pos
+  def toGalacticCoords(pos: Vec): Vec = {
+    val rotated = pos
       .rotx(degToRad(-27.13))
       .roty(degToRad(-28.94))
+    Vec(rotated.z, rotated.y, rotated.x)
+  }
+
 
   def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
     val ix = math.floor(pos.x * cubeCount / cubeSize).toInt

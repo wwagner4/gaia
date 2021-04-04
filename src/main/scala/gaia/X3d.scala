@@ -285,7 +285,7 @@ object X3d {
          |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
          |<Transform rotation='0 1 0 ${ry}' center='0, 0, 0'>
          |<Transform rotation='0 1 0 ${ry1}' center='0, 0, 0'>
-         |  <Viewpoint description='${c.name}' position='0 0 0'/>
+         |  <Viewpoint description='${c.name}' position='0 0 0' orientation='0 0 1 $pidiv2'/>
          |</Transform>
          |</Transform>
          |</Transform>
@@ -310,16 +310,3 @@ object X3d {
 
 }
 
-/*
-        val rotPol = direction.toPolarVec
-        val ry = -rotPol.dec
-        val rz = rotPol.ra
-        val offset = Vec(0, -height / 2.0, 0)
-        s"""
-           |<Transform translation='${position.strNoComma}'>
-           |<Transform rotation='0 0 1 ${rz}' center='0, 0, 0'>
-           |<Transform rotation='0 1 0 ${ry}' center='0, 0, 0'>
-           |<Transform rotation='0 0 1 ${pidiv2}' center='0, 0, 0'>
-           |<Transform translation='${offset.strNoComma}'>
-
- */

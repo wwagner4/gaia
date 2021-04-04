@@ -4,8 +4,8 @@ import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
 import java.util.UUID
-import java.util.function.Consumer
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
+import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
@@ -13,76 +13,43 @@ import scala.util.Random
 
 object Tryout {
 
-  import ImageUtil._
-  import X3d._
-  import Data._
-  import Vector._
-  import Cam._
   import Automove._
+  import Cam._
+  import Data._
+  import ImageUtil._
+  import Vector._
+  import X3d._
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    sphereCoordinatesModel
+    viewpoint()
   }
 
-  private def viewport: Unit = {
+  private def viewpoint(): Unit = {
 
-    import Cam._
+    val bc = Color.veryDarkBlue
+    val shapables = ShapableFactory.sphereCoordinates
+    val cams = cameras(ra = 0, dec = 20, 100.0)
+    val qual = VideoQuality.SVGA
+    println(s"Using ${shapables.size} shapes")
 
-    val bc = Color.veryDarkGreen
-
-    mkVideo("cam_tryout",
-      sphereCoordinates,
-      cameras(ra = 0, dec = 0, 200.0),
-      VideoQuality.VGA,
-      bc
-    )
+    mkVideo("tryout_viewpont", shapables, cams, qual, bc)
   }
 
-  def sphereCoordinates: Seq[Shapable] = {
-    val min = -50
-    val max = 50
-
-    def sphere(value: Int, color: Color, f: Int => Vec): Shapable = {
-      val c = if value == max then Color.white else color
-      Shapable.Sphere(position = f(value), color = c, radius = 0.3)
-    }
-
-    Seq(
-      (min to max).map(v => sphere(v, Color.red, v => Vec(v, 0, 0))),
-      (min to max).map(v => sphere(v, Color.yellow, v => Vec(0, v, 0))),
-      (min to max).map(v => sphere(v, Color.green, v => Vec(0, 0, v))),
-    ).flatten
-  }
-
-  private def sphereCoordinatesModel: Unit = {
+  private def sphereCoordinatesModel(): Unit = {
     val bc = Color.black
-    val shapables = sphereCoordinates
+    val shapables = ShapableFactory.sphereCoordinates
     val file = Main.workPath.resolve("tryout_sphere_coordinates.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
   }
 
-  private def viewpoint(): Unit = {
-
-    import Cam._
-
-    val bc = Color.veryDarkGreen
-
-    mkVideo("cam_tryout",
-      sphereCoordinates,
-      cameras(ra = 0, dec = 0, 100.0),
-      VideoQuality.SVGA,
-      bc
-    )
-  }
-
   private def cam(): Unit = {
 
     val bc = Color.veryDarkRed
 
-    val camShapes = (0 to(270, 90))
+    val camShapes = (0 to (180, 30))
       .zip(X3d.Palette.p5c8.lazyColors)
       .flatMap { case (ra, c) =>
         cameras(ra = ra, dec = 60, 4.0)(20)
@@ -95,7 +62,7 @@ object Tryout {
             )
           }
       }
-    val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc)
+    val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
     val file = Main.workPath.resolve("tryout_cam.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
@@ -127,7 +94,7 @@ object Tryout {
     import ImageUtil._
     val bc = Color.veryDarkBlue
 
-    val stars = TestStars.Cones.sparse
+    val stars = StarsFactory.Cones.sparse
     val fromDef = stars.map(toStarPosDir).map(spd =>
       Shapable.Cylinder(position = spd.pos, direction = spd.dir)
     )
@@ -337,7 +304,7 @@ object Tryout {
   def f(v: PolarVec): String = f("P", v.r, radToDeg(v.ra), radToDeg(v.dec))
 
 
-  object TestStars {
+  object StarsFactory {
 
     object Cones {
       private def moveStar(s: Star, o: Vec): Star = {
@@ -409,6 +376,24 @@ object Tryout {
       }
     }
 
+  }
+
+  object ShapableFactory {
+    def sphereCoordinates: Seq[Shapable] = {
+      val min = -50
+      val max = 50
+
+      def sphere(value: Int, color: Color, f: Int => Vec): Shapable = {
+        val c = if value == max then Color.white else color
+        Shapable.Sphere(position = f(value), color = c, radius = 0.3)
+      }
+
+      Seq(
+        (min to max).map(v => sphere(v, Color.red, v => Vec(v, 0, 0))),
+        (min to max).map(v => sphere(v, Color.yellow, v => Vec(0, v, 0))),
+        (min to max).map(v => sphere(v, Color.green, v => Vec(0, 0, v))),
+      ).flatten
+    }
   }
 
 

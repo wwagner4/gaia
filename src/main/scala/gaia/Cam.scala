@@ -33,11 +33,11 @@ object Cam {
 
     case FullHD extends VideoQuality(VQuality(600, (1920, 1080), Seq(10, 20, 40), 2))
 
-    case UltraHD extends VideoQuality(VQuality(1620, (2560, 1440), Seq(27, 54, 108), 1))
+    case UltraHD extends VideoQuality(VQuality(1620, (2560, 1440), Seq(27), 1))
 
-    case _4k extends VideoQuality(VQuality(1620, (3840, 2160), Seq(27, 54, 108), 1))
+    case _4k extends VideoQuality(VQuality(1620, (3840, 2160), Seq(27), 1))
 
-    case _4kwide extends VideoQuality(VQuality(1620, (4098, 2160), Seq(27, 54, 108), 1))
+    case _4kwide extends VideoQuality(VQuality(1620, (4098, 2160), Seq(27), 1))
 
   }
 
@@ -52,7 +52,7 @@ object Cam {
 
   private def g1cBase(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    mkVideo(gaiaImage.id, shapables, cameras(0, 0, 10), quality, gaiaImage.backColor)
+    mkVideo(gaiaImage.id, shapables, cameras(0, 20, 4), quality, gaiaImage.backColor)
   }
 
   def mkVideo(
@@ -100,7 +100,7 @@ object Cam {
       Seq("ffmpeg", "-y", "-r", fr.toString, "-i", imgFile, outFile)
     }
     Util.runAllCommands(cmd)
-    print("wrote video to " + videoOutDir + " - " + videoId)
+    println("wrote video to " + videoOutDir + " - " + videoId)
   }
 
 
@@ -120,7 +120,7 @@ object Cam {
       .zip(LazyList.continually(PolarVec(radius, 0, 0)))
       .map { case (d, v) => v.copy(ra = degToRad(d)) }
       .map(pv => pv.toVec)
-      .map(v => v.roty(degToRad(dec)))
+      .map(v => v.roty(-degToRad(dec)))
       .map(v => v.rotz(degToRad(ra)))
       .zipWithIndex
       .map { case (v, i) =>
