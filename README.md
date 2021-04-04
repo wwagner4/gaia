@@ -137,10 +137,16 @@ Names of the csv file and their index
   92 - lum_percentile_lower
   93 - lum_percentile_upper
 ```
-vim
+
 ## Fileinfos.
 There are 61234 Files on.  
 Every file contains about 10000 lines.
+
+### TODO
+- Extract the movement of the sun from the movement of stars
+- vid Generate video sniplets in one directory for AUTOMOVE and CAM
+- vid Generate 'references' and 'closing content' and still images in one module and place them next to the video sniplets
+- vid Start automove using Util.callAllCommands
 
 ### Docker
 ```
