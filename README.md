@@ -150,7 +150,7 @@ Every file contains about 10000 lines.
 
 ### Docker
 ```
-# build the imahe
+# build the image
 docker build -t gaia .
 
 # run the image 
