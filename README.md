@@ -142,6 +142,28 @@ Names of the csv file and their index
 There are 61234 Files on.  
 Every file contains about 10000 lines.
 
+### Space Motion
+In order to display the direction stars are moving relative to the sun. space velocity
+has to be calculated from their proper motion.
+This results for every star in a vector of three components (x, y, z) representing
+the velosity of that star relative to the sun in km/s.
+See: Imageutil.properMotionToSpaceMotion
+
+References: 
+- http://www.astronomy.ohio-state.edu/~pogge/Ast162/Unit1/motions.html Somehow incomplete
+- https://en.wikipedia.org/wiki/Proper_motion No calc for radial velosity
+- https://web.njit.edu/~gary/321/Lecture18.html
+
+In order to display the motion of stars relative to the galactic center the motion
+of the sun relative to the galactic center must be known.
+References:
+- https://aasnova.org/2016/12/14/determining-our-motion-through-the-galaxy/ Calculates the revolution velocity
+of the sun to 239+-9 km/s 
+- https://en.wikipedia.org/wiki/Galactic_year Describes the time the sun needs to travel around the galactic center. 230 km/s
+- https://www.eso.org/public/news/eso0411/
+
+TODO: Make a visualisation of the sun in galactic coordinates. Then calculat x, y, z components of the velocity  
+
 ### TODO
 - Extract the movement of the sun from the movement of stars
 - vid Generate video sniplets in one directory for AUTOMOVE and CAM
