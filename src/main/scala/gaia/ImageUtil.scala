@@ -157,17 +157,16 @@ object ImageUtil {
     spaceMotionToGalacticMotion(star, sm)
   }
 
-  def writeModelToFile(fcreateShapables: (Path, X3d.Color) => Seq[Shapable])(id: String, workPath: Path): Unit = {
+  def writeModelToFile(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val modelsPath = workPath.resolve("models")
     if (notExists(modelsPath)) createDirectories(modelsPath)
-    val gaiaImage = Main.images(id)
     val bgColor = gaiaImage.backColor
-    val shapables = fcreateShapables(modelsPath, bgColor)
+    val id = gaiaImage.id
     val file = {
       val fnam = s"$id.x3d"
       modelsPath.resolve(fnam)
     }
-
     val xml = X3d.createXml(shapables, file.getFileName.toString, bgColor)
     gaia.Util.writeString(file, xml)
     println(s"Created image for $id at ${file.toAbsolutePath}")
@@ -318,10 +317,13 @@ object ImageUtil {
   def toStarPosDir(star: Star): StarPosDir =
     StarPosDir(starToVec(star), toDir(star))
 
-  def toGalacticCoords(pos: Vec): Vec =
-    pos
+  def toGalacticCoords(pos: Vec): Vec = {
+    val rotated = pos
       .rotx(degToRad(-27.13))
       .roty(degToRad(-28.94))
+    Vec(rotated.z, rotated.y, rotated.x)
+  }
+
 
   def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
     val ix = math.floor(pos.x * cubeCount / cubeSize).toInt

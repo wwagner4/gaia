@@ -4,8 +4,8 @@ import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
 import java.util.UUID
-import java.util.function.Consumer
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
+import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
@@ -13,12 +13,12 @@ import scala.util.Random
 
 object Tryout {
 
-  import ImageUtil._
-  import X3d._
-  import Data._
-  import Vector._
-  import Cam._
   import Automove._
+  import Cam._
+  import Data._
+  import ImageUtil._
+  import Vector._
+  import X3d._
 
 
   def doit(args: List[String], workPath: Path): Unit = {
@@ -27,115 +27,29 @@ object Tryout {
 
   private def viewpoint(): Unit = {
 
-    import Cam._
+    val bc = Color.veryDarkBlue
+    val shapables = ShapableFactory.sphereCoordinates
+    val cams = cameras(ra = 0, dec = 20, 100.0)
+    val qual = VideoQuality.SVGA
+    println(s"Using ${shapables.size} shapes")
 
-    val bc = Color.veryDarkGreen
+    mkVideo("tryout_viewpont", shapables, cams, qual, bc)
+  }
 
-    def someSpheres(color: Color): Seq[Shapable] = {
-
-      def ran(range: Double): Double = {
-        Random.nextDouble * range - range / 2.0
-      }
-
-      def ranRange(from: Double, to: Double): Double = {
-        from + Random.nextDouble * (to - from)
-      }
-
-      val center = Vec(ran(30), ran(30), ran(30))
-      (1 to 100)
-        .map { _ =>
-          val offset = Vec(ran(10), ran(10), ran(10))
-          Shapable.Sphere(position = center.add(offset), color = color, radius = ranRange(0.1, 2))
-        }
-    }
-
-    case class VQuality(
-                         steps: Int,
-                         geometry: (Int, Int) = (600, 420),
-                         frameRates: Seq[Int] = Seq(1, 2, 4),
-                         antiAlias: Int = 4,
-                       )
-
-    enum VideoQuality(val quality: VQuality) {
-
-      case VGA extends VideoQuality(VQuality(60, (600, 420), Seq(1, 2, 4), 3))
-
-      case SVGA extends VideoQuality(VQuality(120, (800, 600), Seq(2, 4, 8), 3))
-
-      case HD extends VideoQuality(VQuality(240, (1200, 720), Seq(4, 8, 16), 2))
-
-      case FullHD extends VideoQuality(VQuality(600, (1920, 1080), Seq(10, 20, 40), 2))
-
-      case UltraHD extends VideoQuality(VQuality(1620, (2560, 1440), Seq(27, 54, 108), 1))
-
-      case _4k extends VideoQuality(VQuality(1620, (3840, 2160), Seq(27, 54, 108), 1))
-
-      case _4kwide extends VideoQuality(VQuality(1620, (4098, 2160), Seq(27, 54, 108), 1))
-
-    }
-
-
-    def mkVideo(
-                 id: String,
-                 shapables: Seq[Shapable],
-                 fCams: Int => Seq[Camera],
-                 videoQuality: VideoQuality) = {
-      val outDir = Files.createTempDirectory(id)
-      if Files.notExists(outDir) then Files.createDirectories(outDir)
-      val videoOutDir = Main.workPath.resolve("videos")
-      if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
-      val numlen = 4
-      val x3d0File = outDir.resolve(s"${id}.x3d")
-      val quality: VQuality = videoQuality.quality
-      val cams: Seq[Camera] = fCams(quality.steps)
-      val xml = X3d.createXml(shapables, x3d0File.getFileName.toString, bc, cams)
-      gaia.Util.writeString(x3d0File, xml)
-      println(s"wrote to $x3d0File")
-      val commands = cams
-        .zipWithIndex
-        .map { (c, i) =>
-          val iFmt = "%0" + numlen + "d"
-          val iStr = iFmt.format(i)
-
-          val x3dFile = outDir.resolve(s"${id}_${iStr}.x3d")
-          Files.copy(x3d0File, x3dFile)
-          println(s"copied to $x3dFile")
-
-          val geometryStr = s"${quality.geometry._1}x${quality.geometry._2}"
-          val model = x3dFile.toAbsolutePath.toString
-          val image = outDir.resolve(s"${id}_${iStr}.png").toAbsolutePath.toString
-          Seq("view3dscene", model, "--anti-alias", quality.antiAlias.toString, "--viewpoint", i.toString,
-            "--geometry", geometryStr, "--screenshot", "0", image)
-        }
-
-      println(commands.map(c => c.mkString(" ")).mkString("\n"))
-      Util.runAllCommands(commands)
-      println(s"finished ${commands.size} commands")
-      val iFmtFf = "%0" + numlen + "d"
-      val imgFile = outDir.resolve(s"${id}_$iFmtFf.png").toAbsolutePath.toString
-      val videoId = videoQuality.toString
-      val cmd = quality.frameRates.map { fr =>
-        val outFile = videoOutDir.resolve(s"${id}_${videoId}_$fr.mp4").toAbsolutePath.toString
-        Seq("ffmpeg", "-y", "-r", fr.toString, "-i", imgFile, outFile)
-      }
-      Util.runAllCommands(cmd)
-      print("wrote video to " + videoOutDir + " - " + videoId)
-    }
-
-    VideoQuality.values.map { vq =>
-      mkVideo("cam_tryout",
-        Palette.p6c6.lazyColors.take(10).flatMap(c => someSpheres(c)),
-        cameras(ra = 0, dec = 60, 100.0),
-        vq
-      )
-    }
+  private def sphereCoordinatesModel(): Unit = {
+    val bc = Color.black
+    val shapables = ShapableFactory.sphereCoordinates
+    val file = Main.workPath.resolve("tryout_sphere_coordinates.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def cam(): Unit = {
 
     val bc = Color.veryDarkRed
 
-    val camShapes = (0 to(270, 90))
+    val camShapes = (0 to (180, 30))
       .zip(X3d.Palette.p5c8.lazyColors)
       .flatMap { case (ra, c) =>
         cameras(ra = ra, dec = 60, 4.0)(20)
@@ -148,7 +62,7 @@ object Tryout {
             )
           }
       }
-    val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc)
+    val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
     val file = Main.workPath.resolve("tryout_cam.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
@@ -180,7 +94,7 @@ object Tryout {
     import ImageUtil._
     val bc = Color.veryDarkBlue
 
-    val stars = TestStars.Cones.sparse
+    val stars = StarsFactory.Cones.sparse
     val fromDef = stars.map(toStarPosDir).map(spd =>
       Shapable.Cylinder(position = spd.pos, direction = spd.dir)
     )
@@ -390,7 +304,7 @@ object Tryout {
   def f(v: PolarVec): String = f("P", v.r, radToDeg(v.ra), radToDeg(v.dec))
 
 
-  object TestStars {
+  object StarsFactory {
 
     object Cones {
       private def moveStar(s: Star, o: Vec): Star = {
@@ -462,6 +376,24 @@ object Tryout {
       }
     }
 
+  }
+
+  object ShapableFactory {
+    def sphereCoordinates: Seq[Shapable] = {
+      val min = -50
+      val max = 50
+
+      def sphere(value: Int, color: Color, f: Int => Vec): Shapable = {
+        val c = if value == max then Color.white else color
+        Shapable.Sphere(position = f(value), color = c, radius = 0.3)
+      }
+
+      Seq(
+        (min to max).map(v => sphere(v, Color.red, v => Vec(v, 0, 0))),
+        (min to max).map(v => sphere(v, Color.yellow, v => Vec(0, v, 0))),
+        (min to max).map(v => sphere(v, Color.green, v => Vec(0, 0, v))),
+      ).flatten
+    }
   }
 
 

@@ -306,7 +306,7 @@ object ImageFactory {
     val circleShapes = {
       (2 to(25, 2)).map { r =>
         Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, degToRad(90), 0),
+          rotation = Vec(0, 0, 0),
           color = Color.gray(0.1), radius = r * 0.1)
       }
     }
