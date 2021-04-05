@@ -22,7 +22,29 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    viewpoint()
+    sunSpaceMotion()
+  }
+
+  private def sunSpaceMotion(): Unit = {
+    println("sun space motion")
+    val id = "sun_space_motion"
+
+    val bc = Color.black
+    val circles = {
+      (2 to(25, 2)).map { r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, 0, 0),
+          color = Color.gray(0.1), radius = r)
+      }
+    }
+    val coordinates = ImageUtil.shapablesCoordinatesColored(20, bc)
+
+    val shapables = circles ++ coordinates
+
+    val file = Main.workPath.resolve(s"tryout_$id.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def viewpoint(): Unit = {
@@ -49,7 +71,7 @@ object Tryout {
 
     val bc = Color.veryDarkRed
 
-    val camShapes = (0 to (180, 30))
+    val camShapes = (0 to(180, 30))
       .zip(X3d.Palette.p5c8.lazyColors)
       .flatMap { case (ra, c) =>
         cameras(ra = ra, dec = 60, 4.0)(20)
