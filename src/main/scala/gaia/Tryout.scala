@@ -25,21 +25,43 @@ object Tryout {
     sunSpaceMotion()
   }
 
+
   private def sunSpaceMotion(): Unit = {
     println("sun space motion")
     val id = "sun_space_motion"
 
     val bc = Color.black
-    val circles = {
-      (2 to(25, 2)).map { r =>
+
+    val sun = toStarPosDirGalactic(StarPosDir(pos = Vec(0, 0, 0), dir = Vec(1, 0, 0)))
+
+    def galacticDist(s: Star) = toStarPosDirGalactic(s).pos.length
+    
+    val stars = readBasic
+      .filter(s => Random.nextDouble() < 0.0001 && galacticDist(s) < 10)
+      .toSeq
+
+    println(s"filtered ${stars.size} stars")
+
+    val shapesCircle = {
+      (2 to(10, 2)).map { r =>
         Shapable.Circle(translation = Vec.zero,
           rotation = Vec(0, 0, 0),
           color = Color.gray(0.1), radius = r)
       }
     }
-    val coordinates = ImageUtil.shapablesCoordinatesColored(20, bc)
+    val shapesCoord = ImageUtil.shapablesCoordinatesColored(10, bc)
 
-    val shapables = circles ++ coordinates
+    val shapableSun = Seq(
+      Shapable.Sphere(position = sun.pos, color = Color.white, radius = 0.3)
+    )
+
+    val shapablesStars = stars
+      .map { star =>
+        val sg = toStarPosDirGalactic(star)
+        Shapable.Sphere(position = sg.pos, color = Color.gray(0.2), radius = 0.1)
+      }
+    
+    val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
 
     val file = Main.workPath.resolve(s"tryout_$id.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)

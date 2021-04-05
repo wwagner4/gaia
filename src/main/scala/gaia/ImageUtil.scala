@@ -309,9 +309,13 @@ object ImageUtil {
 
   def toStarPosDirGalactic(star: Star): StarPosDir = {
     val spd = toStarPosDir(star)
-    val gcoord = spd.pos.sub(galacicCenter)
+    toStarPosDirGalactic(spd)
+  }
+
+  def toStarPosDirGalactic(star: StarPosDir): StarPosDir = {
+    val gcoord = star.pos.sub(galacicCenter)
     val gpos = toGalacticCoords(gcoord)
-    spd.copy(pos = gpos)
+    star.copy(pos = gpos)
   }
 
   def toStarPosDir(star: Star): StarPosDir =
