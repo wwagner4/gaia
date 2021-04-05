@@ -306,7 +306,7 @@ object Main {
   }
 
   private def createVideoBase(args: List[String], workPath: Path, f: (gaiaImage: GaiaImage) => Boolean, e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
-    val validImages = images.toList.filter { case (k, i) => f(i) }.toMap
+    val validImages = images.toList.filter { (k, i) => f(i) }.toMap
     val idsStr = validImages.values match {
       case l if l.isEmpty => "(None)"
       case l => l.map(i => i.id).mkString(",")

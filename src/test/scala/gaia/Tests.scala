@@ -140,9 +140,15 @@ class Tests extends AnyFunSuite with must.Matchers {
     test(s"360 steps ${n}") {
       val l1 = degSteps(n)
       f(l1) mustBe f(l)
-      
-
     }
+  }
+  
+  test("intervals") {
+    def fiv(i: (Double, Double)): String = {
+      "(%.5f, %.5f)".format(i._1, i._2)
+    }
+    val ivs = Util.intervals(3, 0, 9)
+    ivs.map(fiv).mkString(", ") mustBe Seq((0.0, 3.0), (3.0, 6.0), (6.0, 9.0)).map(fiv).mkString(", ") 
   }
   
 }

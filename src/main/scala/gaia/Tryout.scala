@@ -35,10 +35,29 @@ object Tryout {
     val sun = toStarPosDirGalactic(StarPosDir(pos = Vec(0, 0, 0), dir = Vec(1, 0, 0)))
 
     def galacticDist(s: Star) = toStarPosDirGalactic(s).pos.length
-    
-    val stars = readBasic
-      .filter(s => Random.nextDouble() < 0.0001 && galacticDist(s) < 10)
+
+    val starsFiltered = readBasic
+      .filter(galacticDist(_) < 50)
+      .map(toStarPosDirGalactic)
       .toSeq
+    
+    val stars = Util.intervals(10, 0, pimul2)
+      .zip(X3d.Palette.p3c11.lazyColors)
+      .zip(LazyList.continually(starsFiltered))
+      .flatMap{case (((from, to), c), sf) => 
+        val in = sf.filter{ spd => 
+          val ra = {
+            val w = math.asin(spd.pos.y / spd.pos.length) % pi
+            if w < 0 then w + pimul2
+            else w
+          } 
+          ra >= from && ra < to
+        }
+        println(f"-- sector $from%.4f $to%.4f ${in.size}")
+        Random.shuffle(in)
+          .take(10)
+          .zip(LazyList.continually(c))
+      }
 
     println(s"filtered ${stars.size} stars")
 
@@ -56,11 +75,11 @@ object Tryout {
     )
 
     val shapablesStars = stars
-      .map { star =>
+      .map { (star, c) =>
         val sg = toStarPosDirGalactic(star)
-        Shapable.Sphere(position = sg.pos, color = Color.gray(0.2), radius = 0.1)
+        Shapable.Sphere(position = sg.pos, color = c, radius = 0.1)
       }
-    
+
     val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
 
     val file = Main.workPath.resolve(s"tryout_$id.x3d")
@@ -95,7 +114,7 @@ object Tryout {
 
     val camShapes = (0 to(180, 30))
       .zip(X3d.Palette.p5c8.lazyColors)
-      .flatMap { case (ra, c) =>
+      .flatMap { (ra, c) =>
         cameras(ra = ra, dec = 60, 4.0)(20)
           .toSeq
           .flatMap { cam =>

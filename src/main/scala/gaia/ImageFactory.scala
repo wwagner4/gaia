@@ -406,7 +406,7 @@ object ImageFactory {
     val densities = counts.map { case (k, v) => (k, math.sqrt(v.toDouble / maxCount)) }
 
     val shapes = densities
-      .flatMap { case (k, v) =>
+      .flatMap { (k, v) =>
         if (v <= 0.01) {
           None
         }
