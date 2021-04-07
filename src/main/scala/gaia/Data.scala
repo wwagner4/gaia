@@ -79,8 +79,8 @@ object Data {
       .asScala
       .toSeq
       .flatMap(extractId)
-      .sortBy { case (nr, path) => nr }
-      .map { case (_, path) => path }
+      .sortBy { (nr, path) => nr }
+      .map { (_, path) => path }
       .map(DataResource.File(_))
       .iterator
       .flatMap(readLines)
@@ -121,7 +121,7 @@ object Data {
       .grouped(groupSize)
       .zipWithIndex
       .toSeq
-      .map { case (gnams, index) => FileGroup(index + 1, gnams) }
+      .map { (gnams, index) => FileGroup(index + 1, gnams) }
       .filter(g => !rids.contains(g.id))
       .foreach { grp =>
         val dataFile = outpath.resolve(downladConfig.filename(grp.id, groupCount))

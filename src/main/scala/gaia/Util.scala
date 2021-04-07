@@ -167,5 +167,20 @@ object Util {
     }
   }
 
+  def intervals(number: Int, from: Double, to: Double): List[(Double, Double)] = {
+    val diff = (to - from) / number
+
+    def i(state: Double, result: List[(Double, Double)]): List[(Double, Double)] = {
+      if state > to then result
+      else {
+        val end = state + diff
+        if end >= to then (state, to) :: result
+        else i(end, (state, end) :: result)
+      }
+    }
+
+    i(from, List.empty[(Double, Double)]).reverse
+  }
+
 }
 

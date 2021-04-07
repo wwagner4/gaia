@@ -277,7 +277,7 @@ object ImageUtil {
   }
 
   def nearSunVelo(stars: Iterable[Star], bgColor: Color, minDist: Double, maxDist: Double, colors: Seq[Color],
-                  lengthFactor: Double, geo: Geo): Seq[Shapable] = {
+                  lengthFactor: Double, radius: Double): Seq[Shapable] = {
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
     val starsFiltered = stars.filter { s =>
@@ -292,7 +292,7 @@ object ImageUtil {
       .map { s =>
         val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(a)
-        shapeCylinder(color = c, lengthFactor = lengthFactor, geo = geo)(s)
+        Shapable.Cylinder(color = c, position = s.pos, radius = radius, direction = s.dir.mul(lengthFactor))
       }
 
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)
@@ -309,9 +309,13 @@ object ImageUtil {
 
   def toStarPosDirGalactic(star: Star): StarPosDir = {
     val spd = toStarPosDir(star)
-    val gcoord = spd.pos.sub(galacicCenter)
+    toStarPosDirGalactic(spd)
+  }
+
+  def toStarPosDirGalactic(star: StarPosDir): StarPosDir = {
+    val gcoord = star.pos.sub(galacicCenter)
     val gpos = toGalacticCoords(gcoord)
-    spd.copy(pos = gpos)
+    star.copy(pos = gpos)
   }
 
   def toStarPosDir(star: Star): StarPosDir =
@@ -332,37 +336,10 @@ object ImageUtil {
     ix == i && iy == j && iz == k
   }
 
-  enum Geo {
-
-    case Absolute(width: Double)
-
-    case Relative(width: Double)
-
-  }
-
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
     val a = starPosDir.pos
     val b = starPosDir.pos.add(starPosDir.dir)
     Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
-  }
-
-  def shapeCone(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.01))(starPosDir: StarPosDir): Shapable = {
-    val dir = starPosDir.dir.mul(lengthFactor)
-    val radius = geo match {
-      case Geo.Relative(rw) => dir.length * rw
-      case Geo.Absolute(aw) => aw.toDouble
-    }
-    Shapable.Cone(
-      position = starPosDir.pos, direction = dir, radius = radius, color = color)
-  }
-
-  def shapeCylinder(color: Color, lengthFactor: Double = 1.0, geo: Geo = Geo.Relative(0.03))(starPosDir: StarPosDir): Shapable = {
-    val dir = starPosDir.dir.mul(lengthFactor)
-    val radius = geo match {
-      case Geo.Relative(rw) => dir.length * rw
-      case Geo.Absolute(aw) => aw.toDouble
-    }
-    Shapable.Cylinder(position = starPosDir.pos, direction = dir, radius = radius, color = color)
   }
 
 }

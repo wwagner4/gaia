@@ -22,7 +22,70 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    viewpoint()
+    sunSpaceMotion()
+  }
+
+
+  private def sunSpaceMotion(): Unit = {
+    println("sun space motion")
+    val id = "sun_space_motion"
+
+    val bc = Color.black
+
+    val sun = toStarPosDirGalactic(StarPosDir(pos = Vec(0, 0, 0), dir = Vec(1, 0, 0)))
+
+    def galacticDist(s: Star) = toStarPosDirGalactic(s).pos.length
+
+    val starsFiltered = readBasic
+      .filter(galacticDist(_) < 50)
+      .map(toStarPosDirGalactic)
+      .toSeq
+
+    val stars = Util.intervals(10, 0, pimul2)
+      .zip(X3d.Palette.p3c11.lazyColors)
+      .zip(LazyList.continually(starsFiltered))
+      .flatMap { case (((from, to), c), sf) =>
+        val in = sf.filter { spd =>
+          val ra = {
+            val w = math.asin(spd.pos.y / spd.pos.length) % pi
+            if w < 0 then w + pimul2
+            else w
+          }
+          ra >= from && ra < to
+        }
+        println(f"-- sector $from%.4f $to%.4f ${in.size}")
+        Random.shuffle(in)
+          .take(10)
+          .zip(LazyList.continually(c))
+      }
+
+    println(s"filtered ${stars.size} stars")
+
+    val shapesCircle = {
+      (2 to(10, 2)).map { r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, 0, 0),
+          color = Color.gray(0.1), radius = r)
+      }
+    }
+    val shapesCoord = ImageUtil.shapablesCoordinatesColored(10, bc)
+
+    val shapableSun = Seq(
+      Shapable.Sphere(position = sun.pos, color = Color.white, radius = 0.3)
+    )
+
+    val shapablesStars = stars
+      .map { (star, c) =>
+        val sg = toStarPosDirGalactic(star)
+        Shapable.Sphere(position = sg.pos, color = c, radius = 0.1)
+      }
+
+    val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
+
+    val file = Main.workPath.resolve(s"tryout_$id.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
   private def viewpoint(): Unit = {
@@ -49,9 +112,9 @@ object Tryout {
 
     val bc = Color.veryDarkRed
 
-    val camShapes = (0 to (180, 30))
+    val camShapes = (0 to(180, 30))
       .zip(X3d.Palette.p5c8.lazyColors)
-      .flatMap { case (ra, c) =>
+      .flatMap { (ra, c) =>
         cameras(ra = ra, dec = 60, 4.0)(20)
           .toSeq
           .flatMap { cam =>
@@ -77,7 +140,7 @@ object Tryout {
       }
       dirVecs.map { dv =>
         val spd = StarPosDir(pos = Vec.zero, dir = dv)
-        ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd)
+        Shapable.Cylinder(color = Color.white, position = spd.pos, direction = spd.dir.mul(0.001))
       }
     }
 
