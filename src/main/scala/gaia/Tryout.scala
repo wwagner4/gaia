@@ -40,17 +40,17 @@ object Tryout {
       .filter(galacticDist(_) < 50)
       .map(toStarPosDirGalactic)
       .toSeq
-    
+
     val stars = Util.intervals(10, 0, pimul2)
       .zip(X3d.Palette.p3c11.lazyColors)
       .zip(LazyList.continually(starsFiltered))
-      .flatMap{case (((from, to), c), sf) => 
-        val in = sf.filter{ spd => 
+      .flatMap { case (((from, to), c), sf) =>
+        val in = sf.filter { spd =>
           val ra = {
             val w = math.asin(spd.pos.y / spd.pos.length) % pi
             if w < 0 then w + pimul2
             else w
-          } 
+          }
           ra >= from && ra < to
         }
         println(f"-- sector $from%.4f $to%.4f ${in.size}")
@@ -140,7 +140,7 @@ object Tryout {
       }
       dirVecs.map { dv =>
         val spd = StarPosDir(pos = Vec.zero, dir = dv)
-        ImageUtil.shapeCylinder(Color.white, lengthFactor = 0.001)(starPosDir = spd)
+        Shapable.Cylinder(color = Color.white, position = spd.pos, direction = spd.dir.mul(0.001))
       }
     }
 

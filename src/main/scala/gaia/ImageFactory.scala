@@ -29,7 +29,7 @@ object ImageFactory {
         .map { s =>
           val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
           val c = colors(ci)
-          shapeCone(color = c, lengthFactor = 0.005, geo = Geo.Absolute(0.01))(s)
+          Shapable.Cone(color = c, position = s.pos, radius = 0.01, direction = s.dir.mul(0.005))
         }
     println(s"created ${starShapes.size} shapes")
     starShapes.toSeq
@@ -61,7 +61,7 @@ object ImageFactory {
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(ci)
-        shapeCone(color = c, lengthFactor = 0.003, geo = Geo.Absolute(0.03))(s)
+        Shapable.Cone(color = c, position = s.pos, radius = 0.03, direction = s.dir.mul(0.003))
       }
     println(s"created ${starShapables.size} shapes")
     starShapables.toSeq
@@ -122,8 +122,8 @@ object ImageFactory {
     val maxDist = 0.03
     val colors = Palette.p1c10.colors
     val lengthFactor = 0.00003
-    val geo = Geo.Absolute(0.0002)
-    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo)
+    val radius = 0.0002
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, radius)
   }
 
   def sund2(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -162,8 +162,8 @@ object ImageFactory {
     val maxDist = 0.05
     val colors = Palette.p2c10.colors
     val lengthFactor = 0.00008
-    val geo = Geo.Absolute(0.00006)
-    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, geo = geo)
+    val radius = 0.00006
+    nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, radius)
   }
 
   def sund27(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -178,7 +178,7 @@ object ImageFactory {
         .map { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           val c = Color.orange.mul(br)
-          shapeCylinder(c, lengthFactor = 0.00005)(s)
+          Shapable.Cylinder(color = c, position = s.pos, radius = 1.0, direction = s.dir.mul(0.00005))
         }
     }
 
@@ -345,14 +345,17 @@ object ImageFactory {
         Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc))
     }
 
-    val sphereShapes = (1 to(30, 5)).map { r =>
-      Shapable.Circle(translation = Vec.zero,
-        rotation = Vec(0, degToRad(90), 0),
-        color = Color.gray(0.1), radius = r * 0.1)
+    val circleShapes = {
+      (2 to(25, 2)).map { r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, 0, 0),
+          color = Color.gray(0.1), radius = r * 0.1)
+      }
     }
+
     val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
 
-    starShapes ++ sphereShapes ++ coordshapes
+    starShapes ++ circleShapes ++ coordshapes
   }
 
   def gcd2(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -367,7 +370,7 @@ object ImageFactory {
       .toSeq
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-        ImageUtil.shapeCone(color = colors(ci), lengthFactor = 0.001, geo = Geo.Absolute(0.01))(s)
+        Shapable.Cone(color = colors(ci), position = s.pos, radius=0.01,direction = s.dir.mul(0.001))
       }
     println(s"created ${shapes.size} shapes")
 
