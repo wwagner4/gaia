@@ -42,6 +42,21 @@ object Cam {
   }
 
 
+  def sund1(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    val quality = VideoQuality._4k
+    sund1Base(gaiaImage, workPath, quality)
+  }
+
+  def sund1Prev(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    val quality = VideoQuality.VGA
+    sund1Base(gaiaImage, workPath, quality)
+  }
+
+  private def sund1Base(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
+    val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
+    mkVideo(gaiaImage.id, shapables, cameras(0, 20, 0.05), quality, gaiaImage.backColor, workPath)
+  }
+
   def gc1(gaiaImage: GaiaImage, workPath: Path): Unit = {
     g1cBase(gaiaImage, workPath, VideoQuality._4k)
   }
@@ -52,7 +67,7 @@ object Cam {
 
   private def g1cBase(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    mkVideo(gaiaImage.id, shapables, cameras(0, 20, 4), quality, gaiaImage.backColor)
+    mkVideo(gaiaImage.id, shapables, cameras(0, 20, 4), quality, gaiaImage.backColor, workPath)
   }
 
   def mkVideo(
@@ -60,10 +75,11 @@ object Cam {
                shapables: Seq[Shapable],
                fCams: Int => Seq[Camera],
                videoQuality: VideoQuality,
-               bc: Color) = {
+               bc: Color,
+               workPath: Path) = {
     val outDir = Files.createTempDirectory(id)
     if Files.notExists(outDir) then Files.createDirectories(outDir)
-    val videoOutDir = Main.workPath.resolve("videos")
+    val videoOutDir = workPath.resolve(id).resolve("videos")
     if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
     val numlen = 4
     val x3d0File = outDir.resolve(s"${id}.x3d")
@@ -78,6 +94,7 @@ object Cam {
         val iFmt = "%0" + numlen + "d"
         val iStr = iFmt.format(i)
 
+        
         val x3dFile = outDir.resolve(s"${id}_${iStr}.x3d")
         Files.copy(x3d0File, x3dFile)
         println(s"copied to $x3dFile")

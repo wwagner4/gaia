@@ -96,7 +96,7 @@ object Tryout {
     val qual = VideoQuality.SVGA
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", shapables, cams, qual, bc)
+    mkVideo("tryout_viewpont", shapables, cams, qual, bc, Main.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {

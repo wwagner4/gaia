@@ -172,6 +172,7 @@ object Main {
       ImageFactory.sund1,
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
+      videoConfig = Seq(VideoConfig(Cam.sund1, Some(Cam.sund1Prev))),
     ),
     GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
       ImageFactory.sund2,
