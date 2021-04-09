@@ -150,12 +150,16 @@ object Util {
         procExec.submit(() => start(cmd.toList))
       }
       var states = futures.map(f => f.isDone)
+      val sleepTimeMillis = 1000
+      var timeMillis = 0
       while (!states.forall(s => s)) {
-        Thread.sleep(500)
+        Thread.sleep(sleepTimeMillis)
         val all = states.size
         val done = states.filter(v => v).size
-        println(s"--- Check futures. $done of $all done")
+        val timeStr = "%.1f sec".format(timeMillis / 1000.0)
+        println(s"--- running $timeStr. $done commands of $all are finished")
         states =  futures.map(f => f.isDone)
+        timeMillis += sleepTimeMillis 
       }
       val exits = futures.map(f => f.get())
       println(s"--- finished all commands. Exit values: ${exits.mkString(",")}")

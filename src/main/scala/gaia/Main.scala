@@ -302,7 +302,7 @@ object Main {
       case None => throw new IllegalArgumentException(s"Unknown ID $id for creating an x3d file. $info")
       case Some(gaiaImage) =>
         println(s"Creating gaia x3d for ID ${gaiaImage.id}. ${gaiaImage.desc}")
-        val outdir = workPath.resolve(id).resolve("model")
+        val outdir = workPath.resolve(id).resolve("models")
         if Files.notExists(outdir) then Files.createDirectories(outdir)
         writeModelToFile(gaiaImage, outdir.resolve(s"$id.x3d"))
     }

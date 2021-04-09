@@ -112,12 +112,15 @@ object Cam {
     val iFmtFf = "%0" + numlen + "d"
     val imgFile = outDir.resolve(s"${id}_$iFmtFf.png").toAbsolutePath.toString
     val videoId = videoQuality.toString
-    val cmd = quality.frameRates.map { fr =>
-      val outFile = videoOutDir.resolve(s"${id}_${videoId}_$fr.mp4").toAbsolutePath.toString
+    val outFiles = quality.frameRates.map { fr =>
+      videoOutDir.resolve(s"${id}_${videoId}_$fr.mp4").toAbsolutePath.toString
+    }
+    val cmd = quality.frameRates.zip(outFiles).map { case (fr, outFile) =>
       Seq("ffmpeg", "-y", "-r", fr.toString, "-i", imgFile, outFile)
     }
     Util.runAllCommands(cmd)
-    println("wrote video to " + videoOutDir + " - " + videoId)
+    val outFilesStr = outFiles.map("- " + _).mkString("\n")
+    println("wrote video snipplets to\n" + outFilesStr)
   }
 
 
