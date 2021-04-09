@@ -41,7 +41,7 @@ object Main {
                         hpOrder: Option[Int] = None,
                         textVal: Option[String] = None,
                         realCreatable: Boolean = true,
-                        videoConfig: Seq[VideoConfig] = Seq.empty[VideoConfig],
+                        videoConfig: Option[VideoConfig] = Option.empty[VideoConfig],
                         backColor: Color = Color.black,
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
@@ -81,7 +81,7 @@ object Main {
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
       ),
-      videoConfig = Seq(VideoConfig(Automove.sunos2)),
+      videoConfig = Some(VideoConfig(Automove.sunos2)),
     ),
     GaiaImage("sunms1", "Multiple shells around the sun. Stars as spheres",
       ImageFactory.sunms1,
@@ -108,7 +108,7 @@ object Main {
           |""".stripMargin.trim
       ),
       video = Some("https://www.youtube.com/embed/JelflHQSamo"),
-      videoConfig = Seq(VideoConfig(Automove.sunms2))
+      videoConfig = Some(VideoConfig(Automove.sunms2))
     ),
     GaiaImage("sunnear1", "Stars near the sun (2kpc). Stars as spheres",
       ImageFactory.sunnear1,
@@ -122,7 +122,7 @@ object Main {
           |to avoid bulges around the sun.
           |""".stripMargin.trim
       ),
-      videoConfig = Seq(VideoConfig(Automove.sunnear1)),
+      videoConfig = Some(VideoConfig(Automove.sunnear1)),
     ),
     GaiaImage("sunnear2", "Stars near thes sun (5kpc). Stars as spheres",
       ImageFactory.sunnear2,
@@ -166,13 +166,13 @@ object Main {
       hpOrder = Some(90),
       backColor = Color.veryDarkGreen,
       video = Some("https://www.youtube.com/embed/JuK80k5m4vU"),
-      videoConfig = Seq(VideoConfig(Automove.sund27)),
+      videoConfig = Some(VideoConfig(Automove.sund27)),
     ),
     GaiaImage("sund1", "direction and velocety of stars to a distace of 40 pc",
       ImageFactory.sund1,
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
-      videoConfig = Seq(VideoConfig(Cam.sund1, Some(Cam.sund1Prev))),
+      videoConfig = Some(VideoConfig(Cam.sund1, Some(Cam.sund1Prev))),
     ),
     GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
       ImageFactory.sund2,
@@ -184,7 +184,7 @@ object Main {
       hpOrder = Some(110),
       video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
       backColor = Color.veryDarkGreen,
-      videoConfig = Seq(VideoConfig(Automove.sund3)),
+      videoConfig = Some(VideoConfig(Automove.sund3)),
     ),
     GaiaImage("sund4", "direction and velocety of stars  8 kpc from the sun",
       ImageFactory.sund4,
@@ -204,7 +204,7 @@ object Main {
           |Crosshairs indicate the sun and the center of the galaxy
           |""".stripMargin.trim
       ),
-      videoConfig = Seq(VideoConfig(Automove.sund5)),
+      videoConfig = Some(VideoConfig(Automove.sund5)),
     ),
     GaiaImage(id = "sund6",
       desc = "stars as spheres with direction color coded. 8 to 23 kpc",
@@ -218,13 +218,13 @@ object Main {
           |Crosshairs indicate the sun and the center of the galaxy
           |""".stripMargin.trim
       ),
-      videoConfig = Seq(VideoConfig(Automove.sund6)),
+      videoConfig = Some(VideoConfig(Automove.sund6)),
     ),
     GaiaImage(id = "gc1",
       desc = "around the galactic center",
       fCreateModel = ImageFactory.gc1,
       backColor = Color.veryDarkBlue,
-      videoConfig = Seq(VideoConfig(Cam.gc1, Some(Cam.gc1Prev))),
+      videoConfig = Some(VideoConfig(Cam.gc1, Some(Cam.gc1Prev))),
     ),
     GaiaImage(id = "gcd1",
       desc = "around the galactic center",
@@ -249,7 +249,7 @@ object Main {
           |The center of the galaxy is marked with a crosshair.
           |""".stripMargin.trim
       ),
-      videoConfig = Seq(VideoConfig(Automove.dens1)),
+      videoConfig = Some(VideoConfig(Automove.dens1)),
     ),
   ))
 
