@@ -125,24 +125,40 @@ class Tests extends AnyFunSuite with must.Matchers {
       ic(v, i, j, k) == result
     }
   }
-  
+
   val degStepsTestVals = Seq(
     (2, List(0.0, 180.0)),
     (3, List(0.0, 360.0/ 3, 2.0 * 360.0/ 3)),
     (4, List(0.0, 90.0, 180.0, 270.0)),
   )
-  
+
   for (n, l) <- degStepsTestVals do {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
 
     test(s"360 steps ${n}") {
-      val l1 = degSteps(n)
+      val l1 = degSteps(n, false)
       f(l1) mustBe f(l)
     }
   }
-  
+
+  val degStepsReverseTestVals = Seq(
+    (2, List(360.0, 180.0)),
+    (4, List(360.0, 270.0, 180.0, 90.0)),
+  )
+
+  for (n, l) <- degStepsReverseTestVals do {
+    def f(vals: Iterable[Double]): String = {
+      vals.map(v => "%.5f".format(v)).mkString("|")
+    }
+
+    test(s"360 steps reverse ${n}") {
+      val l1 = degSteps(n, true)
+      f(l1) mustBe f(l)
+    }
+  }
+
   test("intervals") {
     def fiv(i: (Double, Double)): String = {
       "(%.5f, %.5f)".format(i._1, i._2)

@@ -4,6 +4,7 @@ import gaia.Main.GaiaImage
 import gaia.X3d.Shapable
 
 import java.nio.file.{Files, Path}
+import scala.collection.SeqView.Reverse
 
 object Cam {
 
@@ -52,9 +53,21 @@ object Cam {
     sund1Base(gaiaImage, workPath, quality)
   }
 
+  case class CameraConfig(
+                           id: String,
+                           cams: Seq[Camera],
+                         )
+
   private def sund1Base(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    mkVideo(gaiaImage.id, "00", shapables, cameras(0, 20, 0.05), quality, gaiaImage.backColor, workPath)
+    val cams = Seq(
+      CameraConfig("near", cameras(0, 20, 0.05)(quality.quality.steps)),
+      CameraConfig("far", cameras(0, -45, 0.1, reverse = true)(quality.quality.steps)),
+    )
+
+    cams.foreach { cconf =>
+      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, gaiaImage.backColor, workPath)
+    }
   }
 
   def gc1(gaiaImage: GaiaImage, workPath: Path): Unit = {
@@ -67,14 +80,15 @@ object Cam {
 
   private def g1cBase(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    mkVideo(gaiaImage.id, "00", shapables, cameras(0, 20, 4), quality, gaiaImage.backColor, workPath)
+    val cams = cameras(0, 20, 4)(quality.quality.steps)
+    mkVideo(gaiaImage.id, "00", shapables, cams, quality, gaiaImage.backColor, workPath)
   }
 
   def mkVideo(
                imageId: String,
                videoId: String,
                shapables: Seq[Shapable],
-               fCams: Int => Seq[Camera],
+               cams: Seq[Camera],
                videoQuality: VideoQuality,
                bc: Color,
                workPath: Path) = {
@@ -85,7 +99,6 @@ object Cam {
     val numlen = 4
     val x3d0File = outDir.resolve(s"${imageId}.x3d")
     val quality: VQuality = videoQuality.quality
-    val cams: Seq[Camera] = fCams(quality.steps)
     val xml = X3d.createXml(shapables, x3d0File.getFileName.toString, bc, cams)
     gaia.Util.writeString(x3d0File, xml)
     println(s"wrote to $x3d0File")
@@ -94,7 +107,7 @@ object Cam {
       .map { (c, i) =>
         val iFmt = "%0" + numlen + "d"
         val iStr = iFmt.format(i)
-        
+
         val x3dFile = outDir.resolve(s"${imageId}_${iStr}.x3d")
         Files.copy(x3d0File, x3dFile)
         println(s"copied to $x3dFile")
@@ -113,7 +126,7 @@ object Cam {
     val imgFile = outDir.resolve(s"${imageId}_$iFmtFf.png").toAbsolutePath.toString
     val qualStr = videoQuality.toString
     val outFiles = quality.frameRates.map { fr =>
-      videoOutDir.resolve(s"${imageId}_${qualStr}_$fr.mp4").toAbsolutePath.toString
+      videoOutDir.resolve(s"${imageId}_${videoId}_${qualStr}_$fr.mp4").toAbsolutePath.toString
     }
     val cmd = quality.frameRates.zip(outFiles).map { case (fr, outFile) =>
       Seq("ffmpeg", "-y", "-r", fr.toString, "-i", imgFile, outFile)
@@ -124,19 +137,28 @@ object Cam {
   }
 
 
-  def degSteps(n: Int): Seq[Double] = {
+  def degSteps(n: Int, reverse: Boolean): Seq[Double] = {
     val d = 360.0 / n
+    if reverse then {
+      def rs(x: Double, res: List[Double]): List[Double] = {
+        if x <= 0 then res
+        else rs(x - d, x :: res)
+      }
 
-    def rs(x: Double, res: List[Double]): List[Double] = {
-      if x >= 360 then res
-      else rs(x + d, x :: res)
+      rs(360, List.empty[Double]).reverse
     }
+    else {
+      def rs(x: Double, res: List[Double]): List[Double] = {
+        if x >= 360 then res
+        else rs(x + d, x :: res)
+      }
 
-    rs(0, List.empty[Double]).reverse
+      rs(0, List.empty[Double]).reverse
+    }
   }
 
-  def cameras(ra: Int, dec: Int, radius: Double, name: String = "gaiadefined")(steps: Int): Seq[Camera] = {
-    degSteps(steps)
+  def cameras(ra: Int, dec: Int, radius: Double, name: String = "gaiadefined", reverse: Boolean = false)(steps: Int): Seq[Camera] = {
+    degSteps(steps, reverse)
       .zip(LazyList.continually(PolarVec(radius, 0, 0)))
       .map { (d, v) => v.copy(ra = degToRad(d)) }
       .map(pv => pv.toVec)
