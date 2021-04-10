@@ -5,6 +5,7 @@ import gaia.X3d.Shapable
 
 import java.nio.file.{Files, Path}
 import scala.collection.SeqView.Reverse
+import scala.util.Random
 
 object Cam {
 
@@ -43,22 +44,27 @@ object Cam {
   }
 
 
-  def sund1(gaiaImage: GaiaImage, workPath: Path): Unit = {
-    val quality = VideoQuality._4k
-    sund1Base(gaiaImage, workPath, quality)
+  def sund1Still(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    val quality = VideoQuality.UltraHD
+    val cams = Seq(
+      cameras(0, 20, 0.05)(quality.quality.steps),
+      cameras(0, -45, 0.1)(quality.quality.steps),
+    ).flatten
+    val shapables: Seq[Shapable] = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
+
+    Random.setSeed(92838472983L)
+    Random.shuffle(cams)
+      .take(20)
+      .zipWithIndex
+      .foreach((cam, imgId) => mkStill(gaiaImage.id, imgId.toString, cam, shapables, workPath))
   }
 
-  def sund1Prev(gaiaImage: GaiaImage, workPath: Path): Unit = {
-    val quality = VideoQuality.VGA
-    sund1Base(gaiaImage, workPath, quality)
-  }
+  def sund1Video(quality: VideoQuality)(gaiaImage: GaiaImage, workPath: Path) = {
+    case class CameraConfig(
+                             id: String,
+                             cams: Seq[Camera],
+                           )
 
-  case class CameraConfig(
-                           id: String,
-                           cams: Seq[Camera],
-                         )
-
-  private def sund1Base(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val cams = Seq(
       CameraConfig("near", cameras(0, 20, 0.05)(quality.quality.steps)),
@@ -70,19 +76,23 @@ object Cam {
     }
   }
 
-  def gc1(gaiaImage: GaiaImage, workPath: Path): Unit = {
-    g1cBase(gaiaImage, workPath, VideoQuality._4k)
-  }
-
-  def gc1Prev(gaiaImage: GaiaImage, workPath: Path): Unit = {
-    g1cBase(gaiaImage, workPath, VideoQuality.VGA)
-  }
-
-  private def g1cBase(gaiaImage: GaiaImage, workPath: Path, quality: VideoQuality) = {
+  def g1cVideo(quality: VideoQuality)(gaiaImage: GaiaImage, workPath: Path) = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val cams = cameras(0, 20, 4)(quality.quality.steps)
     mkVideo(gaiaImage.id, "00", shapables, cams, quality, gaiaImage.backColor, workPath)
   }
+
+  def mkStill(
+               imageId: String,
+               stillId: String,
+               cam: Camera,
+               shapables: Seq[Shapable],
+               workPath: Path): Unit = {
+    val stillOutDir = workPath.resolve(imageId).resolve("videos")
+    if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
+    ???
+  }
+
 
   def mkVideo(
                imageId: String,

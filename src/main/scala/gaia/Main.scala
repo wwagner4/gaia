@@ -1,6 +1,8 @@
 package gaia
 
 
+import gaia.Cam.VideoQuality
+
 import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
@@ -26,11 +28,15 @@ object Main {
                    ) extends Identifiable
 
 
-  type FuncVideoConfig = (gaiaImage: GaiaImage, workDir: Path) => Unit
+  type FuncCreate = (gaiaImage: GaiaImage, workDir: Path) => Unit
 
   case class VideoConfig(
-                          funcVideoConfig: FuncVideoConfig,
-                          funcPreviewVideoConfig: Option[FuncVideoConfig] = None,
+                          fVideo: FuncCreate,
+                          fVideoPreview: Option[FuncCreate] = None,
+                        )
+
+  case class StillConfig(
+                          fStill: FuncCreate,
                         )
 
   case class GaiaImage(
@@ -41,7 +47,8 @@ object Main {
                         hpOrder: Option[Int] = None,
                         textVal: Option[String] = None,
                         realCreatable: Boolean = true,
-                        videoConfig: Option[VideoConfig] = Option.empty[VideoConfig],
+                        videoConfig: Option[VideoConfig] = None,
+                        stillConfig: Option[StillConfig] = None,
                         backColor: Color = Color.black,
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
@@ -52,8 +59,9 @@ object Main {
   val actions = identifiableToMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     Action("x3d", "create x3d files for an image", createX3d),
-    Action("vid", "create video sniplets from an existing x3d model", createVideo(_, _)),
-    Action("vidprev", "create preview video sniplets from an existing x3d model", createPreviewVideo(_, _)),
+    Action("vid", "create video sniplets from ax3d model", createVideo(_, _)),
+    Action("vidprev", "create preview video sniplets from a x3d model", createPreviewVideo(_, _)),
+    Action("still", "create still images from a x3d model", createStill(_, _)),
     Action("tryout", "Tryout something during development by callin doIt()", Tryout.doit),
   ))
 
@@ -64,8 +72,8 @@ object Main {
       video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
       backColor = Color.darkBlue,
       textVal = Some(
-        """One shell around the sun between 7 and 9 kpc. 
-          |The shell contains 2710 Stars which are visualized as spheres.  
+        """One shell around the sun between 7 and 9 kpc.
+          |The shell contains 2710 Stars which are visualized as spheres.
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
       )
@@ -76,8 +84,8 @@ object Main {
       backColor = Color.darkBlue,
       video = Some("https://www.youtube.com/embed/cEVH0IhlJ4Y"),
       textVal = Some(
-        """One shell around the sun between 7 and 9 kpc. 
-          |The shell contains 27104 Stars which are visualized as points.  
+        """One shell around the sun between 7 and 9 kpc.
+          |The shell contains 27104 Stars which are visualized as points.
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
       ),
@@ -89,21 +97,21 @@ object Main {
       video = Some("https://www.youtube.com/embed/irbUh9Y_Ifg"),
       backColor = Color.darkBlue,
       textVal = Some(
-        """Three shells around the sun with distances 5, 8 and 11 kpc. 
-          |The shells contains 1700, 2000 and 1000 Stars from the inner to the outer shell 
-          |which are visualized as spheres.  
+        """Three shells around the sun with distances 5, 8 and 11 kpc.
+          |The shells contains 1700, 2000 and 1000 Stars from the inner to the outer shell
+          |which are visualized as spheres.
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
       )
     ),
-    GaiaImage("sunms2", "Multiple shells around the sun. Stars as points", 
+    GaiaImage("sunms2", "Multiple shells around the sun. Stars as points",
       ImageFactory.sunms2,
       hpOrder = Some(30),
       backColor = Color.darkBlue,
       textVal = Some(
-        """Three shells around the sun with distances 5, 8 and 11 kpc. 
-          |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell 
-          |which are visualized as points.  
+        """Three shells around the sun with distances 5, 8 and 11 kpc.
+          |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell
+          |which are visualized as points.
           |The sun and the galactic center is displayed as crosshairs.
           |""".stripMargin.trim
       ),
@@ -117,7 +125,7 @@ object Main {
       video = Some("https://www.youtube.com/embed/lp-Y_jpYmnw"),
       textVal = Some(
         """Stars around the sun with a maximum distance of 2 kpc.
-          |Some stars are filtered out to make the image clearer. 
+          |Some stars are filtered out to make the image clearer.
           |Near the center more stars are filtered out than close to the edge
           |to avoid bulges around the sun.
           |""".stripMargin.trim
@@ -130,7 +138,7 @@ object Main {
       backColor = Color.black,
       textVal = Some(
         """Stars around the sun with a maximum distance of 5 kpc.
-          |Some stars are filtered out to make the image clearer. 
+          |Some stars are filtered out to make the image clearer.
           |Near the center more stars are filtered out than close to the edge
           |to avoid bulges around the sun.
           |""".stripMargin.trim
@@ -143,7 +151,7 @@ object Main {
       backColor = Color.black,
       textVal = Some(
         """Stars around the sun with a maximum distance of 8 kpc.
-          |Some stars are filtered out to make the image clearer. 
+          |Some stars are filtered out to make the image clearer.
           |Near the center more stars are filtered out than close to the edge
           |to avoid bulges around the sun.
           |""".stripMargin.trim
@@ -155,7 +163,7 @@ object Main {
       backColor = Color.black,
       textVal = Some(
         """Stars around the sun with a maximum distance of 16 kpc.
-          |Some stars are filtered out to make the image clearer. 
+          |Some stars are filtered out to make the image clearer.
           |Near the center more stars are filtered out than close to the edge
           |to avoid bulges around the sun.
           |""".stripMargin.trim
@@ -172,7 +180,8 @@ object Main {
       ImageFactory.sund1,
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
-      videoConfig = Some(VideoConfig(Cam.sund1, Some(Cam.sund1Prev))),
+      videoConfig = Some(VideoConfig(Cam.sund1Video(VideoQuality._4k), Some(Cam.sund1Video(VideoQuality.VGA)))),
+      stillConfig = Some(StillConfig(Cam.sund1Still)),
     ),
     GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
       ImageFactory.sund2,
@@ -200,7 +209,7 @@ object Main {
       backColor = Color.veryDarkBlue,
       textVal = Some(
         """
-          |Movement of stars around the sun in 3 shells. 
+          |Movement of stars around the sun in 3 shells.
           |Crosshairs indicate the sun and the center of the galaxy
           |""".stripMargin.trim
       ),
@@ -224,7 +233,7 @@ object Main {
       desc = "around the galactic center",
       fCreateModel = ImageFactory.gc1,
       backColor = Color.veryDarkBlue,
-      videoConfig = Some(VideoConfig(Cam.gc1, Some(Cam.gc1Prev))),
+      videoConfig = Some(VideoConfig(Cam.g1cVideo(VideoQuality._4k), Some(Cam.g1cVideo(VideoQuality.VGA)))),
     ),
     GaiaImage(id = "gcd1",
       desc = "around the galactic center",
@@ -243,8 +252,8 @@ object Main {
       backColor = Color.veryDarkBlue,
       video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
       textVal = Some(
-        """Density of stars seen by gaia in a cube around the center of 
-          |galaxy. The side of that cube is 16 kpc. 
+        """Density of stars seen by gaia in a cube around the center of
+          |galaxy. The side of that cube is 16 kpc.
           |Regions with many stars are marked as green bowls.
           |The center of the galaxy is marked with a crosshair.
           |""".stripMargin.trim
@@ -308,19 +317,27 @@ object Main {
     }
   }
 
-  private def createVideoBase(args: List[String], workPath: Path, f: (gaiaImage: GaiaImage) => Boolean, e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
+  private def createStill(args: List[String], workPath: Path): Unit = {
+    def filter(gi: GaiaImage): Boolean = !gi.stillConfig.isEmpty
+
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.stillConfig.foreach(_.fStill(gi, wp))
+
+    createSomething(args, "still images", workPath, filter, exec)
+  }
+
+  private def createSomething(args: List[String], name: String, workPath: Path, f: (gaiaImage: GaiaImage) => Boolean, e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
     val validImages = images.toList.filter { (k, i) => f(i) }.toMap
     val idsStr = validImages.values match {
       case l if l.isEmpty => "(None)"
       case l => l.map(i => i.id).mkString(",")
     }
     val info = "Valid IDs: " + idsStr
-    if (args.size < 1) throw IllegalArgumentException(s"Define an ID for creating videos. $info")
+    if (args.size < 1) throw IllegalArgumentException(s"Define an ID for creating $name. $info")
     val id = args(0)
     validImages.get(id) match {
-      case None => throw IllegalArgumentException(s"Unknown ID $id for creating videos. $info")
+      case None => throw IllegalArgumentException(s"Unknown ID $id for creating $name. $info")
       case Some(gaiaImage) =>
-        println(s"Creating a video for ID ${gaiaImage.id}. ${gaiaImage.desc}")
+        println(s"Creating a $name for ID ${gaiaImage.id}. ${gaiaImage.desc}")
         e(gaiaImage, workPath)
     }
   }
@@ -328,17 +345,17 @@ object Main {
   private def createVideo(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = !gi.videoConfig.isEmpty
 
-    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.funcVideoConfig(gi, wp))
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp))
 
-    createVideoBase(args, workPath, filter, exec)
+    createSomething(args, "videos", workPath, filter, exec)
   }
 
   private def createPreviewVideo(args: List[String], workPath: Path): Unit = {
-    def filter(gaiaImage: GaiaImage): Boolean = !gaiaImage.videoConfig.isEmpty && gaiaImage.videoConfig.exists(c => c.funcPreviewVideoConfig.isDefined)
+    def filter(gaiaImage: GaiaImage): Boolean = !gaiaImage.videoConfig.isEmpty && gaiaImage.videoConfig.exists(c => c.fVideoPreview.isDefined)
 
-    def exec(gaiaImage: GaiaImage, wp: Path): Unit = gaiaImage.videoConfig.foreach(vc => vc.funcPreviewVideoConfig.foreach(f => f(gaiaImage, wp)))
+    def exec(gaiaImage: GaiaImage, wp: Path): Unit = gaiaImage.videoConfig.foreach(vc => vc.fVideoPreview.foreach(f => f(gaiaImage, wp)))
 
-    createVideoBase(args, workPath, filter, exec)
+    createSomething(args, "preview videos", workPath, filter, exec)
   }
 
   private def identifiableToMap[T <: Identifiable](identifables: Seq[T]): Map[String, T] = {
