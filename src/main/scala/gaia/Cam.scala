@@ -46,17 +46,21 @@ object Cam {
 
   def sund1Still(gaiaImage: GaiaImage, workPath: Path): Unit = {
     val quality = VideoQuality.UltraHD
-    val cams = Seq(
-      cameras(0, 20, 0.05)(quality.quality.steps),
-      cameras(0, -45, 0.1)(quality.quality.steps),
+    val camsWithIndex = Seq(
+      cameras(0, 20, 0.05)(quality.quality.steps).zipWithIndex,
+      cameras(0, -45, 0.1)(quality.quality.steps).zipWithIndex,
     ).flatten
     val shapables: Seq[Shapable] = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
 
     Random.setSeed(92838472983L)
-    Random.shuffle(cams)
+    val commands = Random.shuffle(camsWithIndex)
       .take(20)
       .zipWithIndex
-      .foreach((cam, imgId) => mkStill(gaiaImage.id, imgId.toString, cam, shapables, workPath))
+      .map { case ((cam, vpId), stillId) => mkStillCommand(gaiaImage.id, stillId.toString, vpId, cam, quality, shapables, workPath) }
+
+    Util.runAllCommands(commands)
+    println(s"finished ${commands.size} commands")
+
   }
 
   def sund1Video(quality: VideoQuality)(gaiaImage: GaiaImage, workPath: Path) = {
@@ -82,15 +86,26 @@ object Cam {
     mkVideo(gaiaImage.id, "00", shapables, cams, quality, gaiaImage.backColor, workPath)
   }
 
-  def mkStill(
-               imageId: String,
-               stillId: String,
-               cam: Camera,
-               shapables: Seq[Shapable],
-               workPath: Path): Unit = {
-    val stillOutDir = workPath.resolve(imageId).resolve("videos")
+  def mkStillCommand(
+                      imageId: String,
+                      stillId: String,
+                      vpId: Int,
+                      cam: Camera,
+                      vquality: VideoQuality,
+                      shapables: Seq[Shapable],
+                      workPath: Path): Iterable[String] = {
+    val stillOutDir = workPath.resolve(imageId).resolve("stills")
     if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
-    ???
+    val iStr = stillId
+
+    val x3dFile = stillOutDir.resolve(s"${imageId}_${iStr}.x3d")
+
+    val quality = vquality.quality
+    val geometryStr = s"${quality.geometry._1}x${quality.geometry._2}"
+    val model = x3dFile.toAbsolutePath.toString
+    val image = stillOutDir.resolve(s"${imageId}_${iStr}.png").toAbsolutePath.toString
+    Seq("view3dscene", model, "--anti-alias", quality.antiAlias.toString, "--viewpoint", vpId.toString,
+      "--geometry", geometryStr, "--screenshot", "0", image)
   }
 
 
