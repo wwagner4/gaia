@@ -92,23 +92,22 @@ object Cam {
                       imageId: String,
                       stillId: String,
                       cam: Camera,
-                      vquality: VideoQuality,
+                      quality: VideoQuality,
                       shapables: Seq[Shapable],
-                      bc: Color,
+                      backColor: Color,
                       workPath: Path): Iterable[String] = {
     val stillOutDir = workPath.resolve(imageId).resolve("stills")
     if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
     val tmpWorkDir = Files.createTempDirectory(imageId)
-    if Files.notExists(tmpWorkDir) then Files.createDirectories(tmpWorkDir)
     val x3dFile = tmpWorkDir.resolve(s"${imageId}_${stillId}.x3d")
-    val xml = X3d.createXml(shapables, x3dFile.getFileName.toString, bc, Seq(cam))
+    val xml = X3d.createXml(shapables, x3dFile.getFileName.toString, backColor, Seq(cam))
     gaia.Util.writeString(x3dFile, xml)
 
-    val quality = vquality.quality
-    val geometryStr = s"${quality.geometry._1}x${quality.geometry._2}"
+    val qual = quality.quality
+    val geometryStr = s"${qual.geometry._1}x${qual.geometry._2}"
     val x3dPath = x3dFile.toAbsolutePath.toString
     val stillFile = stillOutDir.resolve(s"${imageId}_${stillId}.png").toAbsolutePath.toString
-    Seq("view3dscene", x3dPath, "--anti-alias", quality.antiAlias.toString, "--viewpoint", "0",
+    Seq("view3dscene", x3dPath, "--anti-alias", qual.antiAlias.toString, "--viewpoint", "0",
       "--geometry", geometryStr, "--screenshot", "0", stillFile)
   }
 
@@ -119,16 +118,16 @@ object Cam {
                shapables: Seq[Shapable],
                cams: Seq[Camera],
                videoQuality: VideoQuality,
-               bc: Color,
+               backColor: Color,
                workPath: Path) = {
+    val numlen = 4
+
     val tmpWorkDir = Files.createTempDirectory(imageId)
-    if Files.notExists(tmpWorkDir) then Files.createDirectories(tmpWorkDir)
     val videoOutDir = workPath.resolve(imageId).resolve("videos")
     if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
-    val numlen = 4
     val x3d0File = tmpWorkDir.resolve(s"${imageId}.x3d")
     val quality: VQuality = videoQuality.quality
-    val xml = X3d.createXml(shapables, x3d0File.getFileName.toString, bc, cams)
+    val xml = X3d.createXml(shapables, x3d0File.getFileName.toString, backColor, cams)
     gaia.Util.writeString(x3d0File, xml)
     println(s"wrote to $x3d0File")
     val commands = cams
