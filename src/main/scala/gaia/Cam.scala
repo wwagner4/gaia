@@ -56,7 +56,9 @@ object Cam {
     val commands = Random.shuffle(camsWithIndex)
       .take(20)
       .zipWithIndex
-      .map { case ((cam, vpId), stillId) => mkStillCommand(gaiaImage.id, stillId.toString, vpId, cam, quality, shapables, workPath) }
+      .map { case ((cam, vpId), stillId) =>
+        mkStillCommand(gaiaImage.id, stillId.toString, cam, quality, shapables, gaiaImage.backColor, workPath)
+      }
 
     Util.runAllCommands(commands)
     println(s"finished ${commands.size} commands")
@@ -89,23 +91,25 @@ object Cam {
   def mkStillCommand(
                       imageId: String,
                       stillId: String,
-                      vpId: Int,
                       cam: Camera,
                       vquality: VideoQuality,
                       shapables: Seq[Shapable],
+                      bc: Color,
                       workPath: Path): Iterable[String] = {
     val stillOutDir = workPath.resolve(imageId).resolve("stills")
     if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
-    val iStr = stillId
-
-    val x3dFile = stillOutDir.resolve(s"${imageId}_${iStr}.x3d")
+    val tmpWorkDir = Files.createTempDirectory(imageId)
+    if Files.notExists(tmpWorkDir) then Files.createDirectories(tmpWorkDir)
+    val x3dFile = tmpWorkDir.resolve(s"${imageId}_${stillId}.x3d")
+    val xml = X3d.createXml(shapables, x3dFile.getFileName.toString, bc, Seq(cam))
+    gaia.Util.writeString(x3dFile, xml)
 
     val quality = vquality.quality
     val geometryStr = s"${quality.geometry._1}x${quality.geometry._2}"
-    val model = x3dFile.toAbsolutePath.toString
-    val image = stillOutDir.resolve(s"${imageId}_${iStr}.png").toAbsolutePath.toString
-    Seq("view3dscene", model, "--anti-alias", quality.antiAlias.toString, "--viewpoint", vpId.toString,
-      "--geometry", geometryStr, "--screenshot", "0", image)
+    val x3dPath = x3dFile.toAbsolutePath.toString
+    val stillFile = stillOutDir.resolve(s"${imageId}_${stillId}.png").toAbsolutePath.toString
+    Seq("view3dscene", x3dPath, "--anti-alias", quality.antiAlias.toString, "--viewpoint", "0",
+      "--geometry", geometryStr, "--screenshot", "0", stillFile)
   }
 
 
@@ -117,12 +121,12 @@ object Cam {
                videoQuality: VideoQuality,
                bc: Color,
                workPath: Path) = {
-    val outDir = Files.createTempDirectory(imageId)
-    if Files.notExists(outDir) then Files.createDirectories(outDir)
+    val tmpWorkDir = Files.createTempDirectory(imageId)
+    if Files.notExists(tmpWorkDir) then Files.createDirectories(tmpWorkDir)
     val videoOutDir = workPath.resolve(imageId).resolve("videos")
     if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
     val numlen = 4
-    val x3d0File = outDir.resolve(s"${imageId}.x3d")
+    val x3d0File = tmpWorkDir.resolve(s"${imageId}.x3d")
     val quality: VQuality = videoQuality.quality
     val xml = X3d.createXml(shapables, x3d0File.getFileName.toString, bc, cams)
     gaia.Util.writeString(x3d0File, xml)
@@ -133,13 +137,13 @@ object Cam {
         val iFmt = "%0" + numlen + "d"
         val iStr = iFmt.format(i)
 
-        val x3dFile = outDir.resolve(s"${imageId}_${iStr}.x3d")
+        val x3dFile = tmpWorkDir.resolve(s"${imageId}_${iStr}.x3d")
         Files.copy(x3d0File, x3dFile)
         println(s"copied to $x3dFile")
 
         val geometryStr = s"${quality.geometry._1}x${quality.geometry._2}"
         val model = x3dFile.toAbsolutePath.toString
-        val image = outDir.resolve(s"${imageId}_${iStr}.png").toAbsolutePath.toString
+        val image = tmpWorkDir.resolve(s"${imageId}_${iStr}.png").toAbsolutePath.toString
         Seq("view3dscene", model, "--anti-alias", quality.antiAlias.toString, "--viewpoint", i.toString,
           "--geometry", geometryStr, "--screenshot", "0", image)
       }
@@ -148,7 +152,7 @@ object Cam {
     Util.runAllCommands(commands)
     println(s"finished ${commands.size} commands")
     val iFmtFf = "%0" + numlen + "d"
-    val imgFile = outDir.resolve(s"${imageId}_$iFmtFf.png").toAbsolutePath.toString
+    val imgFile = tmpWorkDir.resolve(s"${imageId}_$iFmtFf.png").toAbsolutePath.toString
     val qualStr = videoQuality.toString
     val outFiles = quality.frameRates.map { fr =>
       videoOutDir.resolve(s"${imageId}_${videoId}_${qualStr}_$fr.mp4").toAbsolutePath.toString
