@@ -89,7 +89,7 @@ object Automove {
 
   override def hashCode(): Int = super.hashCode()
 
-  def sunos2(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sunos2(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "One shell 8kpc",
       references = Seq(
@@ -133,7 +133,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def sunms2(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sunms2(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Three shells",
       references = Seq(
@@ -170,7 +170,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def sunnear1(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sunnear1(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Around the sun 2kpc",
       references = Seq(
@@ -207,7 +207,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def sund27(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sund27(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Around the sun 27pc",
       references = Seq(
@@ -236,7 +236,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def sund3(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sund3(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Movements near the sun",
       references = Seq(
@@ -265,7 +265,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def sund5(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sund5(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Directions in 3 shells",
       references = Seq(
@@ -302,7 +302,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def sund6(gcfg: GaiaImage, workDir: Path): Unit = {
+  def sund6(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Stars as spheres",
       references = Seq(
@@ -346,7 +346,7 @@ object Automove {
     createAutomove(gcfg, workDir, cfg)
   }
 
-  def dens1(gcfg: GaiaImage, workDir: Path): Unit = {
+  def dens1(gcfg: GaiaImage, workDir: Path, preview: Boolean = false): Unit = {
     val cfg = VideoConfig(
       name = "Stars density",
       references = Seq(

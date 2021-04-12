@@ -92,8 +92,8 @@ object Tryout {
 
     val bc = Color.veryDarkBlue
     val shapables = ShapableFactory.sphereCoordinates
-    val qual = VideoQuality.SVGA
-    val cams = cameras(ra = 0, dec = 20, 100.0)(qual.quality.steps)
+    val qual = mapVideoQuality(Main.VideoQuality.SVGA)
+    val cams = cameras(ra = 0, dec = 20, 100.0)(qual.steps)
     println(s"Using ${shapables.size} shapes")
 
     mkVideo("tryout_viewpont", "00", shapables, cams, qual, bc, Main.workPath)

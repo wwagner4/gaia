@@ -55,7 +55,7 @@ object Util {
       br.close()
     }
   }
- 
+
   def modelPath: Path = htmlPath.resolve("models")
 
   def htmlPath: Path = Path.of("src", "main", "html")
@@ -69,12 +69,14 @@ object Util {
 
   private def linearFunction(startValue: Double, endValue: Double): (Double) => Double = {
     def lin(a: Double, k: Double)(x: Double): Double = a + k * x
+
     val k = endValue - startValue
     lin(startValue, k)(_)
   }
 
   private def squaredFunction(startValue: Double, endValue: Double): (Double) => Double = {
     def lin(a: Double, k: Double)(x: Double): Double = a + k * x * x
+
     val k = endValue - startValue
     lin(startValue, k)(_)
   }
@@ -95,7 +97,7 @@ object Util {
     val f = squaredFunction(start, end)
     xValues(cnt).map(f)
   }
-  
+
   def recursiveCopy(sourceDir: Path, destinationDir: Path) = {
     if (Files.notExists(destinationDir)) Files.createDirectories(destinationDir)
     Files.walk(sourceDir).forEach((sourcePath: Path) => {
@@ -106,20 +108,17 @@ object Util {
       } catch {
         case ex: IOException => printf("I/O error: %s%n", ex)
       }
+
       foo(sourcePath)
     })
   }
 
   def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
 
-    class StreamGobbler(val inputStream: InputStream,   val errorStream: InputStream) extends Runnable {
+    class StreamGobbler(val inputStream: InputStream, val errorStream: InputStream) extends Runnable {
       private def handleInputStream(in: InputStream) = {
         val br = new BufferedReader(new InputStreamReader(in))
-        try {
-          br.lines().forEach(line => println(line))
-        } finally {
-          br.close()
-        }
+        br.lines().forEach(line => println(line))
       }
 
       override def run(): Unit = {
@@ -158,8 +157,8 @@ object Util {
         val done = states.filter(v => v).size
         val timeStr = "%.1f sec".format(timeMillis / 1000.0)
         println(s"--- running $timeStr. $done commands of $all are finished")
-        states =  futures.map(f => f.isDone)
-        timeMillis += sleepTimeMillis 
+        states = futures.map(f => f.isDone)
+        timeMillis += sleepTimeMillis
       }
       val exits = futures.map(f => f.get())
       println(s"--- finished all commands. Exit values: ${exits.mkString(",")}")

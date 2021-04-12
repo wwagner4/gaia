@@ -1,8 +1,5 @@
 package gaia
 
-
-import gaia.Cam.VideoQuality
-
 import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
@@ -17,6 +14,9 @@ object Main {
 
   lazy val workPath = getCreateWorkPath
 
+  enum VideoQuality:
+    case VGA, SVGA, HD, FullHD, UltraHD, _4k, _4kwide
+
   trait Identifiable {
     def id: String
   }
@@ -28,11 +28,10 @@ object Main {
                    ) extends Identifiable
 
 
-  type FuncCreate = (gaiaImage: GaiaImage, workDir: Path) => Unit
+  type FuncCreate = (gaiaImage: GaiaImage, workDir: Path, preview: Boolean) => Unit
 
   case class VideoConfig(
                           fVideo: FuncCreate,
-                          fVideoPreview: Option[FuncCreate] = None,
                         )
 
   case class StillConfig(
@@ -50,6 +49,7 @@ object Main {
                         videoConfig: Option[VideoConfig] = None,
                         stillConfig: Option[StillConfig] = None,
                         backColor: Color = Color.black,
+                        videoQuality: VideoQuality = VideoQuality.UltraHD,
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -59,9 +59,9 @@ object Main {
   val actions = identifiableToMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     Action("x3d", "create x3d files for an image", createX3d),
-    Action("vid", "create video sniplets from ax3d model", createVideo(_, _)),
-    Action("vidprev", "create preview video sniplets from a x3d model", createPreviewVideo(_, _)),
-    Action("still", "create still images from a x3d model", createStill(_, _)),
+    Action("vid", "create video sniplets from ax3d model", createVideo),
+    Action("vidprev", "create preview video sniplets from a x3d model", createPreviewVideo),
+    Action("still", "create still images from a x3d model", createStill),
     Action("tryout", "Tryout something during development by callin doIt()", Tryout.doit),
   ))
 
@@ -180,7 +180,7 @@ object Main {
       ImageFactory.sund1,
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
-      videoConfig = Some(VideoConfig(Cam.sund1Video(VideoQuality._4k), Some(Cam.sund1Video(VideoQuality.VGA)))),
+      videoConfig = Some(VideoConfig(Cam.sund1Video)),
       stillConfig = Some(StillConfig(Cam.sund1Still)),
     ),
     GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
@@ -233,7 +233,7 @@ object Main {
       desc = "around the galactic center",
       fCreateModel = ImageFactory.gc1,
       backColor = Color.veryDarkBlue,
-      videoConfig = Some(VideoConfig(Cam.g1cVideo(VideoQuality._4k), Some(Cam.g1cVideo(VideoQuality.VGA)))),
+      videoConfig = Some(VideoConfig(Cam.g1cVideo)),
     ),
     GaiaImage(id = "gcd1",
       desc = "around the galactic center",
@@ -320,12 +320,14 @@ object Main {
   private def createStill(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = !gi.stillConfig.isEmpty
 
-    def exec(gi: GaiaImage, wp: Path): Unit = gi.stillConfig.foreach(_.fStill(gi, wp))
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.stillConfig.foreach(_.fStill(gi, wp, false))
 
     createSomething(args, "still images", workPath, filter, exec)
   }
 
-  private def createSomething(args: List[String], name: String, workPath: Path, f: (gaiaImage: GaiaImage) => Boolean, e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
+  private def createSomething(args: List[String], name: String, workPath: Path, 
+                              f: (gaiaImage: GaiaImage) => Boolean, 
+                              e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
     val validImages = images.toList.filter { (k, i) => f(i) }.toMap
     val idsStr = validImages.values match {
       case l if l.isEmpty => "(None)"
@@ -345,17 +347,17 @@ object Main {
   private def createVideo(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = !gi.videoConfig.isEmpty
 
-    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp))
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, false))
 
     createSomething(args, "videos", workPath, filter, exec)
   }
 
   private def createPreviewVideo(args: List[String], workPath: Path): Unit = {
-    def filter(gaiaImage: GaiaImage): Boolean = !gaiaImage.videoConfig.isEmpty && gaiaImage.videoConfig.exists(c => c.fVideoPreview.isDefined)
+    def filter(gi: GaiaImage): Boolean = !gi.videoConfig.isEmpty
 
-    def exec(gaiaImage: GaiaImage, wp: Path): Unit = gaiaImage.videoConfig.foreach(vc => vc.fVideoPreview.foreach(f => f(gaiaImage, wp)))
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, true))
 
-    createSomething(args, "preview videos", workPath, filter, exec)
+    createSomething(args, "videos", workPath, filter, exec)
   }
 
   private def identifiableToMap[T <: Identifiable](identifables: Seq[T]): Map[String, T] = {
