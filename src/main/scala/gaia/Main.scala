@@ -38,8 +38,8 @@ object Main {
                         )
 
   case class CreditConfig(
-                           music: Option[String] = None,
-                        )
+                           references: Seq[String] = Seq(),
+                         )
 
   case class StillConfig(
                           fStill: FuncCreate,
@@ -194,6 +194,10 @@ object Main {
       videoQuality = VideoQuality._4k,
       videoConfig = Some(VideoConfig(Cam.sund1Video)),
       stillConfig = Some(StillConfig(Cam.sund1Still)),
+      credits = CreditConfig(references = Seq(
+        "music: lalala",
+        "creation: entelijan (entelijan.net)",
+      )),
     ),
     GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
       ImageFactory.sund2,

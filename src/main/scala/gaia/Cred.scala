@@ -5,16 +5,17 @@ import java.nio.file.{Files, Path}
 object Cred {
 
   import Main._
+  import Cam._
 
   def create(gaiaImage: GaiaImage, workPath: Path): Unit = {
 
-    val w: Int = ???
-    val h: Int = ???
+    val vq: VideoQuality = gaiaImage.videoQuality
+    val cvq = Cam.mapVideoQuality(vq)
+    val (w, h) = cvq.geometry
 
     def hp(percent: Int): String = {
       "%.0f".format(h * (percent.toDouble / 100))
     }
-
 
 
     val imgPath = workPath.resolve(gaiaImage.id)
@@ -55,7 +56,7 @@ object Cred {
          |</html>
          |""".stripMargin
 
-    val references: Seq[String] = ???
+    val references: Seq[String] = gaiaImage.credits.references
     val refs = references.map {
       ref =>
         s"""<div class="ref">
