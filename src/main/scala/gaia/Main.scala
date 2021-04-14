@@ -37,6 +37,10 @@ object Main {
                           fVideo: FuncCreate,
                         )
 
+  case class CreditConfig(
+                           music: Option[String] = None,
+                        )
+
   case class StillConfig(
                           fStill: FuncCreate,
                         )
@@ -53,6 +57,7 @@ object Main {
                         stillConfig: Option[StillConfig] = None,
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.UltraHD,
+                        credits: CreditConfig = CreditConfig()
                         videoSpeed: VideoSpeed = VideoSpeed.medium
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
@@ -66,6 +71,7 @@ object Main {
     Action("vid", "create video sniplets from ax3d model", createVideo),
     Action("vidprev", "create preview video sniplets from a x3d model", createPreviewVideo),
     Action("still", "create still images from a x3d model", createStill),
+    Action("cred", "create credits", createCredits),
     Action("tryout", "Tryout something during development by callin doIt()", Tryout.doit),
   ))
 
@@ -327,6 +333,14 @@ object Main {
     def filter(gi: GaiaImage): Boolean = !gi.stillConfig.isEmpty
 
     def exec(gi: GaiaImage, wp: Path): Unit = gi.stillConfig.foreach(_.fStill(gi, wp, false))
+
+    createSomething(args, "still images", workPath, filter, exec)
+  }
+
+  private def createCredits(args: List[String], workPath: Path): Unit = {
+    def filter(gi: GaiaImage): Boolean = true
+
+    def exec(gi: GaiaImage, wp: Path): Unit = Cred.create(gi, wp)
 
     createSomething(args, "still images", workPath, filter, exec)
   }
