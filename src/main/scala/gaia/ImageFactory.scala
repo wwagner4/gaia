@@ -122,7 +122,7 @@ object ImageFactory {
     val maxDist = 0.03
     val colors = Palette.p1c10.colors
     val lengthFactor = 0.00003
-    val radius = 0.0002
+    val radius = 0.00007
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, radius)
   }
 

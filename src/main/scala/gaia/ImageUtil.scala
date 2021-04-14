@@ -288,7 +288,7 @@ object ImageUtil {
       .map { s =>
         val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(a)
-        Shapable.Cylinder(color = c, position = s.pos, radius = radius, direction = s.dir.mul(lengthFactor))
+        Shapable.Cone(color = c, position = s.pos, radius = radius, direction = s.dir.mul(lengthFactor))
       }
 
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)

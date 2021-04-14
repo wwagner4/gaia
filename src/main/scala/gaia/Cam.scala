@@ -1,6 +1,6 @@
 package gaia
 
-import gaia.Main.{GaiaImage, VideoQuality}
+import gaia.Main.{GaiaImage, VideoQuality, VideoSpeed}
 import gaia.X3d.Shapable
 
 import java.nio.file.{Files, Path}
@@ -20,7 +20,6 @@ object Cam {
 
   case class VQuality(
                        id: String,
-                       steps: Int,
                        geometry: (Int, Int),
                        frameRates: Seq[Int],
                        antiAlias: Int = 4,
@@ -31,29 +30,36 @@ object Cam {
 
   def mapVideoQuality(videoQuality: VideoQuality): VQuality = videoQuality match {
 
-    case VideoQuality.VGA => VQuality("VGA", 10, (640, 480), Seq(1, 2, 4), 3)
+    case VideoQuality.VGA => VQuality("VGA", (640, 480), Seq(1, 2, 4), 3)
 
-    case VideoQuality.SVGA => VQuality("SVGA", 120, (800, 600), Seq(2, 4, 8), 3)
+    case VideoQuality.SVGA => VQuality("SVGA", (800, 600), Seq(2, 4, 8), 3)
 
-    case VideoQuality.HD => VQuality("HD", 240, (1200, 720), Seq(4, 8, 16), 2)
+    case VideoQuality.HD => VQuality("HD", (1200, 720), Seq(4, 8, 16), 2)
 
-    case VideoQuality.FullHD => VQuality("FullHD", 600, (1920, 1080), Seq(10, 20, 40), 2)
+    case VideoQuality.FullHD => VQuality("FullHD", (1920, 1080), Seq(10, 20, 40), 2)
 
-    case VideoQuality.UltraHD => VQuality("UltraHD", 1620, (2560, 1440), Seq(27), 1)
+    case VideoQuality.UltraHD => VQuality("UltraHD", (2560, 1440), Seq(27), 1)
 
-    case VideoQuality._4k => VQuality("4k", 1620, (3840, 2160), Seq(27), 1)
+    case VideoQuality._4k => VQuality("4k", (3840, 2160), Seq(27), 1)
 
-    case VideoQuality._4kwide => VQuality("4kwide", 1620, (4098, 2160), Seq(27), 1)
+    case VideoQuality._4kwide => VQuality("4kwide", (4098, 2160), Seq(27), 1)
 
+  }
+  
+  def mapVideospeed(videoSpeed: VideoSpeed): Int = videoSpeed match {
+    case VideoSpeed.slow => 5000
+    case VideoSpeed.medium => 2500
+    case VideoSpeed.fast => 2000
   }
 
 
   def sund1Still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
     val vq = VideoQuality.UltraHD
     val quality = mapVideoQuality(vq)
+    val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
     val camsWithIndex = Seq(
-      cameras(0, 20, 0.05)(quality.steps).zipWithIndex,
-      cameras(0, -45, 0.1)(quality.steps).zipWithIndex,
+      cameras(0, 20, 0.05)(steps).zipWithIndex,
+      cameras(0, -45, 0.1)(steps).zipWithIndex,
     ).flatten
     val shapables: Seq[Shapable] = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
 
@@ -78,13 +84,14 @@ object Cam {
     val vq = if preview then VideoQuality.VGA else gaiaImage.videoQuality
     val quality = mapVideoQuality(vq)
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
+    val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
     val cams = Seq(
-      CameraConfig("near", cameras(0, 20, 0.05)(quality.steps)),
-      CameraConfig("far", cameras(0, -45, 0.1, reverse = true)(quality.steps)),
+      CameraConfig("near", cameras(0, 20, 0.05)(steps)),
+      CameraConfig("far", cameras(0, -45, 0.1, reverse = true)(steps)),
     )
 
     cams.foreach { cconf =>
-      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, gaiaImage.backColor, workPath)
+      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
     }
   }
 
@@ -92,8 +99,9 @@ object Cam {
     val vq = if preview then VideoQuality.VGA else gaiaImage.videoQuality
     val quality = mapVideoQuality(vq)
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val cams = cameras(0, 20, 4)(quality.steps)
-    mkVideo(gaiaImage.id, "00", shapables, cams, quality, gaiaImage.backColor, workPath)
+    val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
+    val cams = cameras(0, 20, 4)(steps)
+    mkVideo(gaiaImage.id, "00", shapables, cams, quality, gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
   }
 
   def mkStillCommand(
@@ -125,6 +133,7 @@ object Cam {
                shapables: Seq[Shapable],
                cams: Seq[Camera],
                quality: VQuality,
+               speed: String,
                backColor: Color,
                workPath: Path) = {
     val numlen = 4
@@ -160,7 +169,7 @@ object Cam {
     val imgFile = tmpWorkDir.resolve(s"${imageId}_$iFmtFf.png").toAbsolutePath.toString
     val qualStr = quality.id
     val outFiles = quality.frameRates.map { fr =>
-      videoOutDir.resolve(s"${imageId}_${videoId}_${qualStr}_$fr.mp4").toAbsolutePath.toString
+      videoOutDir.resolve(s"${imageId}_${videoId}_${qualStr}_${speed}_$fr.mp4").toAbsolutePath.toString
     }
     val cmd = quality.frameRates.zip(outFiles).map { case (fr, outFile) =>
       Seq("ffmpeg", "-y", "-r", fr.toString, "-i", imgFile, outFile)

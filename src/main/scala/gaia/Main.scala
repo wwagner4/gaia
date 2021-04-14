@@ -17,6 +17,9 @@ object Main {
   enum VideoQuality:
     case VGA, SVGA, HD, FullHD, UltraHD, _4k, _4kwide
 
+  enum VideoSpeed:
+    case slow, medium, fast
+
   trait Identifiable {
     def id: String
   }
@@ -50,6 +53,7 @@ object Main {
                         stillConfig: Option[StillConfig] = None,
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.UltraHD,
+                        videoSpeed: VideoSpeed = VideoSpeed.medium
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -180,6 +184,8 @@ object Main {
       ImageFactory.sund1,
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
+      videoSpeed = VideoSpeed.slow,
+      videoQuality = VideoQuality._4k,
       videoConfig = Some(VideoConfig(Cam.sund1Video)),
       stillConfig = Some(StillConfig(Cam.sund1Still)),
     ),
@@ -325,8 +331,8 @@ object Main {
     createSomething(args, "still images", workPath, filter, exec)
   }
 
-  private def createSomething(args: List[String], name: String, workPath: Path, 
-                              f: (gaiaImage: GaiaImage) => Boolean, 
+  private def createSomething(args: List[String], name: String, workPath: Path,
+                              f: (gaiaImage: GaiaImage) => Boolean,
                               e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
     val validImages = images.toList.filter { (k, i) => f(i) }.toMap
     val idsStr = validImages.values match {

@@ -115,20 +115,35 @@ object Util {
 
   def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
 
-    class StreamGobbler(val inputStream: InputStream, val errorStream: InputStream) extends Runnable {
+    class StreamGobbler(val name: String, val inputStream: InputStream) extends Runnable {
       private def handleInputStream(in: InputStream) = {
-        val br = new BufferedReader(new InputStreamReader(in))
-        br.lines().forEach(line => println(line))
+
+        def handle(cnt: Int): Unit = {
+          val br = new BufferedReader(new InputStreamReader(in))
+          try {
+            br.lines().forEach(line => println(s"--- g ${name} $cnt -- $line"))
+            br.close()
+          } catch {
+            case e: Exception => {
+              try {
+                println(s"--- g ERROR ${cnt} reading process $name stream")
+                br.close()
+              } finally {
+                handle(cnt + 1)
+              }
+            }
+          }
+        }
+        handle(0)
       }
 
       override def run(): Unit = {
         handleInputStream(inputStream)
-        handleInputStream(errorStream)
       }
 
     }
 
-    val gobbleExec: ExecutorService = Executors.newSingleThreadExecutor()
+    val gobbleExec: ExecutorService = Executors.newFixedThreadPool(2)
     val procExec: ExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors)
     try {
       def start(cmd: List[String]): Int = {
@@ -136,11 +151,13 @@ object Util {
           .command(cmd.asJava)
           .start()
 
-        val streamGobbler = StreamGobbler(process.getInputStream(), process.getErrorStream)
-        gobbleExec.submit(streamGobbler)
-        println("--- started command: " + cmd.mkString(" "))
+        val inputGobbler = StreamGobbler("input", process.getInputStream())
+        gobbleExec.submit(inputGobbler)
+        val errorGobbler = StreamGobbler("error", process.getErrorStream())
+        gobbleExec.submit(errorGobbler)
+        println("--- g started command: " + cmd.mkString(" "))
         val procResult = process.waitFor()
-        println("--- finished command: " + cmd.mkString(" ") + " " + procResult)
+        println("--- g finished command: " + cmd.mkString(" ") + " " + procResult)
         procResult
       }
 
@@ -155,8 +172,6 @@ object Util {
         Thread.sleep(sleepTimeMillis)
         val all = states.size
         val done = states.filter(v => v).size
-        val timeStr = "%.1f sec".format(timeMillis / 1000.0)
-        println(s"--- running $timeStr. $done commands of $all are finished")
         states = futures.map(f => f.isDone)
         timeMillis += sleepTimeMillis
       }
