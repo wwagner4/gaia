@@ -57,8 +57,8 @@ object Main {
                         stillConfig: Option[StillConfig] = None,
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.UltraHD,
-                        credits: CreditConfig = CreditConfig()
-                        videoSpeed: VideoSpeed = VideoSpeed.medium
+                        credits: CreditConfig = CreditConfig(),
+                        videoSpeed: VideoSpeed = VideoSpeed.medium,
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
