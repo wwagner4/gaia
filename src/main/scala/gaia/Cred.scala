@@ -17,10 +17,11 @@ object Cred {
       "%.0f".format(h * (percent.toDouble / 100))
     }
 
-
     val imgPath = workPath.resolve(gaiaImage.id)
     val creditsDir = imgPath.resolve("credits")
     if Files.notExists(creditsDir) then Files.createDirectories(creditsDir)
+    val tmpWorkDir = Files.createTempDirectory(gaiaImage.id)
+
 
     val txt = gaiaImage.text
 
@@ -97,8 +98,8 @@ object Cred {
     val openingName = s"opening_${gaiaImage.id}"
     val closingName = s"closing_${gaiaImage.id}"
 
-    val openingHtmlFile = creditsDir.resolve(s"${openingName}.html")
-    val closingHtmlFile = creditsDir.resolve(s"${closingName}.html")
+    val openingHtmlFile = tmpWorkDir.resolve(s"${openingName}.html")
+    val closingHtmlFile = tmpWorkDir.resolve(s"${closingName}.html")
 
     val openingImageFile = creditsDir.resolve(s"${openingName}.png")
     val closingImageFile = creditsDir.resolve(s"${closingName}.png")
@@ -106,7 +107,7 @@ object Cred {
     Util.writeString(openingHtmlFile, openingContent)
     Util.writeString(closingHtmlFile, closingContent)
 
-    Util.recursiveCopy(Path.of("src", "main", "html", "css"), creditsDir.resolve("css"))
+    Util.recursiveCopy(Path.of("src", "main", "html", "css"), tmpWorkDir.resolve("css"))
 
     val openingCmd = Seq("google-chrome", "--headless", s"-window-size=$w,$h", s"--screenshot=${openingImageFile.toAbsolutePath}", s"${openingHtmlFile.toAbsolutePath}")
     val closingCmd = Seq("google-chrome", "--headless", s"-window-size=$w,$h", s"--screenshot=${closingImageFile.toAbsolutePath}", s"${closingHtmlFile.toAbsolutePath}")
