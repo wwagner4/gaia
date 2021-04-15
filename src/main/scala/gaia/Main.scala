@@ -14,8 +14,14 @@ object Main {
 
   lazy val workPath = getCreateWorkPath
 
-  enum VideoQuality:
-    case VGA, SVGA, HD, FullHD, UltraHD, _4k, _4kwide
+  enum VideoQuality(val width: Int, val height: Int):
+    case VGA extends VideoQuality(640, 480)
+    case SVGA extends VideoQuality(800, 600)
+    case HD extends VideoQuality(1200, 720)
+    case FullHD extends VideoQuality(1920, 1080)
+    case UltraHD extends VideoQuality(2560, 1440)
+    case _4k extends VideoQuality(3840, 2160)
+    case _4kwide extends VideoQuality(4098, 2160)
 
   enum VideoSpeed:
     case slow, medium, fast

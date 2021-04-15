@@ -92,11 +92,11 @@ object Tryout {
 
     val bc = Color.veryDarkBlue
     val shapables = ShapableFactory.sphereCoordinates
-    val qual = mapVideoQuality(Main.VideoQuality.SVGA)
+    val qual = Main.VideoQuality.SVGA
     val cams = cameras(ra = 0, dec = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", "00", shapables, cams, qual, "m", bc, Main.workPath)
+    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, Seq(10), "m", bc, Main.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {

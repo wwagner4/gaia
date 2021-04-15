@@ -1,8 +1,5 @@
 package gaia
 
-import gaia.Main.{GaiaImage, VideoQuality, VideoSpeed}
-import gaia.X3d.Shapable
-
 import java.nio.file.{Files, Path}
 import scala.collection.SeqView.Reverse
 import scala.util.Random
@@ -11,6 +8,7 @@ object Cam {
 
   import Vector._
   import X3d._
+  import Main._
 
   case class Camera(
                      name: String,
@@ -18,44 +16,15 @@ object Cam {
                      dir: Vec,
                    )
 
-  case class VQuality(
-                       id: String,
-                       geometry: (Int, Int),
-                       frameRates: Seq[Int],
-                       antiAlias: Int = 4,
-                     ) {
-    override def toString: String = this.id
-  }
-  
-
-  def mapVideoQuality(videoQuality: VideoQuality): VQuality = videoQuality match {
-
-    case VideoQuality.VGA => VQuality("VGA", (640, 480), Seq(1, 2, 4), 3)
-
-    case VideoQuality.SVGA => VQuality("SVGA", (800, 600), Seq(2, 4, 8), 3)
-
-    case VideoQuality.HD => VQuality("HD", (1200, 720), Seq(4, 8, 16), 2)
-
-    case VideoQuality.FullHD => VQuality("FullHD", (1920, 1080), Seq(10, 20, 40), 2)
-
-    case VideoQuality.UltraHD => VQuality("UltraHD", (2560, 1440), Seq(27), 1)
-
-    case VideoQuality._4k => VQuality("4k", (3840, 2160), Seq(27), 1)
-
-    case VideoQuality._4kwide => VQuality("4kwide", (4098, 2160), Seq(27), 1)
-
-  }
-  
   def mapVideospeed(videoSpeed: VideoSpeed): Int = videoSpeed match {
     case VideoSpeed.slow => 5000
     case VideoSpeed.medium => 2500
     case VideoSpeed.fast => 2000
   }
 
-
   def sund1Still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
     val vq = VideoQuality.UltraHD
-    val quality = mapVideoQuality(vq)
+    val quality = gaiaImage.videoQuality
     val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
     val camsWithIndex = Seq(
       cameras(0, 20, 0.05)(steps).zipWithIndex,
@@ -68,7 +37,7 @@ object Cam {
       .take(20)
       .zipWithIndex
       .map { case ((cam, vpId), stillId) =>
-        mkStillCommand(gaiaImage.id, stillId.toString, cam, quality, shapables, gaiaImage.backColor, workPath)
+        mkStillCommand(gaiaImage.id, stillId.toString, cam, quality, 2, shapables, gaiaImage.backColor, workPath)
       }
 
     Util.runAllCommands(commands)
@@ -82,7 +51,7 @@ object Cam {
                              cams: Seq[Camera],
                            )
     val vq = if preview then VideoQuality.VGA else gaiaImage.videoQuality
-    val quality = mapVideoQuality(vq)
+    val quality = gaiaImage.videoQuality
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
     val cams = Seq(
@@ -91,24 +60,24 @@ object Cam {
     )
 
     cams.foreach { cconf =>
-      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
+      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, 2, Seq(10), gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
     }
   }
 
   def g1cVideo(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false) = {
-    val vq = if preview then VideoQuality.VGA else gaiaImage.videoQuality
-    val quality = mapVideoQuality(vq)
+    val quality = if preview then VideoQuality.VGA else gaiaImage.videoQuality
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
     val cams = cameras(0, 20, 4)(steps)
-    mkVideo(gaiaImage.id, "00", shapables, cams, quality, gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
+    mkVideo(gaiaImage.id, "00", shapables, cams, quality, 3, Seq(10), gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
   }
 
   def mkStillCommand(
                       imageId: String,
                       stillId: String,
                       cam: Camera,
-                      qual: VQuality,
+                      qual: VideoQuality,
+                      antiAlias: Int,
                       shapables: Seq[Shapable],
                       backColor: Color,
                       workPath: Path): Iterable[String] = {
@@ -119,10 +88,10 @@ object Cam {
     val xml = X3d.createXml(shapables, x3dFile.getFileName.toString, backColor, Seq(cam))
     gaia.Util.writeString(x3dFile, xml)
 
-    val geometryStr = s"${qual.geometry._1}x${qual.geometry._2}"
+    val geometryStr = s"${qual.width}x${qual.height}"
     val x3dPath = x3dFile.toAbsolutePath.toString
     val stillFile = stillOutDir.resolve(s"${imageId}_${stillId}.png").toAbsolutePath.toString
-    Seq("view3dscene", x3dPath, "--anti-alias", qual.antiAlias.toString, "--viewpoint", "0",
+    Seq("view3dscene", x3dPath, "--anti-alias", antiAlias.toString, "--viewpoint", "0",
       "--geometry", geometryStr, "--screenshot", "0", stillFile)
   }
 
@@ -132,7 +101,9 @@ object Cam {
                videoId: String,
                shapables: Seq[Shapable],
                cams: Seq[Camera],
-               quality: VQuality,
+               quality: VideoQuality,
+               antiAlias: Int,
+               frameRates: Seq[Int],
                speed: String,
                backColor: Color,
                workPath: Path) = {
@@ -155,10 +126,10 @@ object Cam {
         Files.copy(x3d0File, x3dFile)
         println(s"copied to $x3dFile")
 
-        val geometryStr = s"${quality.geometry._1}x${quality.geometry._2}"
+        val geometryStr = s"${quality.width}x${quality.height}"
         val model = x3dFile.toAbsolutePath.toString
         val image = tmpWorkDir.resolve(s"${imageId}_${iStr}.png").toAbsolutePath.toString
-        Seq("view3dscene", model, "--anti-alias", quality.antiAlias.toString, "--viewpoint", i.toString,
+        Seq("view3dscene", model, "--anti-alias", antiAlias.toString, "--viewpoint", i.toString,
           "--geometry", geometryStr, "--screenshot", "0", image)
       }
 
@@ -167,11 +138,11 @@ object Cam {
     println(s"finished ${commands.size} commands")
     val iFmtFf = "%0" + numlen + "d"
     val imgFile = tmpWorkDir.resolve(s"${imageId}_$iFmtFf.png").toAbsolutePath.toString
-    val qualStr = quality.id
-    val outFiles = quality.frameRates.map { fr =>
+    val qualStr = quality.toString
+    val outFiles = frameRates.map { fr =>
       videoOutDir.resolve(s"${imageId}_${videoId}_${qualStr}_${speed}_$fr.mp4").toAbsolutePath.toString
     }
-    val cmd = quality.frameRates.zip(outFiles).map { case (fr, outFile) =>
+    val cmd = frameRates.zip(outFiles).map { case (fr, outFile) =>
       Seq("ffmpeg", "-y", "-r", fr.toString, "-i", imgFile, outFile)
     }
     Util.runAllCommands(cmd)

@@ -10,8 +10,8 @@ object Cred {
   def create(gaiaImage: GaiaImage, workPath: Path): Unit = {
 
     val vq: VideoQuality = gaiaImage.videoQuality
-    val cvq = Cam.mapVideoQuality(vq)
-    val (w, h) = cvq.geometry
+    val w = vq.width
+    val h = vq.height
 
     def hp(percent: Int): String = {
       "%.0f".format(h * (percent.toDouble / 100))
