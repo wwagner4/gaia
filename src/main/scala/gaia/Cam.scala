@@ -10,6 +10,9 @@ object Cam {
   import X3d._
   import Main._
 
+  enum VideoSpeed:
+    case slow, medium, fast
+
   case class Camera(
                      name: String,
                      pos: Vec,
@@ -25,7 +28,8 @@ object Cam {
   def sund1Still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
     val vq = VideoQuality.UltraHD
     val quality = gaiaImage.videoQuality
-    val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
+    val videoSpeed = VideoSpeed.slow
+    val steps = if preview then 100 else mapVideospeed(videoSpeed)
     val camsWithIndex = Seq(
       cameras(0, 20, 0.05)(steps).zipWithIndex,
       cameras(0, -45, 0.1)(steps).zipWithIndex,
@@ -53,23 +57,24 @@ object Cam {
     val vq = if preview then VideoQuality.VGA else gaiaImage.videoQuality
     val quality = gaiaImage.videoQuality
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
+    val videoSpeed = VideoSpeed.medium
+    val steps = if preview then 100 else mapVideospeed(videoSpeed)
     val cams = Seq(
       CameraConfig("near", cameras(0, 20, 0.05)(steps)),
       CameraConfig("far", cameras(0, -45, 0.1, reverse = true)(steps)),
     )
-
     cams.foreach { cconf =>
-      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, 2, Seq(10), gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
+      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams, quality, 2, Seq(10), videoSpeed.toString, gaiaImage.backColor, workPath)
     }
   }
 
   def g1cVideo(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false) = {
     val quality = if preview then VideoQuality.VGA else gaiaImage.videoQuality
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val steps = if preview then 100 else mapVideospeed(gaiaImage.videoSpeed)
+    val videoSpeed = VideoSpeed.medium
+    val steps = if preview then 100 else mapVideospeed(videoSpeed)
     val cams = cameras(0, 20, 4)(steps)
-    mkVideo(gaiaImage.id, "00", shapables, cams, quality, 3, Seq(10), gaiaImage.videoSpeed.toString, gaiaImage.backColor, workPath)
+    mkVideo(gaiaImage.id, "00", shapables, cams, quality, 3, Seq(10), videoSpeed.toString, gaiaImage.backColor, workPath)
   }
 
   def mkStillCommand(

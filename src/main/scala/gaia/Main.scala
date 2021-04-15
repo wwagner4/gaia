@@ -23,9 +23,6 @@ object Main {
     case _4k extends VideoQuality(3840, 2160)
     case _4kwide extends VideoQuality(4098, 2160)
 
-  enum VideoSpeed:
-    case slow, medium, fast
-
   trait Identifiable {
     def id: String
   }
@@ -64,7 +61,6 @@ object Main {
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.UltraHD,
                         credits: CreditConfig = CreditConfig(),
-                        videoSpeed: VideoSpeed = VideoSpeed.medium,
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -196,7 +192,6 @@ object Main {
       ImageFactory.sund1,
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
-      videoSpeed = VideoSpeed.slow,
       videoQuality = VideoQuality._4k,
       videoConfig = Some(VideoConfig(Cam.sund1Video)),
       stillConfig = Some(StillConfig(Cam.sund1Still)),
