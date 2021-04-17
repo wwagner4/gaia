@@ -157,16 +157,12 @@ object ImageUtil {
     spaceMotionToGalacticMotion(star, sm)
   }
 
-  def writeModelToFile(gaiaImage: GaiaImage, workPath: Path): Unit = {
+  def writeModelToFile(gaiaImage: GaiaImage, file: Path): Unit = {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val modelsPath = workPath.resolve("models")
     if (notExists(modelsPath)) createDirectories(modelsPath)
     val bgColor = gaiaImage.backColor
     val id = gaiaImage.id
-    val file = {
-      val fnam = s"$id.x3d"
-      modelsPath.resolve(fnam)
-    }
     val xml = X3d.createXml(shapables, file.getFileName.toString, bgColor)
     gaia.Util.writeString(file, xml)
     println(s"Created image for $id at ${file.toAbsolutePath}")
@@ -292,7 +288,7 @@ object ImageUtil {
       .map { s =>
         val a = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
         val c = colors(a)
-        Shapable.Cylinder(color = c, position = s.pos, radius = radius, direction = s.dir.mul(lengthFactor))
+        Shapable.Cone(color = c, position = s.pos, radius = radius, direction = s.dir.mul(lengthFactor))
       }
 
     starsShapable ++ shapablesCoordinatesGray(maxDist * 1.2, bgColor)

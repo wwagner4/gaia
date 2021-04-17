@@ -122,7 +122,7 @@ object ImageFactory {
     val maxDist = 0.03
     val colors = Palette.p1c10.colors
     val lengthFactor = 0.00003
-    val radius = 0.0002
+    val radius = 0.00007
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, radius)
   }
 
@@ -322,7 +322,7 @@ object ImageFactory {
     val maxDist = 3
     val cols: Seq[Color] = X3d.Palette.p9c6.colors
     val cnt = cols.size
-    val dens = 0.1
+    val dens = 0.2
 
     def colorForDistance(s: StarPosDir): Color = {
       val i = math.floor(cnt * s.pos.length / maxDist).toInt
@@ -346,14 +346,14 @@ object ImageFactory {
     }
 
     val circleShapes = {
-      (2 to(25, 2)).map { r =>
+      (5 to(40, 5)).map { r =>
         Shapable.Circle(translation = Vec.zero,
           rotation = Vec(0, 0, 0),
-          color = Color.gray(0.1), radius = r * 0.1)
+          color = Color.gray(0.4), radius = r * 0.1)
       }
     }
 
-    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.2), bc)
+    val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.4), bc)
 
     starShapes ++ circleShapes ++ coordshapes
   }

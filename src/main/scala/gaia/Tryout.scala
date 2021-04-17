@@ -92,11 +92,11 @@ object Tryout {
 
     val bc = Color.veryDarkBlue
     val shapables = ShapableFactory.sphereCoordinates
-    val cams = cameras(ra = 0, dec = 20, 100.0)
-    val qual = VideoQuality.SVGA
+    val qual = Main.VideoQuality.SVGA
+    val cams = cameras(ra = 0, dec = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", shapables, cams, qual, bc)
+    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, Seq(10), "m", bc, Main.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {
@@ -394,8 +394,8 @@ object Tryout {
 
       def rich: Seq[Star] = {
         cone(Vec.zero)
-        ++ cone (Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
-        ++ cone (Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
+          ++ cone(Vec(0, 1500, 0)) ++ cone(Vec(0, -1500, 0))
+          ++ cone(Vec(0, 0, 1500)) ++ cone(Vec(0, 0, -1500))
       }
 
       def sparse: Seq[Star] = {

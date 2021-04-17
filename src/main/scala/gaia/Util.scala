@@ -55,7 +55,7 @@ object Util {
       br.close()
     }
   }
- 
+
   def modelPath: Path = htmlPath.resolve("models")
 
   def htmlPath: Path = Path.of("src", "main", "html")
@@ -69,12 +69,14 @@ object Util {
 
   private def linearFunction(startValue: Double, endValue: Double): (Double) => Double = {
     def lin(a: Double, k: Double)(x: Double): Double = a + k * x
+
     val k = endValue - startValue
     lin(startValue, k)(_)
   }
 
   private def squaredFunction(startValue: Double, endValue: Double): (Double) => Double = {
     def lin(a: Double, k: Double)(x: Double): Double = a + k * x * x
+
     val k = endValue - startValue
     lin(startValue, k)(_)
   }
@@ -95,7 +97,7 @@ object Util {
     val f = squaredFunction(start, end)
     xValues(cnt).map(f)
   }
-  
+
   def recursiveCopy(sourceDir: Path, destinationDir: Path) = {
     if (Files.notExists(destinationDir)) Files.createDirectories(destinationDir)
     Files.walk(sourceDir).forEach((sourcePath: Path) => {
@@ -106,30 +108,42 @@ object Util {
       } catch {
         case ex: IOException => printf("I/O error: %s%n", ex)
       }
+
       foo(sourcePath)
     })
   }
 
   def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
 
-    class StreamGobbler(val inputStream: InputStream,   val errorStream: InputStream) extends Runnable {
+    class StreamGobbler(val name: String, val inputStream: InputStream) extends Runnable {
       private def handleInputStream(in: InputStream) = {
-        val br = new BufferedReader(new InputStreamReader(in))
-        try {
-          br.lines().forEach(line => println(line))
-        } finally {
-          br.close()
+
+        def handle(cnt: Int): Unit = {
+          val br = new BufferedReader(new InputStreamReader(in))
+          try {
+            br.lines().forEach(line => println(s"--- g ${name} $cnt -- $line"))
+            br.close()
+          } catch {
+            case e: Exception => {
+              try {
+                println(s"--- g ERROR ${cnt} reading process $name stream")
+                br.close()
+              } finally {
+                handle(cnt + 1)
+              }
+            }
+          }
         }
+        handle(0)
       }
 
       override def run(): Unit = {
         handleInputStream(inputStream)
-        handleInputStream(errorStream)
       }
 
     }
 
-    val gobbleExec: ExecutorService = Executors.newSingleThreadExecutor()
+    val gobbleExec: ExecutorService = Executors.newFixedThreadPool(2)
     val procExec: ExecutorService = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors)
     try {
       def start(cmd: List[String]): Int = {
@@ -137,11 +151,13 @@ object Util {
           .command(cmd.asJava)
           .start()
 
-        val streamGobbler = StreamGobbler(process.getInputStream(), process.getErrorStream)
-        gobbleExec.submit(streamGobbler)
-        println("--- started command: " + cmd.mkString(" "))
+        val inputGobbler = StreamGobbler("input", process.getInputStream())
+        gobbleExec.submit(inputGobbler)
+        val errorGobbler = StreamGobbler("error", process.getErrorStream())
+        gobbleExec.submit(errorGobbler)
+        println("--- g started command: " + cmd.mkString(" "))
         val procResult = process.waitFor()
-        println("--- finished command: " + cmd.mkString(" ") + " " + procResult)
+        println("--- g finished command: " + cmd.mkString(" ") + " " + procResult)
         procResult
       }
 
@@ -150,12 +166,14 @@ object Util {
         procExec.submit(() => start(cmd.toList))
       }
       var states = futures.map(f => f.isDone)
+      val sleepTimeMillis = 1000
+      var timeMillis = 0
       while (!states.forall(s => s)) {
-        Thread.sleep(500)
+        Thread.sleep(sleepTimeMillis)
         val all = states.size
         val done = states.filter(v => v).size
-        println(s"--- Check futures. $done of $all done")
-        states =  futures.map(f => f.isDone)
+        states = futures.map(f => f.isDone)
+        timeMillis += sleepTimeMillis
       }
       val exits = futures.map(f => f.get())
       println(s"--- finished all commands. Exit values: ${exits.mkString(",")}")

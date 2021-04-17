@@ -146,9 +146,10 @@ object X3d {
 
     case class Cone(
                      position: Vec, direction: Vec = Vec(1, 0, 0),
-                     radius: Double = 1.0, height: Double = 1.0,
+                     radius: Double = 1.0, 
                      color: Color = Color.green) extends Shapable {
       def toShape = {
+        val height = direction.length
         val rotPol = direction.toPolarVec
         val ry = -rotPol.dec
         val rz = rotPol.ra
