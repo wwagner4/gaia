@@ -1,6 +1,7 @@
 package gaia
 
 import java.nio.file.{Files, Path}
+import scala.annotation.tailrec
 import scala.collection.SeqView.Reverse
 import scala.util.Random
 
@@ -159,6 +160,7 @@ object Cam {
   def degSteps(n: Int, reverse: Boolean): Seq[Double] = {
     val d = 360.0 / n
     if reverse then {
+      @tailrec
       def rs(x: Double, res: List[Double]): List[Double] = {
         if x <= 0 then res
         else rs(x - d, x :: res)
@@ -167,6 +169,7 @@ object Cam {
       rs(360, List.empty[Double]).reverse
     }
     else {
+      @tailrec
       def rs(x: Double, res: List[Double]): List[Double] = {
         if x >= 360 then res
         else rs(x + d, x :: res)
@@ -176,19 +179,32 @@ object Cam {
     }
   }
 
-  def cameras(ra: Int, dec: Int, radius: Double, name: String = "gaiadefined", reverse: Boolean = false)(steps: Int): Seq[Camera] = {
-    degSteps(steps, reverse)
-      .zip(LazyList.continually(PolarVec(radius, 0, 0)))
-      .map { (d, v) => v.copy(ra = degToRad(d)) }
-      .map(pv => pv.toVec)
+  def cameras(ra: Int, dec: Int, radius: Double,
+              name: String = "gaiadefined", reverse: Boolean = false,
+              eccentricity: Double = 0.0)(frames: Int): Seq[Camera] = {
+    degSteps(frames, reverse)
+      .map(degToRad)
+      .map(rad => ellipse(radius, eccentricity, rad))
       .map(v => v.roty(-degToRad(dec)))
       .map(v => v.rotz(degToRad(ra)))
       .zipWithIndex
-      .map { (v, i) =>
-        val nam = f"${name}_${i}%04d"
+      .map { (v: Vec, i: Int) =>
+        val nam = f"${name}_$i%04d"
         val dir = Vec.zero.sub(v)
         Camera(nam, v, dir)
       }
+  }
+
+  def ellipse(r: Double, e: Double, degInRad: Double): Vec = {
+    val v1 = PolarVec(r, degInRad, 0).toVec
+    val r2 = r * r
+    val x2 = v1.x * v1.x
+    val e2 = e * e
+    val y =
+      if v1.y > 0
+      then math.sqrt(r2 * (1.0 - e2) * (1.0 - x2 / r2))
+      else -math.sqrt(r2 * (1.0 - e2) * (1.0 - x2 / r2))
+    Vec(v1.x, y, v1.z)
   }
 
 
