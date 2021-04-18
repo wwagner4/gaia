@@ -12,7 +12,7 @@ object Main {
   import X3d._
   import Vector._
 
-  lazy val workPath = getCreateWorkPath
+  lazy val workPath: Path = getCreateWorkPath
 
   enum VideoQuality(val width: Int, val height: Int):
     case VGA extends VideoQuality(640, 480)
@@ -67,7 +67,7 @@ object Main {
     def renderWithBrowser: Boolean = hpOrder.isDefined
   }
 
-  val actions = identifiableToMap(Seq(
+  val actions: Map[String, Action] = identifiableToMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
     Action("x3d", "create x3d files for an image", createX3d),
     Action("vid", "create video sniplets from ax3d model", createVideo),
@@ -193,11 +193,13 @@ object Main {
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
       videoQuality = VideoQuality._4k,
-      videoConfig = Some(VideoConfig(Cam.sund1Video)),
-      stillConfig = Some(StillConfig(Cam.sund1Still)),
+      videoConfig = Some(VideoConfig(Cam.Sund1.video)),
+      stillConfig = Some(StillConfig(Cam.Sund1.still)),
       credits = CreditConfig(references = Seq(
-        "music: lalala",
-        "creation: entelijan (entelijan.net)",
+        "creation: entelijan",
+        "http://entelijan.net",
+        "music: Daniel Birch",
+        "https://freemusicarchive.org/music/Daniel_Birch",
       )),
     ),
     GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
@@ -250,7 +252,14 @@ object Main {
       desc = "around the galactic center",
       fCreateModel = ImageFactory.gc1,
       backColor = Color.veryDarkBlue,
-      videoConfig = Some(VideoConfig(Cam.g1cVideo)),
+      videoConfig = Some(VideoConfig(Cam.Gc1.video)),
+      stillConfig = Some(StillConfig(Cam.Gc1.still)),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+        "music: Dee Yan-Key",
+        "https://freemusicarchive.org/music/Dee_Yan-Key",
+      )),
     ),
     GaiaImage(id = "gcd1",
       desc = "around the galactic center",
@@ -279,7 +288,7 @@ object Main {
     ),
   ))
 
-  private def usage(message: Option[String]) = {
+  private def usage(message: Option[String]): Unit = {
     val drawingIds = actions.values.map(d => f"  ${d.id}%7s | ${d.desc}").mkString("\n")
     val messageString = message.map(m => "\nERROR: " + m + "\n").getOrElse("")
     val msg =
@@ -302,14 +311,13 @@ object Main {
       case _ :: rest => rest
     }
 
-    val bgColor = X3d.Color.darkBlue
     if (args.length >= 1) {
       val actionId = args(0)
       try {
         println(s"Run $actionId. Workdir ${workPath.toAbsolutePath}")
         actions.get(actionId).map(c => c.call(rest(args), workPath)).getOrElse(usage(Some(s"Illegal Action ID $actionId")))
       } catch {
-        case (e: IllegalArgumentException) => usage(Some(e.getMessage))
+        case e: IllegalArgumentException => usage(Some(e.getMessage))
       }
     } else
       usage(Some("You must define an Action-ID"))
@@ -323,7 +331,7 @@ object Main {
     val infoList = imagesInfo.map(i => f"${i.id}%15s | ${i.desc}").mkString("\n")
     val info = "Define an ID for creating an x3d file:\n" + infoList
     if (args.size < 1) throw new IllegalArgumentException(info)
-    val id = args(0)
+    val id = args.head
     images.get(id) match {
       case None => throw new IllegalArgumentException(s"Unknown ID $id for creating an x3d file. $info")
       case Some(gaiaImage) =>
@@ -335,7 +343,7 @@ object Main {
   }
 
   private def createStill(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = !gi.stillConfig.isEmpty
+    def filter(gi: GaiaImage): Boolean = gi.stillConfig.isDefined
 
     def exec(gi: GaiaImage, wp: Path): Unit = gi.stillConfig.foreach(_.fStill(gi, wp, false))
 
@@ -353,14 +361,14 @@ object Main {
   private def createSomething(args: List[String], name: String, workPath: Path,
                               f: (gaiaImage: GaiaImage) => Boolean,
                               e: (gaiaImage: GaiaImage, wp: Path) => Unit): Unit = {
-    val validImages = images.toList.filter { (k, i) => f(i) }.toMap
+    val validImages = images.toList.filter { (_, i) => f(i) }.toMap
     val idsStr = validImages.values match {
       case l if l.isEmpty => "(None)"
       case l => l.map(i => i.id).mkString(",")
     }
     val info = "Valid IDs: " + idsStr
     if (args.size < 1) throw IllegalArgumentException(s"Define an ID for creating $name. $info")
-    val id = args(0)
+    val id = args.head
     validImages.get(id) match {
       case None => throw IllegalArgumentException(s"Unknown ID $id for creating $name. $info")
       case Some(gaiaImage) =>
@@ -370,7 +378,7 @@ object Main {
   }
 
   private def createVideo(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = !gi.videoConfig.isEmpty
+    def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
 
     def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, false))
 
@@ -378,7 +386,7 @@ object Main {
   }
 
   private def createPreviewVideo(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = !gi.videoConfig.isEmpty
+    def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
 
     def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, true))
 
@@ -399,7 +407,7 @@ object Main {
     }
 
     val env = System.getenv("GAIA_WORK_BASE")
-    if (env != null && !env.isEmpty) {
+    if (env != null && env.nonEmpty) {
       val base = Path.of(env)
       workFromBase(base)
     } else {

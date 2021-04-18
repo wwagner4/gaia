@@ -26,51 +26,58 @@ object Cam {
                            cams: FCams,
                            durationInSec: Int,
                          )
+  
+  object Sund1 {
+    val sund1cams = Seq(
+      CameraConfig("near", cameras(0, 20, 0.05), 60),
+      CameraConfig("far", cameras(0, -45, 0.1, reverse = true), 60),
+    )
 
-  val sund1cams = Seq(
-    CameraConfig("near", cameras(0, 20, 0.05), 60),
-    CameraConfig("far", cameras(0, -45, 0.1, reverse = true), 60),
-  )
-
-  def sund1Still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
-    Random.setSeed(92838472983L)
-    mkStill(gaiaImage, workPath)
-
-  }
-
-  def sund1Video(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
-    val quality = calcQuality(preview, gaiaImage)
-    val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val frameRate = calcFrameRate(preview)
-    sund1cams.foreach { cconf =>
-      val steps = frameRate * cconf.durationInSec
-      mkVideo(gaiaImage.id, cconf.id, shapables, cconf.cams(steps), quality, 2, frameRate, gaiaImage.backColor, workPath)
+    def video(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      mkVideoCameraConfig(gaiaImage, sund1cams, workPath, preview)
     }
+
+    def still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      Random.setSeed(92838472983L)
+      mkStillcameraConfig(gaiaImage, sund1cams, workPath)
+    }
+
   }
 
-  val gc1cams = Seq(
-    CameraConfig("near", cameras(0, 20, 4), 60),
-    CameraConfig("far", cameras(0, -45, 6, reverse = true), 60),
-  )
+  
+  object Gc1 {
+    val gc1cams = Seq(
+      CameraConfig("near", cameras(0, 20, 4), 60),
+      CameraConfig("far", cameras(0, -45, 6, reverse = true), 60),
+    )
 
-  def g1cVideo(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+    def video(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      mkVideoCameraConfig(gaiaImage, gc1cams, workPath, preview)
+    }
+
+    def still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      Random.setSeed(92838472983L)
+      mkStillcameraConfig(gaiaImage, gc1cams, workPath)
+    }
+
+  }
+  private def mkVideoCameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path, preview: Boolean): Unit = {
     val quality = calcQuality(preview, gaiaImage)
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val frameRate = calcFrameRate(preview)
 
-    gc1cams.foreach{cfg =>
+    cameraConfigs.foreach { cfg =>
       val duration = cfg.durationInSec
       val steps = duration * frameRate
       val cams = cfg.cams(steps)
       mkVideo(gaiaImage.id, cfg.id, shapables, cams, quality, 3, frameRate, gaiaImage.backColor, workPath)
     }
-    
   }
 
-  def mkStill(gaiaImage: GaiaImage, workPath: Path): Unit = {
+  def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {
     val quality = gaiaImage.videoQuality
     val frameRate = calcFrameRate(false)
-    val cams = sund1cams
+    val cams = cameraConfigs
       .flatMap { ccfg =>
         val steps = frameRate * ccfg.durationInSec
         Random.shuffle(ccfg.cams(steps)).take(10)
