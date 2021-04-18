@@ -74,6 +74,7 @@ object Main {
     Action("vidprev", "create preview video sniplets from a x3d model", createPreviewVideo),
     Action("still", "create still images from a x3d model", createStill),
     Action("cred", "create credits", createCredits),
+    Action("credtxt", "create credits", createCreditsTxt),
     Action("tryout", "Tryout something during development by callin doIt()", Tryout.doit),
   ))
 
@@ -188,8 +189,13 @@ object Main {
       video = Some("https://www.youtube.com/embed/JuK80k5m4vU"),
       videoConfig = Some(VideoConfig(Automove.sund27)),
     ),
-    GaiaImage("sund1", "direction and velocety of stars to a distace of 40 pc",
-      ImageFactory.sund1,
+    GaiaImage(id = "sund1",
+      desc = "around the sun 40",
+      textVal = Some(
+        """direction and velocety of stars up to a distace of 40 pc
+          |""".stripMargin),
+      fCreateModel = ImageFactory.sund1,
+      video = Some(" https://youtu.be/AZaBZWo0uwQ"),
       hpOrder = Some(100),
       backColor = Color.veryDarkGreen,
       videoQuality = VideoQuality._4k,
@@ -208,7 +214,7 @@ object Main {
       backColor = Color.black,
     ),
     GaiaImage("sund3", "direction and velocety of stars of 45 pc distance",
-      ImageFactory.sund3,
+      fCreateModel = ImageFactory.sund3,
       hpOrder = Some(110),
       video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
       backColor = Color.veryDarkGreen,
@@ -249,9 +255,11 @@ object Main {
       videoConfig = Some(VideoConfig(Automove.sund6)),
     ),
     GaiaImage(id = "gc1",
-      desc = "around the galactic center",
+      desc = "galactic center 1.7",
+      textVal = Some("stars around the galactic center up to a distance of 1.7 kpc"),
       fCreateModel = ImageFactory.gc1,
       backColor = Color.veryDarkBlue,
+      video = Some(" https://youtu.be/6ORL4caNz9g "),
       videoConfig = Some(VideoConfig(Cam.Gc1.video)),
       stillConfig = Some(StillConfig(Cam.Gc1.still)),
       credits = CreditConfig(references = Seq(
@@ -263,13 +271,33 @@ object Main {
     ),
     GaiaImage(id = "gcd1",
       desc = "around the galactic center",
+      textVal = Some("stars around the galactic center up a distance of 3 kpc"),
       fCreateModel = ImageFactory.gcd1,
-      backColor = Color.veryDarkBlue,
+      backColor = Color.black,
+      video = Some("https://youtu.be/HHku71bq9q0"),
+      videoConfig = Some(VideoConfig(Cam.Gcd1.video)),
+      stillConfig = Some(StillConfig(Cam.Gcd1.still)),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+        "music: Satellite by Bio Unit",
+        "https://freemusicarchive.org/music/Bio_Unit/aerostat/satellite",
+      )),
     ),
     GaiaImage(id = "gcd2",
       desc = "around the galactic center",
+      textVal = Some("stars around the galactic center up a distance of 2 kpc and their direction"),
       fCreateModel = ImageFactory.gcd2,
-      backColor = Color.veryDarkBlue,
+      backColor = Color.white,
+      video = Some("https://youtu.be/cZDvHQyyV2c"),
+      videoConfig = Some(VideoConfig(Cam.Gcd2.video)),
+      stillConfig = Some(StillConfig(Cam.Gcd2.still)),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+        "music: 	Leafeaters by Podington Bear",
+        "https://freemusicarchive.org/music/Podington_Bear",
+      )),
     ),
     GaiaImage(id = "dens1",
       desc = "density of stars as shown by gaia",
@@ -355,7 +383,31 @@ object Main {
 
     def exec(gi: GaiaImage, wp: Path): Unit = Cred.create(gi, wp)
 
-    createSomething(args, "still images", workPath, filter, exec)
+    createSomething(args, "credits", workPath, filter, exec)
+  }
+
+  private def createCreditsTxt(args: List[String], workPath: Path): Unit = {
+    def filter(gi: GaiaImage): Boolean = true
+
+    def exec(gi: GaiaImage, wp: Path): Unit = Cred.createTxt(gi, wp)
+
+    createSomething(args, "text credits", workPath, filter, exec)
+  }
+
+  private def createVideo(args: List[String], workPath: Path): Unit = {
+    def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
+
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, false))
+
+    createSomething(args, "videos", workPath, filter, exec)
+  }
+
+  private def createPreviewVideo(args: List[String], workPath: Path): Unit = {
+    def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
+
+    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, true))
+
+    createSomething(args, "videos", workPath, filter, exec)
   }
 
   private def createSomething(args: List[String], name: String, workPath: Path,
@@ -375,22 +427,6 @@ object Main {
         println(s"Creating a $name for ID ${gaiaImage.id}. ${gaiaImage.desc}")
         e(gaiaImage, workPath)
     }
-  }
-
-  private def createVideo(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
-
-    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, false))
-
-    createSomething(args, "videos", workPath, filter, exec)
-  }
-
-  private def createPreviewVideo(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
-
-    def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach(_.fVideo(gi, wp, true))
-
-    createSomething(args, "videos", workPath, filter, exec)
   }
 
   private def identifiableToMap[T <: Identifiable](identifables: Seq[T]): Map[String, T] = {

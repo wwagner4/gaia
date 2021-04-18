@@ -26,7 +26,7 @@ object Cam {
                            cams: FCams,
                            durationInSec: Int,
                          )
-  
+
   object Sund1 {
     val sund1cams = Seq(
       CameraConfig("near", cameras(0, 20, 0.05), 60),
@@ -44,7 +44,7 @@ object Cam {
 
   }
 
-  
+
   object Gc1 {
     val gc1cams = Seq(
       CameraConfig("near", cameras(0, 20, 4), 60),
@@ -61,6 +61,42 @@ object Cam {
     }
 
   }
+
+  object Gcd1 {
+    val gcd1cams = Seq(
+      CameraConfig("far", cameras(0, -45, 6, eccentricity = 0.7), 60),
+      CameraConfig("near", cameras(33, 95, 3, reverse = true, eccentricity = 0.85), 60),
+    )
+
+    def video(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      mkVideoCameraConfig(gaiaImage, gcd1cams, workPath, preview)
+    }
+
+    def still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      Random.setSeed(92838472983L)
+      mkStillcameraConfig(gaiaImage, gcd1cams, workPath)
+    }
+
+  }
+
+  object Gcd2 {
+    val camsConfigs = Seq(
+      CameraConfig("far", cameras(22, -66, 3, eccentricity = 0.8, offset = Vec(0, 2, 1)), 60),
+      CameraConfig("equator", cameras(99, 5, 4, eccentricity = 0.7, offset = Vec(0, 0, 0.5)), 60),
+      CameraConfig("top", cameras(99, 5, 2, eccentricity = 0.4, offset = Vec(0, 0, 3)), 60),
+    )
+
+    def video(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      mkVideoCameraConfig(gaiaImage, camsConfigs, workPath, preview)
+    }
+
+    def still(gaiaImage: GaiaImage, workPath: Path, preview: Boolean = false): Unit = {
+      Random.setSeed(92838472983L)
+      mkStillcameraConfig(gaiaImage, camsConfigs, workPath)
+    }
+
+  }
+
   private def mkVideoCameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path, preview: Boolean): Unit = {
     val quality = calcQuality(preview, gaiaImage)
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
@@ -77,18 +113,20 @@ object Cam {
   def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {
     val quality = gaiaImage.videoQuality
     val frameRate = calcFrameRate(false)
-    val cams = cameraConfigs
+    val cams: Seq[(Camera, String)] = cameraConfigs
       .flatMap { ccfg =>
         val steps = frameRate * ccfg.durationInSec
-        Random.shuffle(ccfg.cams(steps)).take(10)
+        Random.shuffle(ccfg.cams(steps))
+          .take(10)
+          .map(c => (c, ccfg.id))
       }
 
     val shapables: Seq[Shapable] = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
 
     val commands = cams
       .zipWithIndex
-      .map { case (cam, stillId) =>
-        mkStillCommand(gaiaImage.id, stillId.toString, cam, quality, 2, shapables, gaiaImage.backColor, workPath)
+      .map { case ((cam, id), stillId) =>
+        mkStillCommand(gaiaImage.id, id, stillId.toString, cam, quality, 2, shapables, gaiaImage.backColor, workPath)
       }
 
     Util.runAllCommands(commands)
@@ -97,6 +135,7 @@ object Cam {
 
   def mkStillCommand(
                       imageId: String,
+                      camId: String,
                       stillId: String,
                       cam: Camera,
                       qual: VideoQuality,
@@ -113,21 +152,21 @@ object Cam {
 
     val geometryStr = s"${qual.width}x${qual.height}"
     val x3dPath = x3dFile.toAbsolutePath.toString
-    val stillFile = stillOutDir.resolve(s"${imageId}_$stillId.png").toAbsolutePath.toString
+    val stillFile = stillOutDir.resolve(s"${imageId}_${camId}_$stillId.png").toAbsolutePath.toString
     Seq("view3dscene", x3dPath, "--anti-alias", antiAlias.toString, "--viewpoint", "0",
       "--geometry", geometryStr, "--screenshot", "0", stillFile)
   }
 
   def mkVideo(
-                imageId: String,
-                videoId: String,
-                shapables: Seq[Shapable],
-                cams: Seq[Camera],
-                quality: VideoQuality,
-                antiAlias: Int,
-                frameRate: Int,
-                backColor: Color,
-                workPath: Path): Unit = {
+               imageId: String,
+               videoId: String,
+               shapables: Seq[Shapable],
+               cams: Seq[Camera],
+               quality: VideoQuality,
+               antiAlias: Int,
+               frameRate: Int,
+               backColor: Color,
+               workPath: Path): Unit = {
     val numlen = 4
 
     val tmpWorkDir = Files.createTempDirectory(imageId)
@@ -190,12 +229,13 @@ object Cam {
 
   def cameras(ra: Int, dec: Int, radius: Double,
               name: String = "gaiadefined", reverse: Boolean = false,
-              eccentricity: Double = 0.0)(frames: Int): Seq[Camera] = {
+              eccentricity: Double = 0.0, offset: Vec = Vec(0, 0, 0))(frames: Int): Seq[Camera] = {
     degSteps(frames, reverse)
       .map(degToRad)
       .map(rad => ellipse(radius, eccentricity, rad))
       .map(v => v.roty(-degToRad(dec)))
       .map(v => v.rotz(degToRad(ra)))
+      .map(v => v.add(offset))
       .zipWithIndex
       .map { (v: Vec, i: Int) =>
         val nam = f"${name}_$i%04d"
