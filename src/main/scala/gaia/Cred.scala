@@ -7,6 +7,21 @@ object Cred {
   import Main._
   import Cam._
 
+  def createTxt(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    println("--------------------------------------------------------------------------------")
+    println(gaiaImage.desc)
+    println()
+    if gaiaImage.textVal.isDefined then {
+      println(gaiaImage.text)
+      println()
+    }
+    if !gaiaImage.credits.references.isEmpty then {
+      gaiaImage.credits.references.foreach(ref => println(ref))
+      println()
+    }    
+    println("--------------------------------------------------------------------------------")        
+  }
+
   def create(gaiaImage: GaiaImage, workPath: Path): Unit = {
 
     val vq: VideoQuality = gaiaImage.videoQuality

@@ -33,8 +33,8 @@ object ImageFactory {
         }
     println(s"created ${starShapes.size} shapes")
     starShapes.toSeq
-    ++ shapablesCoordinatesGray(5, bc)
-    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bc)
+      ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
   def sund5(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -65,8 +65,8 @@ object ImageFactory {
       }
     println(s"created ${starShapables.size} shapes")
     starShapables.toSeq
-    ++ shapablesCoordinatesGray(5, bc)
-    ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
+      ++ shapablesCoordinatesGray(5, bc)
+      ++ shapablesCoordinatesGray(10, bc, offset = ImageUtil.galacicCenter)
   }
 
   def sund6(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -113,7 +113,7 @@ object ImageFactory {
       }
     println(s"filtered ${starss.size} stars")
     starss.toSeq
-    ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
+      ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
   }
 
   def sund1(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -152,7 +152,7 @@ object ImageFactory {
     }
     println(s"There are ${starsFiltered.size} stars near the sun")
     shapabels(stars = starsFiltered).toSeq
-    ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
+      ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
   }
 
   def sund3(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -185,7 +185,7 @@ object ImageFactory {
     val sl = stars.filter(s => 1 / s.parallax < maxDist)
     println(s"There are ${sl.size} stars near the sun")
     shapabels(radius = radius)(stars = sl).toSeq
-    ++ shapablesCoordinatesGray(maxDist * 1.2, bc)
+      ++ shapablesCoordinatesGray(maxDist * 1.2, bc)
   }
 
 
@@ -361,26 +361,28 @@ object ImageFactory {
   def gcd2(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 2.0
-    val colors = Palette.p5c8.colors
+    val colors = (0 to 10).map(i => Color.gray(i / 10.0))
     val baseDirectionVec = Vec(1, 1, 1)
     val shapes = stars
       .map(toStarPosDirGalactic)
-      .filter(_ => Random.nextDouble() < 0.3)
+      .filter(_ => Random.nextDouble() < 0.7)
       .filter(s => s.pos.length < maxDist)
       .toSeq
       .map { s =>
         val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-        Shapable.Cone(color = colors(ci), position = s.pos, radius=0.01,direction = s.dir.mul(0.001))
+        Shapable.Cone(color = colors(ci), position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
       }
     println(s"created ${shapes.size} shapes")
 
-    val circleShapes = (10 to(40, 10)).map { r =>
-      Shapable.Circle(translation = Vec.zero,
-        rotation = Vec(0, degToRad(90), 0),
-        color = Color.gray(0.1), radius = r * 0.1)
+    val circleShapes = {
+      (2 to(28, 2)).map { r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, 0, 0),
+          color = Color.gray(0.7), radius = r * 0.1)
+      }
     }
 
-    val coordShapes = shapablesCoordinatesOneColor(3, Color.gray(0.4), bc)
+    val coordShapes = shapablesCoordinatesOneColor(3, Color.gray(0.6), bc)
 
     shapes ++ circleShapes ++ coordShapes
 

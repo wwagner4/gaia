@@ -7,7 +7,6 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
-import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scala.util.Random
 
@@ -96,7 +95,7 @@ object Tryout {
     val cams = cameras(ra = 0, dec = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, Seq(10), "m", bc, Main.workPath)
+    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, bc, Main.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {
@@ -116,7 +115,6 @@ object Tryout {
       .zip(X3d.Palette.p5c8.lazyColors)
       .flatMap { (ra, c) =>
         cameras(ra = ra, dec = 60, 4.0)(20)
-          .toSeq
           .flatMap { cam =>
             val dir = cam.dir.mul(0.05)
             Seq(
@@ -198,9 +196,9 @@ object Tryout {
     println(s"wrote to $file")
   }
 
-  private def vecConvert: Unit = {
+  private def vecConvert(): Unit = {
 
-    def adj: Unit = {
+    def adj(): Unit = {
       def ad(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
 
       val y = -0.0
@@ -209,7 +207,7 @@ object Tryout {
       println(v1)
     }
 
-    def norm: Unit = {
+    def norm(): Unit = {
       val v = PolarVec(1.0000, 4.1416, 3.1316)
       val vn = v.adjust
       println(s"norm $v -> $vn")
@@ -219,7 +217,7 @@ object Tryout {
     [info] - vector convert reconvert pcp PolarVec(6.0,2.0,-3.0) *** FAILED ***
     [info]   "... 6.0000 |  5.1416 | [-]0.1416)" was not equal to "... 6.0000 |  5.1416 | [ ]0.1416)" (Tests.scala:82)
      */
-    def pcp: Unit = {
+    def pcp(): Unit = {
       val p1 = PolarVec(0, 0, 0)
       val p1a = p1.adjust
       val v1 = p1.toVec
@@ -227,14 +225,14 @@ object Tryout {
       println(s"pcp [${f(p1)} ${f(p1a)}] -> ${f(v1)} -> ${f(pl2)}")
     }
 
-    def cpc: Unit = {
+    def cpc(): Unit = {
       val v0 = Vec(0.0, 0.0, 1.0)
       val vp = v0.toPolarVec
       val v1 = vp.toVec
       println(s"cpc ${f(v0)} -> ${f(vp)} -> ${f(v1)}")
     }
 
-    def round: Unit = {
+    def round(): Unit = {
       def dround(x: Double) = {
         BigDecimal(x).setScale(13, BigDecimal.RoundingMode.HALF_UP).toDouble
       }
@@ -247,7 +245,7 @@ object Tryout {
       }
     }
 
-    pcp
+    pcp()
 
   }
 
@@ -256,7 +254,7 @@ object Tryout {
       s.pmra, s.pmdec, s.radialVelocity,
       pm.x, pm.y, pm.z)
 
-  private def execCmds = {
+  private def execCmds(): Unit = {
     val cmds = Seq(
       Seq("wget", "https://google.com"),
       Seq("wget", "http://entelijan.net"),
@@ -267,7 +265,7 @@ object Tryout {
     Util.runAllCommands(cmds)
   }
 
-  private def testRotAxes = {
+  private def testRotAxes(): Unit = {
     val rs = Seq(
       RotAxesDeg(0, 0),
       RotAxesDeg(0, 90),
@@ -282,7 +280,7 @@ object Tryout {
     println(s"steep: $ra, $dec")
   }
 
-  private def amalyseStarsPerShell = {
+  private def amalyseStarsPerShell(): Seq[Unit] = {
     val shells = Seq(
       (" 1 kpc", 1.0, 1.1),
       (" 2 kpc", 2.0, 2.1),
@@ -304,7 +302,7 @@ object Tryout {
       if (star.parallax <= 0) return None
       val dist = 1.0 / star.parallax
       if (dist < minDistKpc || dist > maxDistKpc) return None
-      return Some(star)
+      Some(star)
     }
 
     for ((id, min, max) <- shells) yield {
@@ -313,7 +311,7 @@ object Tryout {
     }
   }
 
-  private def analyseDataNegativeParallax = {
+  private def analyseDataNegativeParallax(): Unit = {
     var cntAll = 0
     var cntNegPar = 0
     var min = Double.MaxValue
@@ -335,12 +333,12 @@ object Tryout {
     println(f" max dist:      $minDist%20.3f kpc    min dist:     $maxDist%.3f kpc")
   }
 
-  private def analyseDataBasicSize: Unit = {
+  private def analyseDataBasicSize(): Unit = {
     val size = readBasic.size
     println(s"Size of basic is $size")
   }
 
-  private def analyseDataBasicTop: Unit = readBasic.take(20).foreach(println(_))
+  private def analyseDataBasicTop(): Unit = readBasic.take(20).foreach(println(_))
 
   private def analyseDataHeader(): Unit = {
     val fn = "GaiaSource_1000172165251650944_1000424567594791808.csv.gz"
@@ -350,13 +348,13 @@ object Tryout {
       .getLines()
       .take(1)
       .toSeq
-    header(0)
+    header.head
       .split(",")
       .zipWithIndex
       .foreach { case (nam, i) => println("%4d - %s".format(i, nam)) }
   }
 
-  def f(prefix: String, a: Double, b: Double, c: Double) = {
+  def f(prefix: String, a: Double, b: Double, c: Double): String = {
     def adj(v: Double): Double = if (v <= 0.0 && v > -0.0000001) 0.0 else v
 
     s"$prefix(%7.4f | %7.4f | %7.4f)".format(adj(a), adj(b), adj(c))
