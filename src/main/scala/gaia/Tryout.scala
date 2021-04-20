@@ -21,9 +21,19 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    sunSpaceMotion()
+    sunMove()
   }
 
+  private def sunMove(): Unit = {
+    val sunPos  = toGalacticCoords(Vec(0,0,0))
+    println(s"sunpos: $sunPos")
+    println(s"sundir: $galacticSunDir")
+    
+    val sun = StarPosDir(pos = Vec.zero, dir = Vec.zero)
+    val gsun = toStarPosDirGalactic(sun)
+    
+    println(gsun)
+  }
 
   private def sunSpaceMotion(): Unit = {
     println("sun space motion")
