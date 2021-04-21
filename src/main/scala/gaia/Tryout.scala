@@ -21,17 +21,59 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    sunMove()
+    x3dDir(workPath)
+  }
+
+  private def x3dDir(workPath: Path): Unit = {
+
+    case class Cylinder1(
+                          directionAxes: Vec = Vec(1, 0, 0), directoionAngle: Double = 0,
+                          radius: Double = 1.0, height: Double = 1.0, color: Color = Color.yellow) extends Shapable {
+      def toShape = {
+        s"""
+           |<Transform rotation='${directionAxes.strNoComma} $directoionAngle' center='0, 0, 0'>
+           |<Transform translation='0 ${height / 2.0} 0'>
+           |   <Shape>
+           |     <Cylinder radius='$radius' height='${height}'/>
+           |     <Appearance>
+           |       <Material diffuseColor='${color.strNoComma}'/>
+           |     </Appearance>
+           |   </Shape>
+           |</Transform>
+           |</Transform>
+           |""".stripMargin
+      }
+    }
+
+    case class Ori(axis: Vec, angle: Double)
+
+    println(s"x3d dev $workPath")
+    val bc = Color.darkBlue
+
+    def f(v: Vec): String = "(%2.2f %2.2f %2.2f)".format(v.x, v.y, v.z)
+
+    val vectors = (0 to(360, 5))
+      .map(a => Ori(Vec(1, 2, 0), degToRad(a)))
+      .map(ori => Cylinder1(directionAxes = ori.axis, directoionAngle = ori.angle, radius = 0.01))
+
+    val shapables = vectors ++ shapablesCoordinatesColored(3, bc)
+
+    val file = Main.workPath.resolve(s"tryout_x3dDir.x3d")
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
+
+
   }
 
   private def sunMove(): Unit = {
-    val sunPos  = toGalacticCoords(Vec(0,0,0))
+    val sunPos = toGalacticCoords(Vec(0, 0, 0))
     println(s"sunpos: $sunPos")
     println(s"sundir: $galacticSunDir")
-    
+
     val sun = StarPosDir(pos = Vec.zero, dir = Vec.zero)
     val gsun = toStarPosDirGalactic(sun)
-    
+
     println(gsun)
   }
 
