@@ -38,6 +38,12 @@ object ImageUtil {
 
   lazy val galacicCenter = PolarVec(r = 8, ra = degToRad(266.25), dec = degToRad(-28.94)).toVec
 
+  lazy val galacticSunDir = {
+    val sunPos = toGalacticCoords(Vec(0, 0, 0))
+    Vec(sunPos.y, sunPos.x, 0).norm.mul(235)
+  }
+
+
   object StarCollections {
     def basicStars(workPath: Path): Seq[Star] = {
 
@@ -227,7 +233,7 @@ object ImageUtil {
         println(f"filtered ${stars.size} stars for shell $s%.2f $p%.4f")
         shapabelsStarsToPoints(color = c)(stars = stars)
     }
-    ++ shapablesCoordinatesGray(5, bc)
+      ++ shapablesCoordinatesGray(5, bc)
   }
 
   def oneShell(stars1: Iterable[Star], bc: Color, min: Double, max: Double, starProb: Double,
@@ -249,8 +255,8 @@ object ImageUtil {
         shellDef.starsToShapable(stars)
       }
     shapes
-    ++ shapablesCoordinatesGray(5, bc)
-    ++ shapablesCoordinatesGray(10, bc, offset = galacicCenter)
+      ++ shapablesCoordinatesGray(5, bc)
+      ++ shapablesCoordinatesGray(10, bc, offset = galacicCenter)
   }
 
   def filterShell(min: Double, max: Double, prob: Double)(star: Star): Boolean = {
@@ -309,16 +315,16 @@ object ImageUtil {
   }
 
   def toStarPosDirGalactic(star: StarPosDir): StarPosDir = {
-    val gcoord = star.pos.sub(galacicCenter)
-    val gpos = toGalacticCoords(gcoord)
-    star.copy(pos = gpos)
+    val gpos = toGalacticCoords(star.pos)
+    star.copy(pos = gpos, dir=star.dir.add(galacticSunDir))
   }
 
   def toStarPosDir(star: Star): StarPosDir =
     StarPosDir(starToVec(star), toDir(star))
 
   def toGalacticCoords(pos: Vec): Vec = {
-    val rotated = pos
+    val p1 = pos.sub(galacicCenter)
+    val rotated = p1
       .rotx(degToRad(-27.13))
       .roty(degToRad(-28.94))
     Vec(rotated.z, rotated.y, rotated.x)

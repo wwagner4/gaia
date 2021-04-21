@@ -274,7 +274,7 @@ object Main {
       textVal = Some("stars around the galactic center up a distance of 3 kpc"),
       fCreateModel = ImageFactory.gcd1,
       backColor = Color.black,
-      video = Some("https://youtu.be/HHku71bq9q0"),
+      video = Some("https://youtu.be/ZP0GFgninZc"),
       videoConfig = Some(VideoConfig(Cam.Gcd1.video)),
       stillConfig = Some(StillConfig(Cam.Gcd1.still)),
       credits = CreditConfig(references = Seq(
@@ -289,7 +289,7 @@ object Main {
       textVal = Some("stars around the galactic center up a distance of 2 kpc and their direction"),
       fCreateModel = ImageFactory.gcd2,
       backColor = Color.white,
-      video = Some("https://youtu.be/cZDvHQyyV2c"),
+      video = Some("https://youtu.be/m6VKmQIKj04"),
       videoConfig = Some(VideoConfig(Cam.Gcd2.video)),
       stillConfig = Some(StillConfig(Cam.Gcd2.still)),
       credits = CreditConfig(references = Seq(
