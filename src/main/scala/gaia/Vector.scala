@@ -32,9 +32,9 @@ object Vector {
 
   case class Vec(x: Double, y: Double, z: Double) {
 
-    def strComma = s"$x, $y, $z"
+    def strComma = f"$x%.4f, $y%.4f, $z%.4f"
 
-    def strNoComma = s"$x $y $z"
+    def strNoComma = f"$x%.4f $y%.4f $z%.4f"
 
     def mul(factor: Double): Vec = Vec(x * factor, y * factor, z * factor)
 

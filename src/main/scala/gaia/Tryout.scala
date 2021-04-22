@@ -29,12 +29,12 @@ object Tryout {
     case class Cylinder1(
                           directionAxes: Vec = Vec(1, 0, 0), directoionAngle: Double = 0,
                           radius: Double = 1.0, height: Double = 1.0, color: Color = Color.yellow) extends Shapable {
-      def toShape = {
+      def toShape: String = {
         s"""
-           |<Transform rotation='${directionAxes.strNoComma} $directoionAngle' center='0, 0, 0'>
+           |<Transform rotation='${directionAxes.strNoComma} $directoionAngle'>
            |<Transform translation='0 ${height / 2.0} 0'>
            |   <Shape>
-           |     <Cylinder radius='$radius' height='${height}'/>
+           |     <Cylinder radius='$radius' height='$height'/>
            |     <Appearance>
            |       <Material diffuseColor='${color.strNoComma}'/>
            |     </Appearance>
@@ -50,11 +50,34 @@ object Tryout {
     println(s"x3d dev $workPath")
     val bc = Color.darkBlue
 
+    val colors = Color.white #:: LazyList.continually(Color.green)
+
     def f(v: Vec): String = "(%2.2f %2.2f %2.2f)".format(v.x, v.y, v.z)
 
-    val vectors = (0 to(360, 5))
-      .map(a => Ori(Vec(1, 2, 0), degToRad(a)))
-      .map(ori => Cylinder1(directionAxes = ori.axis, directoionAngle = ori.angle, radius = 0.01))
+    def oris0(a: Int) = {
+      (0 to(170, 10))
+        //  Seq(90)
+        .map(degToRad(_))
+        .map(r => Vec(math.sin(r), 0.0, math.cos(r)))
+        .map(v => Ori(v, degToRad(a)))
+
+    }
+
+    def oris1(a: Int) = Seq(
+      Ori(Vec(1, 0, 0), degToRad(a)),
+      Ori(Vec(0, 0, 1), degToRad(a)),
+    )
+
+    def oris2(a: Int) = Seq(
+      Ori(Vec(0, 0, 1), degToRad(a)),
+    )
+
+    val vectors = (0 to(350, 10))
+      .flatMap(oris0)
+      .zip(colors)
+      .map((ori, c) => Cylinder1(directionAxes = ori.axis, directoionAngle = ori.angle, radius = 0.01, color = c))
+
+    // vectors.map(_.toShape).foreach(println)
 
     val shapables = vectors ++ shapablesCoordinatesColored(3, bc)
 
