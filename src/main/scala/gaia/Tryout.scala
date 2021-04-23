@@ -25,13 +25,23 @@ object Tryout {
   }
 
   private def x3dDir(workPath: Path): Unit = {
+    val bc = Color.darkBlue
+
+    case class Rotation(
+                       axes: Vec,
+                       angle: Double
+                       ) {
+      def strNoComma: String = "%s %.4f".format(axes.strNoComma, angle)
+    }
+
 
     case class Cylinder1(
-                          directionAxes: Vec = Vec(1, 0, 0), directoionAngle: Double = 0,
-                          radius: Double = 1.0, height: Double = 1.0, color: Color = Color.yellow) extends Shapable {
+                          rotation: Rotation = Rotation(Vec(0,0,1), 0),
+                          radius: Double = 1.0, height: Double = 1.0,
+                          color: Color = Color.yellow) extends Shapable {
       def toShape: String = {
         s"""
-           |<Transform rotation='${directionAxes.strNoComma} $directoionAngle'>
+           |<Transform rotation='${rotation.strNoComma}'>
            |<Transform translation='0 ${height / 2.0} 0'>
            |   <Shape>
            |     <Cylinder radius='$radius' height='$height'/>
@@ -45,42 +55,42 @@ object Tryout {
       }
     }
 
-    case class Ori(axis: Vec, angle: Double)
 
-    println(s"x3d dev $workPath")
-    val bc = Color.darkBlue
+    def rotation(): Seq[Shapable] = {
+      val colors = X3d.Palette.p1c5.lazyColors
 
-    val colors = Color.white #:: LazyList.continually(Color.green)
+      println(s"x3d dev $workPath")
 
-    def f(v: Vec): String = "(%2.2f %2.2f %2.2f)".format(v.x, v.y, v.z)
+      def oris(a: Int) = {
+        //(0 to(170, 10))
+        Seq(90, 45)
+          .map(degToRad(_))
+          .map(r => Vec(math.sin(r), 0.0, math.cos(r)))
+          .map(v => Rotation(v, degToRad(a)))
 
-    def oris0(a: Int) = {
-      (0 to(170, 10))
-        //  Seq(90)
-        .map(degToRad(_))
-        .map(r => Vec(math.sin(r), 0.0, math.cos(r)))
-        .map(v => Ori(v, degToRad(a)))
+      }
+
+      (0 to(350, 10))
+        .flatMap(oris)
+        .zip(colors)
+        .map((rot, c) => Cylinder1(rotation = rot, radius = 0.01, color = c))
 
     }
 
-    def oris1(a: Int) = Seq(
-      Ori(Vec(1, 0, 0), degToRad(a)),
-      Ori(Vec(0, 0, 1), degToRad(a)),
-    )
+    def cartesian(): Seq[Shapable] = {
+      val vecs = Seq(Vec(1, 1, 0))
+      vecs.map { v =>
+        Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.01, color = Color.red)
+      }
 
-    def oris2(a: Int) = Seq(
-      Ori(Vec(0, 0, 1), degToRad(a)),
-    )
 
-    val vectors = (0 to(350, 10))
-      .flatMap(oris0)
-      .zip(colors)
-      .map((ori, c) => Cylinder1(directionAxes = ori.axis, directoionAngle = ori.angle, radius = 0.01, color = c))
+    }
 
-    // vectors.map(_.toShape).foreach(println)
 
-    val shapables = vectors ++ shapablesCoordinatesColored(3, bc)
-
+    val shapables =
+    rotation()
+      ++ cartesian()
+        ++ shapablesCoordinatesColored(3, bc)
     val file = Main.workPath.resolve(s"tryout_x3dDir.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
