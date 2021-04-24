@@ -1,4 +1,4 @@
-val dottyVersion = "3.0.0-RC2"
+val dottyVersion = "3.0.0-RC3"
 
 lazy val root = project
   .in(file("."))
@@ -8,6 +8,6 @@ lazy val root = project
 
     scalaVersion := dottyVersion,
 
-    libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.7",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.7" % "test",
+    libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.8",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.8" % "test",
 )
