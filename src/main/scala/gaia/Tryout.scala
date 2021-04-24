@@ -91,7 +91,7 @@ object Tryout {
     rotation()
       ++ cartesian()
         ++ shapablesCoordinatesColored(3, bc)
-    val file = Main.workPath.resolve(s"tryout_x3dDir.x3d")
+    val file = Gaia.workPath.resolve(s"tryout_x3dDir.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -166,7 +166,7 @@ object Tryout {
 
     val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
 
-    val file = Main.workPath.resolve(s"tryout_$id.x3d")
+    val file = Gaia.workPath.resolve(s"tryout_$id.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -176,17 +176,17 @@ object Tryout {
 
     val bc = Color.veryDarkBlue
     val shapables = ShapableFactory.sphereCoordinates
-    val qual = Main.VideoQuality.SVGA
+    val qual = Gaia.VideoQuality.SVGA
     val cams = cameras(ra = 0, dec = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, bc, Main.workPath)
+    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, bc, Gaia.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {
     val bc = Color.black
     val shapables = ShapableFactory.sphereCoordinates
-    val file = Main.workPath.resolve("tryout_sphere_coordinates.x3d")
+    val file = Gaia.workPath.resolve("tryout_sphere_coordinates.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -210,7 +210,7 @@ object Tryout {
       }
     val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
-    val file = Main.workPath.resolve("tryout_cam.x3d")
+    val file = Gaia.workPath.resolve("tryout_cam.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -228,7 +228,7 @@ object Tryout {
     }
 
     val shapables = fromDef
-    val file = Main.workPath.resolve("tryout_cylinder.x3d")
+    val file = Gaia.workPath.resolve("tryout_cylinder.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -246,7 +246,7 @@ object Tryout {
     )
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Main.workPath.resolve("tryout_cones.x3d")
+    val file = Gaia.workPath.resolve("tryout_cones.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -275,7 +275,7 @@ object Tryout {
     }
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Main.workPath.resolve("tryout_directions.x3d")
+    val file = Gaia.workPath.resolve("tryout_directions.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")

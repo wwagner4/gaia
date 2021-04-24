@@ -5,7 +5,7 @@ import java.nio.file.{Files, Path}
 
 object Automove {
 
-  import Main._
+  import Gaia._
   import Vector._
 
   enum Resolution(val width: Int, val height: Int) {
