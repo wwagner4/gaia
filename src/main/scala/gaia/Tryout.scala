@@ -87,12 +87,12 @@ object Tryout {
     def combi(): Seq[Shapable] = {
 
       def vecToRotation(v: Vec): Rotation = {
-        val p = v.toPolarVec
-        val n = v.norm.roty(p.ra)
-        val x = n.x
-        val z = n.z
+        val v0 = v.copy(y = -v.z, z = -v.y)
+        val p = v0.toPolarVec
+        val x = v0.x
+        val z = v0.z
         val a = p.dec
-        val v1 = Vec(x, 0, z)
+        val v1 = Vec(z, 0, x)
         Rotation(v1, a)
       }
 
@@ -108,9 +108,14 @@ object Tryout {
         .zip(LazyList.continually(Color.orange))
 
 
-      val vecs = vecs1
+      val vecs3 = (-10 to(10, 2))
+        .map(a => degToRad(a))
+        .map(a => PolarVec(1, a, 0).toVec)
+        .zip(LazyList.continually(Color.green))
 
-      //      val vecs = Seq(Vec(1, 1, 0), Vec(0, 1, 1))
+
+      val vecs = vecs3
+
       val old = vecs
         .map { (v, c) =>
           Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.05, color = c)
