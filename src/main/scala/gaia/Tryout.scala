@@ -26,17 +26,20 @@ object Tryout {
 
   private def x3dDir(workPath: Path): Unit = {
     val bc = Color.darkBlue
+    val colors = X3d.Palette.p1c5.lazyColors
 
     case class Rotation(
-                       axes: Vec,
-                       angle: Double
+                         axes: Vec,
+                         angle: Double
                        ) {
       def strNoComma: String = "%s %.4f".format(axes.strNoComma, angle)
+
+      override def toString: String = s"Rot($strNoComma)"
     }
 
 
     case class Cylinder1(
-                          rotation: Rotation = Rotation(Vec(0,0,1), 0),
+                          rotation: Rotation = Rotation(Vec(0, 0, 1), 0),
                           radius: Double = 1.0, height: Double = 1.0,
                           color: Color = Color.yellow) extends Shapable {
       def toShape: String = {
@@ -57,7 +60,6 @@ object Tryout {
 
 
     def rotation(): Seq[Shapable] = {
-      val colors = X3d.Palette.p1c5.lazyColors
 
       println(s"x3d dev $workPath")
 
@@ -77,26 +79,51 @@ object Tryout {
 
     }
 
-    def cartesian(): Seq[Shapable] = {
-      val vecs = Seq(Vec(1, 1, 0))
-      vecs.map { v =>
-        Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.01, color = Color.red)
+    def combi(): Seq[Shapable] = {
+
+      def vecToRotation(v: Vec): Rotation = {
+        val n = v.norm
+        val p = v.toPolarVec
+        val x = math.cos(p.dec)
+        val z = math.sin(p.dec)
+        val a = if v.y < 0 then math.asin(n.z) else math.acos(n.z) + pi
+        Rotation(Vec(x, 0, z), a)
       }
 
 
+      val vecs1 = (0 to(160, 20))
+        .map(a => degToRad(a))
+        .map(a => Vec(1.0, math.cos(a), math.sin(a)))
+        .zip(LazyList.continually(Color.red))
+
+      val vecs2 = (180 to(340, 20))
+        .map(a => degToRad(a))
+        .map(a => Vec(1.0, math.cos(a), math.sin(a)))
+        .zip(LazyList.continually(Color.orange))
+
+
+      val vecs = vecs1 ++ vecs2
+
+      //      val vecs = Seq(Vec(1, 1, 0), Vec(0, 1, 1))
+      val old = vecs
+        .map { (v, c) =>
+          Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.05, color = c)
+        }
+      val news = vecs
+        .map { (v, c) =>
+          val rot = vecToRotation(v)
+          println(s"$v $rot")
+          Cylinder1(rotation = rot, radius = 0.01, height = 2.0, color = c)
+        }
+      old ++ news
     }
 
 
     val shapables =
-    rotation()
-      ++ cartesian()
+      combi()
         ++ shapablesCoordinatesColored(3, bc)
     val file = Gaia.workPath.resolve(s"tryout_x3dDir.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
-
-
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def sunMove(): Unit = {
@@ -167,9 +194,7 @@ object Tryout {
     val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
 
     val file = Gaia.workPath.resolve(s"tryout_$id.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def viewpoint(): Unit = {
@@ -187,9 +212,7 @@ object Tryout {
     val bc = Color.black
     val shapables = ShapableFactory.sphereCoordinates
     val file = Gaia.workPath.resolve("tryout_sphere_coordinates.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def cam(): Unit = {
@@ -211,9 +234,7 @@ object Tryout {
     val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
     val file = Gaia.workPath.resolve("tryout_cam.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def cylinder(): Unit = {
@@ -247,9 +268,7 @@ object Tryout {
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
     val file = Gaia.workPath.resolve("tryout_cones.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def displyDirections(): Unit = {
@@ -276,9 +295,7 @@ object Tryout {
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
     val file = Gaia.workPath.resolve("tryout_directions.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def vecConvert(): Unit = {
@@ -540,6 +557,12 @@ object Tryout {
         (min to max).map(v => sphere(v, Color.green, v => Vec(0, 0, v))),
       ).flatten
     }
+  }
+
+  private def writeX3dFile1(bc: Color, shapables: scala.Seq[Shapable], file: Path): Unit = {
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
 

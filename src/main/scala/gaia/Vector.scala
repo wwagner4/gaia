@@ -96,6 +96,8 @@ object Vector {
       }
     }
 
+    override def toString(): String = s"Vec($strNoComma)"
+
   }
 
   case class PolarVec(r: Double, ra: Double, dec: Double) {
