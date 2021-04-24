@@ -82,27 +82,28 @@ object Tryout {
     def combi(): Seq[Shapable] = {
 
       def vecToRotation(v: Vec): Rotation = {
-        val n = v.norm
         val p = v.toPolarVec
-        val x = math.cos(p.dec)
-        val z = math.sin(p.dec)
-        val a = if v.y < 0 then math.asin(n.z) else math.acos(n.z) + pi
-        Rotation(Vec(x, 0, z), a)
+        val n = v.norm.roty(p.ra)
+        val x = n.x
+        val z = n.z
+        val a = p.dec
+        val v1 = Vec(x, 0, z)
+        Rotation(v1, a)
       }
 
 
-      val vecs1 = (0 to(160, 20))
+      val vecs1 = (0 to(175, 5))
         .map(a => degToRad(a))
         .map(a => Vec(1.0, math.cos(a), math.sin(a)))
         .zip(LazyList.continually(Color.red))
 
-      val vecs2 = (180 to(340, 20))
+      val vecs2 = (180 to(355, 5))
         .map(a => degToRad(a))
         .map(a => Vec(1.0, math.cos(a), math.sin(a)))
         .zip(LazyList.continually(Color.orange))
 
 
-      val vecs = vecs1 ++ vecs2
+      val vecs = vecs1
 
       //      val vecs = Seq(Vec(1, 1, 0), Vec(0, 1, 1))
       val old = vecs
