@@ -177,7 +177,7 @@ object ImageFactory {
         .map(toStarPosDir)
         .map { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
-          val c = Color.orange.mul(br)
+          val c = Color.orange.brightness(br)
           Shapable.Cylinder(color = c, position = s.pos, radius = 1.0, direction = s.dir.mul(0.00005))
         }
     }

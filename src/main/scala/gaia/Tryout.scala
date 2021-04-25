@@ -28,6 +28,11 @@ object Tryout {
     val bc = Color.darkBlue
     val colors = X3d.Palette.p1c5.lazyColors
 
+    def f(value: Double): String = "%.5f".format(value)
+
+    extension (vec: Vec)
+      private def strNoComma:String = "%s %s %s".format(f(vec.x), f(vec.y), f(vec.z))
+
     case class Rotation(
                          axes: Vec,
                          angle: Double

@@ -32,10 +32,6 @@ object Vector {
 
   case class Vec(x: Double, y: Double, z: Double) {
 
-    def strComma = f"$x%.4f, $y%.4f, $z%.4f"
-
-    def strNoComma = f"$x%.4f $y%.4f $z%.4f"
-
     def mul(factor: Double): Vec = Vec(x * factor, y * factor, z * factor)
 
     def add(other: Vec): Vec = Vec(x + other.x, y + other.y, z + other.z)
@@ -96,7 +92,7 @@ object Vector {
       }
     }
 
-    override def toString(): String = s"Vec($strNoComma)"
+    override def toString(): String = "Vec(%.2f %.2f %.2f)".format(x, y, z)
 
   }
 

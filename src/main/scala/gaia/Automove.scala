@@ -551,4 +551,9 @@ object Automove {
     println(s"Creating credits for ${gaiaImage.id} in ${creditsDir.toAbsolutePath}")
   }
 
+  private def f(value: Double): String = "%.5f".format(value)
+
+  extension (vec: Vec)
+    private def strNoComma:String = "%s %s %s".format(f(vec.x), f(vec.y), f(vec.z))
+
 }
