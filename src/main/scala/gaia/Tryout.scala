@@ -1,5 +1,7 @@
 package gaia
 
+import gaia.X3d.Shapable.Cylinder1
+
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
@@ -28,42 +30,6 @@ object Tryout {
 
   private def x3dDir(workPath: Path): Unit = {
     val bc = Color.darkBlue
-    val colors = X3d.Palette.p1c5.lazyColors
-
-
-    extension (vec: Vec)
-      private def strNoComma: String = f"${f(vec.x)}, ${f(vec.y)}, ${f(vec.z)}"
-
-    case class Rotation(
-                         axes: Vec,
-                         angle: Double
-                       ) {
-      def strNoComma: String = f"${axes.strNoComma}, ${f(angle)}"
-
-      override def toString: String = s"Rot($strNoComma)"
-    }
-
-
-    case class Cylinder1(
-                          rotation: Rotation = Rotation(Vec(0, 0, 1), 0),
-                          radius: Double = 1.0, height: Double = 1.0,
-                          color: Color = Color.yellow) extends Shapable {
-      def toShape: String = {
-        s"""
-           |<Transform rotation='${rotation.strNoComma}'>
-           |<Transform translation='0 ${height / 2.0} 0'>
-           |   <Shape>
-           |     <Cylinder radius='$radius' height='$height'/>
-           |     <Appearance>
-           |       <Material diffuseColor='${color.strNoComma}'/>
-           |     </Appearance>
-           |   </Shape>
-           |</Transform>
-           |</Transform>
-           |""".stripMargin
-      }
-    }
-
 
     def combi(): Seq[Shapable] = {
 
@@ -72,7 +38,7 @@ object Tryout {
         val p = v0.toPolarVec
         val x = v.x
         val z = v.z
-        val a = p.ra + pi
+        val a = if x >= 0 then p.ra + pi else pi - p.ra
         val v1 = Vec(z, 0, -x)
         Rotation(v1, -a)
       }
@@ -80,7 +46,7 @@ object Tryout {
       def colVecs(vecs: Seq[Vec]) = {
         def brightnes(n: Int): Seq[Double] = {
           val k = 0.5 / n
-          (0 until n).map(x => 1.0 - k * x)
+          (0 until n).map(x => 1.0)
         }
 
         val bs = brightnes(vecs.size)
@@ -89,12 +55,13 @@ object Tryout {
         vecs.zip(bs)
       }
 
-      val vecs3: Seq[Vec] = Seq(10, 0)
+      //val xvecs: Seq[Vec] = Seq(-90)
+      val xvecs: Seq[Vec] = (0 to (345, 15))
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, 0).toVec)
 
 
-      val vecs = colVecs(vecs3)
+      val vecs = colVecs(xvecs)
 
       val old = vecs
         .map { (v, c) =>
@@ -104,7 +71,7 @@ object Tryout {
         .map { (v, c) =>
           val rot = vecToRotation(v)
           println(s"$v $rot")
-          Cylinder1(rotation = rot, radius = 0.01, height = 2.0, color = c)
+          Shapable.Cylinder1(rotation = rot, radius = 0.03, height = 2.0, color = c)
         }
       old ++ news
     }

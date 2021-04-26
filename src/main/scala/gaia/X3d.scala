@@ -108,6 +108,14 @@ object X3d {
     }
 
   }
+  case class Rotation(
+                       axes: Vec,
+                       angle: Double
+                     ) {
+    def strNoComma: String = f"${axes.strNoComma}, ${f(angle)}"
+
+    override def toString: String = s"Rot($strNoComma)"
+  }
 
   trait Shapable {
     def toShape: String
@@ -143,6 +151,27 @@ object X3d {
            |""".stripMargin
       }
     }
+
+    case class Cylinder1(
+                          rotation: Rotation = Rotation(Vec(0, 0, 1), 0),
+                          radius: Double = 1.0, height: Double = 1.0,
+                          color: Color = Color.yellow) extends Shapable {
+      def toShape: String = {
+        s"""
+           |<Transform rotation='${rotation.strNoComma}'>
+           |<Transform translation='0 ${height / 2.0} 0'>
+           |   <Shape>
+           |     <Cylinder radius='$radius' height='$height'/>
+           |     <Appearance>
+           |       <Material diffuseColor='${color.strNoComma}'/>
+           |     </Appearance>
+           |   </Shape>
+           |</Transform>
+           |</Transform>
+           |""".stripMargin
+      }
+    }
+
 
     case class Cone(
                      position: Vec, direction: Vec = Vec(1, 0, 0),
