@@ -9,6 +9,7 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
+import scala.annotation.tailrec
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.Random
 
@@ -45,8 +46,8 @@ object Tryout {
 
       def colVecs(vecs: Seq[Vec]) = {
         def brightnes(n: Int): Seq[Double] = {
-          val k = 0.5 / n
-          (0 until n).map(x => 1.0)
+          val k = 0.8 / n
+          (0 until n).map(x => 1.0 - k * x)
         }
 
         val bs = brightnes(vecs.size)
@@ -55,8 +56,21 @@ object Tryout {
         vecs.zip(bs)
       }
 
+      def degs: Seq[Int] = {
+
+        @tailrec
+        def fd(v: Int, li: List[Int]): List[Int] = {
+          val d = 1 + Random.nextInt(10)
+          if v + d >= 360 then li
+          else fd(v + d, (v + d) :: li)
+        }
+
+        fd(0, List())
+
+      }
+
       //val xvecs: Seq[Vec] = Seq(-90)
-      val xvecs: Seq[Vec] = (0 to (345, 15))
+      val xvecs = degs
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, 0).toVec)
 
@@ -71,7 +85,7 @@ object Tryout {
         .map { (v, c) =>
           val rot = vecToRotation(v)
           println(s"$v $rot")
-          Shapable.Cylinder1(rotation = rot, radius = 0.03, height = 2.0, color = c)
+          Shapable.Cylinder1(rotation = rot, radius = 0.03, height = 1.1, color = c)
         }
       old ++ news
     }
