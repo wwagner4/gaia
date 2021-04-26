@@ -7,7 +7,7 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, postfixOps}
 import scala.util.Random
 
 object Tryout {
@@ -24,20 +24,21 @@ object Tryout {
     x3dDir(workPath)
   }
 
+  def f(value: Double): String = "%.5f".format(value)
+
   private def x3dDir(workPath: Path): Unit = {
     val bc = Color.darkBlue
     val colors = X3d.Palette.p1c5.lazyColors
 
-    def f(value: Double): String = "%.5f".format(value)
 
     extension (vec: Vec)
-      private def strNoComma:String = "%s %s %s".format(f(vec.x), f(vec.y), f(vec.z))
+      private def strNoComma: String = f"${f(vec.x)}, ${f(vec.y)}, ${f(vec.z)}"
 
     case class Rotation(
                          axes: Vec,
                          angle: Double
                        ) {
-      def strNoComma: String = "%s %.4f".format(axes.strNoComma, angle)
+      def strNoComma: String = f"${axes.strNoComma}, ${f(angle)}"
 
       override def toString: String = s"Rot($strNoComma)"
     }
@@ -64,57 +65,36 @@ object Tryout {
     }
 
 
-    def rotation(): Seq[Shapable] = {
-
-      println(s"x3d dev $workPath")
-
-      def oris(a: Int) = {
-        //(0 to(170, 10))
-        Seq(90, 45)
-          .map(degToRad(_))
-          .map(r => Vec(math.sin(r), 0.0, math.cos(r)))
-          .map(v => Rotation(v, degToRad(a)))
-
-      }
-
-      (0 to(350, 10))
-        .flatMap(oris)
-        .zip(colors)
-        .map((rot, c) => Cylinder1(rotation = rot, radius = 0.01, color = c))
-
-    }
-
     def combi(): Seq[Shapable] = {
 
       def vecToRotation(v: Vec): Rotation = {
-        val v0 = v.copy(y = -v.z, z = -v.y)
+        val v0 = v.rotz(pidiv2)
         val p = v0.toPolarVec
-        val x = v0.x
-        val z = v0.z
-        val a = p.dec
-        val v1 = Vec(z, 0, x)
+        val x = v.x
+        val z = v.z
+        val a = p.ra
+        val v1 = Vec(z, 0, -x)
         Rotation(v1, a)
       }
 
+      def colVecs(vecs: Seq[Vec]): Seq[(Vec, Color)] = {
+        def brightnes(n: Int): Seq[Double] = {
+          val k = 0.5 / n
+          (0 until n).map(x => 1.0 - k * x)
+        }
 
-      val vecs1 = (0 to(175, 5))
-        .map(a => degToRad(a))
-        .map(a => Vec(1.0, math.cos(a), math.sin(a)))
-        .zip(LazyList.continually(Color.red))
+        val bs = brightnes(vecs.size)
+          .map(b => Color.green.brightness(b))
 
-      val vecs2 = (180 to(355, 5))
-        .map(a => degToRad(a))
-        .map(a => Vec(1.0, math.cos(a), math.sin(a)))
-        .zip(LazyList.continually(Color.orange))
+        vecs.zip(bs)
+      }
 
-
-      val vecs3 = (-10 to(10, 2))
+      val vecs3: Seq[Vec] = Seq(0)
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, 0).toVec)
-        .zip(LazyList.continually(Color.green))
 
 
-      val vecs = vecs3
+      val vecs = colVecs(vecs3)
 
       val old = vecs
         .map { (v, c) =>
