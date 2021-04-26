@@ -72,12 +72,12 @@ object Tryout {
         val p = v0.toPolarVec
         val x = v.x
         val z = v.z
-        val a = p.ra
+        val a = p.ra + pi
         val v1 = Vec(z, 0, -x)
-        Rotation(v1, a)
+        Rotation(v1, -a)
       }
 
-      def colVecs(vecs: Seq[Vec]): Seq[(Vec, Color)] = {
+      def colVecs(vecs: Seq[Vec]) = {
         def brightnes(n: Int): Seq[Double] = {
           val k = 0.5 / n
           (0 until n).map(x => 1.0 - k * x)
@@ -89,7 +89,7 @@ object Tryout {
         vecs.zip(bs)
       }
 
-      val vecs3: Seq[Vec] = Seq(0)
+      val vecs3: Seq[Vec] = Seq(10, 0)
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, 0).toVec)
 
