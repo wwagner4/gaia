@@ -41,7 +41,7 @@ object Tryout {
         val z = v.z
         val a = if x >= 0 then p.ra + pi else pi - p.ra
         val v1 = Vec(z, 0, -x)
-        Rotation(v1, -a)
+        Rotation(v1, -a + p.dec * math.cos(a))
       }
 
       def colVecs(vecs: Seq[Vec], color: Color = Color.orange) = {
@@ -60,7 +60,7 @@ object Tryout {
 
         @tailrec
         def fd(v: Int, li: List[Int]): List[Int] = {
-          val d = 1 + Random.nextInt(5)
+          val d = 1 + Random.nextInt(10)
           if v + d >= 360 then li
           else fd(v + d, (v + d) :: li)
         }
@@ -69,16 +69,23 @@ object Tryout {
 
       }
 
+      val d1 = 50
+
+      val vecs0 = (0 to (359, 1))
+        .map(a => degToRad(a))
+        .map(a => PolarVec(1, a, degToRad(d1)).toVec)
+
       val vecs1 = degs
         .map(a => degToRad(a))
-        .map(a => PolarVec(1, a, degToRad(10)).toVec)
+        .map(a => PolarVec(1, a, degToRad(d1)).toVec)
 
-      val vecs2 = Seq(90)
+      val vecs2 = Seq(0, 90, 180, 270)
         .map(a => degToRad(a))
-        .map(a => PolarVec(1, a, degToRad(10)).toVec)
+        .map(a => PolarVec(1, a, degToRad(d1)).toVec)
 
 
-      val vecs = colVecs(vecs1, Color.yellow) ++ colVecs(vecs2, Color.green)
+      val vecs = colVecs(vecs0, Color.yellow) ++ colVecs(vecs2, Color.green)
+      //val vecs = colVecs(vecs2, Color.green)
 
       val old = vecs
         .map { (v, c) =>
