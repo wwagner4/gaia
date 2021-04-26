@@ -44,14 +44,14 @@ object Tryout {
         Rotation(v1, -a)
       }
 
-      def colVecs(vecs: Seq[Vec]) = {
+      def colVecs(vecs: Seq[Vec], color: Color = Color.orange) = {
         def brightnes(n: Int): Seq[Double] = {
           val k = 0.8 / n
           (0 until n).map(x => 1.0 - k * x)
         }
 
         val bs = brightnes(vecs.size)
-          .map(b => Color.green.brightness(b))
+          .map(b => color.brightness(b))
 
         vecs.zip(bs)
       }
@@ -60,7 +60,7 @@ object Tryout {
 
         @tailrec
         def fd(v: Int, li: List[Int]): List[Int] = {
-          val d = 1 + Random.nextInt(10)
+          val d = 1 + Random.nextInt(5)
           if v + d >= 360 then li
           else fd(v + d, (v + d) :: li)
         }
@@ -69,23 +69,26 @@ object Tryout {
 
       }
 
-      //val xvecs: Seq[Vec] = Seq(-90)
-      val xvecs = degs
+      val vecs1 = degs
         .map(a => degToRad(a))
-        .map(a => PolarVec(1, a, 0).toVec)
+        .map(a => PolarVec(1, a, degToRad(10)).toVec)
+
+      val vecs2 = Seq(90)
+        .map(a => degToRad(a))
+        .map(a => PolarVec(1, a, degToRad(10)).toVec)
 
 
-      val vecs = colVecs(xvecs)
+      val vecs = colVecs(vecs1, Color.yellow) ++ colVecs(vecs2, Color.green)
 
       val old = vecs
         .map { (v, c) =>
-          Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.05, color = c)
+          Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.005, color = c)
         }
       val news = vecs
         .map { (v, c) =>
           val rot = vecToRotation(v)
           println(s"$v $rot")
-          Shapable.Cylinder1(rotation = rot, radius = 0.03, height = 1.1, color = c)
+          Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = c)
         }
       old ++ news
     }
