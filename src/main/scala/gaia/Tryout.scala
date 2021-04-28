@@ -28,6 +28,8 @@ object Tryout {
   }
 
   def f(value: Double): String = "%.5f".format(value)
+  
+  val eps: Double  = 0.000000001
 
   private def x3dDir(workPath: Path): Unit = {
     val bc = Color.darkBlue
@@ -39,13 +41,13 @@ object Tryout {
         val z = v.z
         val v1 = Vec(z, 0, -x)
         val a: Double = {
-          val vn = Vec(x, 0, z).rotx(pidiv2)
-          vn.angleRad(v)
+          val vn = Vec(x, 0, z)
+          if v.y > -eps && v.y < eps then pidiv2 else if v.y >= 0 then pidiv2 - vn.angleRad(v) else vn.angleRad(v) + pidiv2
         }
         Rotation(v1, a)
       }
 
-      def colVecs(vecs: Seq[Vec], color: Color = Color.orange) = {
+      def colVecs(vecs: Seq[Vec], color: Color = Color.orange): Seq[(Vec, Color)] = {
         def brightnes(n: Int): Seq[Double] = {
           val k = 0.8 / n
           (0 until n).map(x => 1.0 - k * x)
@@ -57,11 +59,20 @@ object Tryout {
         vecs.zip(bs)
       }
 
+      def brightVecs(vecs: Seq[Vec]): Seq[(Vec, Double)] = {
+        def brightnes(n: Int): Seq[Double] = {
+          val k = 0.8 / n
+          (0 until n).map(x => 1.0 - k * x)
+        }
+
+        vecs.zip(brightnes(vecs.size))
+      }
+
       def degs: Seq[Int] = {
 
         @tailrec
         def fd(v: Int, li: List[Int]): List[Int] = {
-          val d = 1 + Random.nextInt(10)
+          val d = 1 + Random.nextInt(5)
           if v + d >= 360 then li
           else fd(v + d, (v + d) :: li)
         }
@@ -70,9 +81,9 @@ object Tryout {
 
       }
 
-      val d1 = 50
-
-      val vecs0 = (0 to (359, 1))
+      def d1: Double = -80 + Random.nextInt(160)
+      
+      val vecs0 = (0 to(359, 1))
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, degToRad(d1)).toVec)
 
@@ -80,26 +91,28 @@ object Tryout {
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, degToRad(d1)).toVec)
 
-      val vecs2 = Seq(0, 90, 180, 270)
+      val vecs2 = Seq(181, 200, 300)
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, degToRad(d1)).toVec)
 
 
-      val vecs = colVecs(vecs2, Color.green)
-      //val vecs = colVecs(vecs2, Color.green)
+      val vecs = brightVecs(vecs1)
 
       val old = vecs
-        .map { (v, c) =>
-          Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.005, color = c)
+        .map { (v, bright) =>
+          Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.005, color = Color.orange.brightness(bright))
         }
       val news = vecs
-        .flatMap { (v, c) =>
+        .flatMap { (v, bright) =>
           val rot = vecToRotation(v)
           println(s"$v $rot")
-          val dir = rot.axes.norm.mul(0.5)
+          val d0 = Vec(-rot.axes.z, 0, rot.axes.x)
+          val dir1 = d0.norm.mul(0.5)
+          val dir2 = rot.axes.norm.mul(0.5)
           Seq(
-            Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = c),
-            Shapable.Cylinder(position = Vec.zero, direction = dir, radius = 0.01, color = Color.white),
+            Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = Color.yellow.brightness(bright)),
+            //Shapable.Cylinder(position = Vec.zero, direction = dir1, radius = 0.01, color = Color.white.brightness(bright)),
+            //Shapable.Cylinder(position = Vec.zero, direction = dir2, radius = 0.01, color = Color.white.brightness(bright)),
           )
         }
       old ++ news
