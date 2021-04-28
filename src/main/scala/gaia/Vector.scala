@@ -68,7 +68,9 @@ object Vector {
 
     def scalarProd(other: Vec): Double = (x * other.x) + (y * other.y) + (z * other.z)
 
-    def angle(other: Vec): Double = math.acos(scalarProd(other) / (length * other.length)) * 180 / pi
+    def angle(other: Vec): Double = radToDeg(angleRad(other))
+
+    def angleRad(other: Vec): Double = math.acos(scalarProd(other) / (length * other.length))
 
     def toPolarVec: PolarVec = {
       def atan2: Double = {

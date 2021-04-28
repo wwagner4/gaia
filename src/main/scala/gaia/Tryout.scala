@@ -35,13 +35,14 @@ object Tryout {
     def combi(): Seq[Shapable] = {
 
       def vecToRotation(v: Vec): Rotation = {
-        val v0 = v.rotz(pidiv2)
-        val p = v0.toPolarVec
         val x = v.x
         val z = v.z
-        val a = if x >= 0 then p.ra + pi else pi - p.ra
         val v1 = Vec(z, 0, -x)
-        Rotation(v1, -a + p.dec * math.cos(a))
+        val a: Double = {
+          val vn = Vec(x, 0, z).rotx(pidiv2)
+          vn.angleRad(v)
+        }
+        Rotation(v1, a)
       }
 
       def colVecs(vecs: Seq[Vec], color: Color = Color.orange) = {
@@ -84,7 +85,7 @@ object Tryout {
         .map(a => PolarVec(1, a, degToRad(d1)).toVec)
 
 
-      val vecs = colVecs(vecs0, Color.yellow) ++ colVecs(vecs2, Color.green)
+      val vecs = colVecs(vecs2, Color.green)
       //val vecs = colVecs(vecs2, Color.green)
 
       val old = vecs
@@ -92,10 +93,14 @@ object Tryout {
           Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.005, color = c)
         }
       val news = vecs
-        .map { (v, c) =>
+        .flatMap { (v, c) =>
           val rot = vecToRotation(v)
           println(s"$v $rot")
-          Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = c)
+          val dir = rot.axes.norm.mul(0.5)
+          Seq(
+            Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = c),
+            Shapable.Cylinder(position = Vec.zero, direction = dir, radius = 0.01, color = Color.white),
+          )
         }
       old ++ news
     }
