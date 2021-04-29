@@ -8,7 +8,7 @@ import scala.util.Random
 object ImageUtil {
 
   import Data.Star
-  import Main._
+  import Gaia._
   import Vector._
   import X3d._
 

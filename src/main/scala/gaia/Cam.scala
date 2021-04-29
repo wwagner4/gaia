@@ -11,7 +11,7 @@ object Cam {
 
   import Vector._
   import X3d._
-  import Main._
+  import Gaia._
 
   case class Camera(
                      name: String,
@@ -259,6 +259,6 @@ object Cam {
   def calcFrameRate(preview: Boolean): Int = if preview then 2 else 27
 
   def calcQuality(preview: Boolean, gaiaImage: GaiaImage): VideoQuality =
-    if preview then Main.VideoQuality.HD else gaiaImage.videoQuality
+    if preview then VideoQuality.HD else gaiaImage.videoQuality
 
 }

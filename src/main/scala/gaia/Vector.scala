@@ -21,13 +21,16 @@ object Vector {
 
   object Vec {
     def zero: Vec = Vec(0, 0, 0)
+
+    def normal(a: Vec, b: Vec): Vec = {
+      val x = a.y * b.z - a.z * b.y
+      val y = a.y * b.x - a.x * b.z
+      val z = a.x * b.y - a.y * b.x
+      Vec (x, y, z)
+    }
   }
 
   case class Vec(x: Double, y: Double, z: Double) {
-
-    def strComma = s"$x, $y, $z"
-
-    def strNoComma = s"$x $y $z"
 
     def mul(factor: Double): Vec = Vec(x * factor, y * factor, z * factor)
 
@@ -63,9 +66,11 @@ object Vector {
       Vec(x / l, y / l, z / l)
     }
 
-    def sprod(other: Vec): Double = (x * other.x) + (y * other.y) + (z * other.z)
+    def scalarProd(other: Vec): Double = (x * other.x) + (y * other.y) + (z * other.z)
 
-    def angle(other: Vec): Double = math.acos(sprod(other) / (length * other.length)) * 180 / pi
+    def angle(other: Vec): Double = radToDeg(angleRad(other))
+
+    def angleRad(other: Vec): Double = math.acos(scalarProd(other) / (length * other.length))
 
     def toPolarVec: PolarVec = {
       def atan2: Double = {
@@ -89,7 +94,8 @@ object Vector {
       }
     }
 
-    def toVec4(u: Double = 0.0) = Vec4(x, y, z, u)
+    override def toString(): String = "Vec(%.2f %.2f %.2f)".format(x, y, z)
+
   }
 
   case class PolarVec(r: Double, ra: Double, dec: Double) {
@@ -125,21 +131,5 @@ object Vector {
       }
     }
   }
-
-  case class Vec2(x: Double, y: Double) {
-
-    def strComma = s"$x, $y"
-
-    def strNoComma = s"$x $y"
-  }
-
-  case class Vec4(x: Double, y: Double, z: Double, u: Double) {
-
-    def strComma = s"$x, $y, $z, $u"
-
-    def strNoComma = s"$x $y $z $u"
-  }
-
-
 
 }

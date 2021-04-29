@@ -1,5 +1,7 @@
 package gaia
 
+import gaia.X3d.Shapable.Cylinder1
+
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
@@ -7,7 +9,8 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
-import scala.language.implicitConversions
+import scala.annotation.tailrec
+import scala.language.{implicitConversions, postfixOps}
 import scala.util.Random
 
 object Tryout {
@@ -21,17 +24,103 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    sunMove()
+    x3dDir(workPath)
+  }
+
+  def f(value: Double): String = "%.5f".format(value)
+
+  private def x3dDir(workPath: Path): Unit = {
+    val bc = Color.darkBlue
+
+    def combi(): Seq[Shapable] = {
+
+      def colVecs(vecs: Seq[Vec], color: Color = Color.orange): Seq[(Vec, Color)] = {
+        def brightnes(n: Int): Seq[Double] = {
+          val k = 0.8 / n
+          (0 until n).map(x => 1.0 - k * x)
+        }
+
+        val bs = brightnes(vecs.size)
+          .map(b => color.brightness(b))
+
+        vecs.zip(bs)
+      }
+
+      def brightVecs(vecs: Seq[Vec]): Seq[(Vec, Double)] = {
+        def brightnes(n: Int): Seq[Double] = {
+          val k = 0.8 / n
+          (0 until n).map(x => 1.0 - k * x)
+        }
+
+        vecs.zip(brightnes(vecs.size))
+      }
+
+      def degs: Seq[Int] = {
+
+        @tailrec
+        def fd(v: Int, li: List[Int]): List[Int] = {
+          val d = 1 + Random.nextInt(5)
+          if v + d >= 360 then li
+          else fd(v + d, (v + d) :: li)
+        }
+
+        fd(0, List())
+
+      }
+
+      def d1: Double = -80 + Random.nextInt(160)
+
+      val vecs0 = (0 to(359, 1))
+        .map(a => degToRad(a))
+        .map(a => PolarVec(1, a, degToRad(d1)).toVec)
+
+      val vecs1 = degs
+        .map(a => degToRad(a))
+        .map(a => PolarVec(1, a, degToRad(d1)).toVec)
+
+      val vecs2 = Seq(181, 200, 300)
+        .map(a => degToRad(a))
+        .map(a => PolarVec(1, a, degToRad(d1)).toVec)
+
+
+      val vecs = brightVecs(vecs1)
+
+      val old = vecs
+        .map { (v, bright) =>
+          Shapable.Cylinder(position = Vec.zero, direction = v, radius = 0.005, color = Color.orange.brightness(bright))
+        }
+      val news = vecs
+        .flatMap { (v, bright) =>
+          val rot = vecToRotation(v)
+          println(s"$v $rot")
+          val d0 = Vec(-rot.axis.z, 0, rot.axis.x)
+          val dir1 = d0.norm.mul(0.5)
+          val dir2 = rot.axis.norm.mul(0.5)
+          Seq(
+            Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = Color.yellow.brightness(bright)),
+            //Shapable.Cylinder(position = Vec.zero, direction = dir1, radius = 0.01, color = Color.white.brightness(bright)),
+            //Shapable.Cylinder(position = Vec.zero, direction = dir2, radius = 0.01, color = Color.white.brightness(bright)),
+          )
+        }
+      old ++ news
+    }
+
+
+    val shapables =
+      combi()
+        ++ shapablesCoordinatesColored(3, bc)
+    val file = Gaia.workPath.resolve(s"tryout_x3dDir.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def sunMove(): Unit = {
-    val sunPos  = toGalacticCoords(Vec(0,0,0))
+    val sunPos = toGalacticCoords(Vec(0, 0, 0))
     println(s"sunpos: $sunPos")
     println(s"sundir: $galacticSunDir")
-    
+
     val sun = StarPosDir(pos = Vec.zero, dir = Vec.zero)
     val gsun = toStarPosDirGalactic(sun)
-    
+
     println(gsun)
   }
 
@@ -91,30 +180,26 @@ object Tryout {
 
     val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
 
-    val file = Main.workPath.resolve(s"tryout_$id.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    val file = Gaia.workPath.resolve(s"tryout_$id.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def viewpoint(): Unit = {
 
     val bc = Color.veryDarkBlue
     val shapables = ShapableFactory.sphereCoordinates
-    val qual = Main.VideoQuality.SVGA
+    val qual = Gaia.VideoQuality.SVGA
     val cams = cameras(ra = 0, dec = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, bc, Main.workPath)
+    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, bc, Gaia.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {
     val bc = Color.black
     val shapables = ShapableFactory.sphereCoordinates
-    val file = Main.workPath.resolve("tryout_sphere_coordinates.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    val file = Gaia.workPath.resolve("tryout_sphere_coordinates.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def cam(): Unit = {
@@ -135,10 +220,8 @@ object Tryout {
       }
     val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
-    val file = Main.workPath.resolve("tryout_cam.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    val file = Gaia.workPath.resolve("tryout_cam.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def cylinder(): Unit = {
@@ -153,7 +236,7 @@ object Tryout {
     }
 
     val shapables = fromDef
-    val file = Main.workPath.resolve("tryout_cylinder.x3d")
+    val file = Gaia.workPath.resolve("tryout_cylinder.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -171,10 +254,8 @@ object Tryout {
     )
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Main.workPath.resolve("tryout_cones.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    val file = Gaia.workPath.resolve("tryout_cones.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def displyDirections(): Unit = {
@@ -200,10 +281,8 @@ object Tryout {
     }
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Main.workPath.resolve("tryout_directions.x3d")
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
-    gaia.Util.writeString(file, xml)
-    println(s"wrote to $file")
+    val file = Gaia.workPath.resolve("tryout_directions.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def vecConvert(): Unit = {
@@ -465,6 +544,12 @@ object Tryout {
         (min to max).map(v => sphere(v, Color.green, v => Vec(0, 0, v))),
       ).flatten
     }
+  }
+
+  private def writeX3dFile1(bc: Color, shapables: scala.Seq[Shapable], file: Path): Unit = {
+    val xml = X3d.createXml(shapables, file.getFileName.toString, bc)
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
   }
 
 

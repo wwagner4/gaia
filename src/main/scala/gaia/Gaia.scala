@@ -5,7 +5,7 @@ import scala.io._
 import scala.util.Random
 
 
-object Main {
+object Gaia {
 
   import Data.Star
   import ImageUtil._
@@ -333,7 +333,7 @@ object Main {
     println(msg)
   }
 
-  def main(args: Array[String]): Unit = {
+  def startGaia(args: Array[String]): Unit = {
     def rest(args: Iterable[String]): List[String] = args.toList match {
       case Nil => List.empty[String]
       case _ :: rest => rest

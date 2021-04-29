@@ -1,6 +1,6 @@
 package gaia
 
-import gaia.Main.{GaiaImage, createX3d, images}
+import gaia.Gaia.{GaiaImage, createX3d, images}
 
 import java.io.IOException
 import java.nio.file.{Files, Path, StandardCopyOption}

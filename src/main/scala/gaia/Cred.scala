@@ -4,7 +4,7 @@ import java.nio.file.{Files, Path}
 
 object Cred {
 
-  import Main._
+  import Gaia._
   import Cam._
 
   def createTxt(gaiaImage: GaiaImage, workPath: Path): Unit = {
