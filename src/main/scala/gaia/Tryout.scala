@@ -28,23 +28,23 @@ object Tryout {
   }
 
   def f(value: Double): String = "%.5f".format(value)
-  
-  val eps: Double  = 0.000000001
 
   private def x3dDir(workPath: Path): Unit = {
     val bc = Color.darkBlue
 
     def combi(): Seq[Shapable] = {
 
-      def vecToRotation(v: Vec): Rotation = {
-        val x = v.x
-        val z = v.z
-        val v1 = Vec(z, 0, -x)
-        val a: Double = {
-          val vn = Vec(x, 0, z)
-          if v.y > -eps && v.y < eps then pidiv2 else if v.y >= 0 then pidiv2 - vn.angleRad(v) else vn.angleRad(v) + pidiv2
-        }
-        Rotation(v1, a)
+      def vecToRotation(dir: Vec): Rotation = {
+        val eps: Double = 0.000000001
+        val vxz = Vec(dir.x, 0, dir.z)
+        val vxzn = Vec(dir.z, 0, -dir.x)
+
+        val a: Double =
+          if dir.y > -eps && dir.y < eps then pidiv2
+          else if dir.y >= 0 then pidiv2 - vxz.angleRad(dir)
+          else vxz.angleRad(dir) + pidiv2
+
+        Rotation(vxzn, a)
       }
 
       def colVecs(vecs: Seq[Vec], color: Color = Color.orange): Seq[(Vec, Color)] = {
@@ -82,7 +82,7 @@ object Tryout {
       }
 
       def d1: Double = -80 + Random.nextInt(160)
-      
+
       val vecs0 = (0 to(359, 1))
         .map(a => degToRad(a))
         .map(a => PolarVec(1, a, degToRad(d1)).toVec)
