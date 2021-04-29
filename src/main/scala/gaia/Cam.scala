@@ -106,7 +106,7 @@ object Cam {
       val duration = cfg.durationInSec
       val steps = duration * frameRate
       val cams = cfg.cams(steps)
-      mkVideo(gaiaImage.id, cfg.id, shapables, cams, quality, 3, frameRate, gaiaImage.backColor, workPath)
+      mkVideo(gaiaImage.id, cfg.id, shapables, cams, quality, 3, frameRate, duration, gaiaImage.backColor, workPath)
     }
   }
 
@@ -165,6 +165,7 @@ object Cam {
                quality: VideoQuality,
                antiAlias: Int,
                frameRate: Int,
+               cycleIntervalInSeconds: Int,
                backColor: Color,
                workPath: Path): Unit = {
     val numlen = 4
@@ -173,35 +174,19 @@ object Cam {
     val videoOutDir = workPath.resolve(imageId).resolve("videos")
     if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
     val x3d0File = tmpWorkDir.resolve(s"$imageId.x3d")
-    val xml = X3d.createXml(shapables, x3d0File.getFileName.toString, backColor, cams)
+    val xml = X3d.createCamAnimatedXml(shapables, cams, backColor, cycleIntervalInSeconds)
     gaia.Util.writeString(x3d0File, xml)
     println(s"wrote to $x3d0File")
-    val commands = cams.indices
-      .map { i =>
-        val iFmt = "%0" + numlen + "d"
-        val iStr = iFmt.format(i)
-
-        val x3dFile = tmpWorkDir.resolve(s"${imageId}_$iStr.x3d")
-        Files.copy(x3d0File, x3dFile)
-        println(s"copied to $x3dFile")
-
-        val geometryStr = s"${quality.width}x${quality.height}"
-        val model = x3dFile.toAbsolutePath.toString
-        val image = tmpWorkDir.resolve(s"${imageId}_$iStr.png").toAbsolutePath.toString
-        Seq("view3dscene", model, "--anti-alias", antiAlias.toString, "--viewpoint", i.toString,
-          "--geometry", geometryStr, "--screenshot", "0", image)
-      }
-
-    println(commands.map(c => c.mkString(" ")).mkString("\n"))
-    Util.runAllCommands(commands)
-    println(s"finished ${commands.size} commands")
-    val iFmtFf = "%0" + numlen + "d"
-    val imgFile = tmpWorkDir.resolve(s"${imageId}_$iFmtFf.png").toAbsolutePath.toString
-    val qualStr = quality.toString
-    val outFile = videoOutDir.resolve(s"${imageId}_${videoId}_${qualStr}_$frameRate.mp4").toAbsolutePath.toString
-    val cmd = Seq(Seq("ffmpeg", "-y", "-r", frameRate.toString, "-i", imgFile, outFile))
-    Util.runAllCommands(cmd)
-    println(s"wrote video snipplets to $outFile")
+    val videoFile = videoOutDir.resolve(s"${imageId}_${videoId}_$frameRate.mp4").toAbsolutePath.toString
+    val geometryStr = s"${quality.width}x${quality.height}"
+    val imageCount = frameRate * cycleIntervalInSeconds
+    val timeStep = 1.0 / frameRate
+    val cmds = Seq(
+      Seq("view3dscene", s"${x3d0File.toAbsolutePath}", "--anti-alias", s"$antiAlias", "--geometry", s"$geometryStr",
+        "--screenshot-range", "0", f"$timeStep%.4f", s"$imageCount", s"$videoFile"))
+    println(cmds.map(c => c.mkString(" ")).mkString("\n"))
+    Util.runAllCommands(cmds)
+    println(s"wrote video snipplet to $videoFile")
   }
 
 
@@ -227,14 +212,14 @@ object Cam {
     }
   }
 
-  def cameras(ra: Int, dec: Int, radius: Double,
+  def cameras(raInDeg: Int, decInDeg: Int, radius: Double,
               name: String = "gaiadefined", reverse: Boolean = false,
               eccentricity: Double = 0.0, offset: Vec = Vec(0, 0, 0))(frames: Int): Seq[Camera] = {
     degSteps(frames, reverse)
       .map(degToRad)
       .map(rad => ellipse(radius, eccentricity, rad))
-      .map(v => v.roty(-degToRad(dec)))
-      .map(v => v.rotz(degToRad(ra)))
+      .map(v => v.roty(-degToRad(decInDeg)))
+      .map(v => v.rotz(degToRad(raInDeg)))
       .map(v => v.add(offset))
       .zipWithIndex
       .map { (v: Vec, i: Int) =>
@@ -256,7 +241,7 @@ object Cam {
     Vec(v1.x, y, v1.z)
   }
 
-  def calcFrameRate(preview: Boolean): Int = if preview then 2 else 27
+  def calcFrameRate(preview: Boolean): Int = if preview then 2 else 60
 
   def calcQuality(preview: Boolean, gaiaImage: GaiaImage): VideoQuality =
     if preview then VideoQuality.HD else gaiaImage.videoQuality

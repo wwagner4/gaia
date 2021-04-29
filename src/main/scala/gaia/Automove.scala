@@ -10,7 +10,7 @@ object Automove {
 
   enum Resolution(val width: Int, val height: Int) {
 
-    def resString = s"${width}x${height}"
+    def resString = s"${width}x$height"
 
     case _4kWide extends Resolution(width = 4098, height = 2160)
 
@@ -30,7 +30,7 @@ object Automove {
 
   enum FrameRate(perSecond: Int) {
 
-    def seconds = {
+    def seconds: String = {
       val sec = 1.0 / perSecond
       "%.3f".format(sec)
     }
@@ -57,15 +57,15 @@ object Automove {
 
 
   object RotAxesDeg {
-    def nearEcliptic = RotAxesDeg(87.3, 90)
+    def nearEcliptic: RotAxesDeg = RotAxesDeg(87.3, 90)
 
-    def steep = RotAxesDeg(33, 90)
+    def steep: RotAxesDeg = RotAxesDeg(33, 90)
 
-    def aroundX = RotAxesDeg(0, 0)
+    def aroundX: RotAxesDeg = RotAxesDeg(0, 0)
 
-    def aroundY = RotAxesDeg(0, 90)
+    def aroundY: RotAxesDeg = RotAxesDeg(0, 90)
 
-    def aroundZ = RotAxesDeg(90, 0)
+    def aroundZ: RotAxesDeg = RotAxesDeg(90, 0)
   }
 
 
@@ -532,11 +532,11 @@ object Automove {
     val openingName = s"opening_${gaiaImage.id}"
     val closingName = s"closing_${gaiaImage.id}"
 
-    val openingHtmlFile = creditsDir.resolve(s"${openingName}.html")
-    val closingHtmlFile = creditsDir.resolve(s"${closingName}.html")
+    val openingHtmlFile = creditsDir.resolve(s"$openingName.html")
+    val closingHtmlFile = creditsDir.resolve(s"$closingName.html")
 
-    val openingImageFile = creditsDir.resolve(s"${openingName}.png")
-    val closingImageFile = creditsDir.resolve(s"${closingName}.png")
+    val openingImageFile = creditsDir.resolve(s"$openingName.png")
+    val closingImageFile = creditsDir.resolve(s"$closingName.png")
 
     Util.writeString(openingHtmlFile, openingContent)
     Util.writeString(closingHtmlFile, closingContent)

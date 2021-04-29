@@ -59,7 +59,7 @@ object Gaia {
                         videoConfig: Option[VideoConfig] = None,
                         stillConfig: Option[StillConfig] = None,
                         backColor: Color = Color.black,
-                        videoQuality: VideoQuality = VideoQuality.UltraHD,
+                        videoQuality: VideoQuality = VideoQuality._4k,
                         credits: CreditConfig = CreditConfig(),
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc

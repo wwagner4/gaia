@@ -1,6 +1,6 @@
 package gaia
 
-import gaia.X3d.Shapable.Cylinder1
+import gaia.X3d.Shapable.CylinderRot
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -24,10 +24,25 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    x3dDir(workPath)
+    println(s"calling tryout with arguments $args on work path $workPath")
+    camRot(workPath)
   }
 
-  def f(value: Double): String = "%.5f".format(value)
+  private def camRot(workPath: Path): Unit = {
+    val bc = Color.veryDarkGreen
+    //val shapables = ShapableFactory.sphereCoordinates(10)
+    //val shapables = ImageFactory.sunms1(workPath, bc)
+    //val shapables = ImageFactory.sund5(workPath, bc)
+    val shapables = ImageFactory.sunms2(workPath, bc)
+    val cams = cameras(100, 20, 15, eccentricity= 0.8, offset = Vec(5, 0, 0))(500)
+    val duration = 60
+
+    val xml: String = createCamAnimatedXml(shapables, cams, bc, duration)
+    val file = Gaia.workPath.resolve(s"tryout_cam_rot.x3d")
+    gaia.Util.writeString(file, xml)
+    println(s"wrote to $file")
+  }
+
 
   private def x3dDir(workPath: Path): Unit = {
     val bc = Color.darkBlue
@@ -97,7 +112,7 @@ object Tryout {
           val dir1 = d0.norm.mul(0.5)
           val dir2 = rot.axis.norm.mul(0.5)
           Seq(
-            Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = Color.yellow.brightness(bright)),
+            Shapable.CylinderRot(rotation = rot, radius = 0.003, height = 1.1, color = Color.yellow.brightness(bright)),
             //Shapable.Cylinder(position = Vec.zero, direction = dir1, radius = 0.01, color = Color.white.brightness(bright)),
             //Shapable.Cylinder(position = Vec.zero, direction = dir2, radius = 0.01, color = Color.white.brightness(bright)),
           )
@@ -187,29 +202,29 @@ object Tryout {
   private def viewpoint(): Unit = {
 
     val bc = Color.veryDarkBlue
-    val shapables = ShapableFactory.sphereCoordinates
+    val shapables = ShapableFactory.sphereCoordinates()
     val qual = Gaia.VideoQuality.SVGA
-    val cams = cameras(ra = 0, dec = 20, 100.0)(500)
+    val cams = cameras(raInDeg = 0, decInDeg = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, bc, Gaia.workPath)
+    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, 10, bc, Gaia.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {
     val bc = Color.black
-    val shapables = ShapableFactory.sphereCoordinates
+    val shapables = ShapableFactory.sphereCoordinates()
     val file = Gaia.workPath.resolve("tryout_sphere_coordinates.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
-  private def cam(): Unit = {
+  private def cam(workPath: Path): Unit = {
 
     val bc = Color.veryDarkRed
 
     val camShapes = (0 to(180, 30))
       .zip(X3d.Palette.p5c8.lazyColors)
       .flatMap { (ra, c) =>
-        cameras(ra = ra, dec = 60, 4.0)(20)
+        cameras(raInDeg = ra, decInDeg = 60, 4.0)(20)
           .flatMap { cam =>
             val dir = cam.dir.mul(0.05)
             Seq(
@@ -220,7 +235,7 @@ object Tryout {
       }
     val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
-    val file = Gaia.workPath.resolve("tryout_cam.x3d")
+    val file = workPath.resolve("tryout_cam.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
@@ -529,13 +544,13 @@ object Tryout {
   }
 
   object ShapableFactory {
-    def sphereCoordinates: Seq[Shapable] = {
-      val min = -50
-      val max = 50
+    def sphereCoordinates(len: Int = 50): Seq[Shapable] = {
+      val min = -len
+      val max = len
 
       def sphere(value: Int, color: Color, f: Int => Vec): Shapable = {
         val c = if value == max then Color.white else color
-        Shapable.Sphere(position = f(value), color = c, radius = 0.3)
+        Shapable.Sphere(position = f(value), color = c, radius = len * 0.007)
       }
 
       Seq(
