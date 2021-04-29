@@ -34,19 +34,6 @@ object Tryout {
 
     def combi(): Seq[Shapable] = {
 
-      def vecToRotation(dir: Vec): Rotation = {
-        val eps: Double = 0.000000001
-        val vxz = Vec(dir.x, 0, dir.z)
-        val vxzn = Vec(dir.z, 0, -dir.x)
-
-        val a: Double =
-          if dir.y > -eps && dir.y < eps then pidiv2
-          else if dir.y >= 0 then pidiv2 - vxz.angleRad(dir)
-          else vxz.angleRad(dir) + pidiv2
-
-        Rotation(vxzn, a)
-      }
-
       def colVecs(vecs: Seq[Vec], color: Color = Color.orange): Seq[(Vec, Color)] = {
         def brightnes(n: Int): Seq[Double] = {
           val k = 0.8 / n
@@ -106,9 +93,9 @@ object Tryout {
         .flatMap { (v, bright) =>
           val rot = vecToRotation(v)
           println(s"$v $rot")
-          val d0 = Vec(-rot.axes.z, 0, rot.axes.x)
+          val d0 = Vec(-rot.axis.z, 0, rot.axis.x)
           val dir1 = d0.norm.mul(0.5)
-          val dir2 = rot.axes.norm.mul(0.5)
+          val dir2 = rot.axis.norm.mul(0.5)
           Seq(
             Shapable.Cylinder1(rotation = rot, radius = 0.003, height = 1.1, color = Color.yellow.brightness(bright)),
             //Shapable.Cylinder(position = Vec.zero, direction = dir1, radius = 0.01, color = Color.white.brightness(bright)),

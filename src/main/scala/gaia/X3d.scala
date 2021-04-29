@@ -109,10 +109,10 @@ object X3d {
 
   }
   case class Rotation(
-                       axes: Vec,
+                       axis: Vec,
                        angle: Double
                      ) {
-    def strNoComma: String = f"${axes.strNoComma}, ${f(angle)}"
+    def strNoComma: String = f"${axis.strNoComma}, ${f(angle)}"
 
     override def toString: String = s"Rot($strNoComma)"
   }
@@ -342,6 +342,19 @@ object X3d {
 
   extension (vec: Vec)
     private def strNoComma:String = "%s %s %s".format(f(vec.x), f(vec.y), f(vec.z))
+
+  def vecToRotation(dir: Vec): Rotation = {
+    val eps: Double = 0.000000001
+    val vxz = Vec(dir.x, 0, dir.z)
+    val vxzn = Vec(dir.z, 0, -dir.x)
+
+    val a: Double =
+      if dir.y > -eps && dir.y < eps then pidiv2
+      else if dir.y >= 0 then pidiv2 - vxz.angleRad(dir)
+      else vxz.angleRad(dir) + pidiv2
+
+    Rotation(vxzn, a)
+  }
 
 }
 
