@@ -6,7 +6,7 @@ import scala.util.Random
 object X3d {
 
   import Vector._
-  import Cam.Camera
+  import Gaia._
   import Data.Star
 
 
@@ -109,6 +109,8 @@ object X3d {
     }
 
   }
+
+  case class Rotation1(x: Double, y: Double, z: Double)
 
   case class Rotation(
                        axis: Vec,
@@ -302,7 +304,7 @@ object X3d {
       }
     }
 
-    case class Viewpoint(camera: Cam.Camera) extends Shapable {
+    case class Viewpoint(camera: Gaia.Camera) extends Shapable {
       def toShape = {
         val rotPol = camera.dir.mul(-1).toPolarVec
         val ry = -rotPol.dec
@@ -323,11 +325,9 @@ object X3d {
     }
   }
 
-  def createXml(shapables: Seq[Shapable], title: String, backColor: Color, cameras: Seq[Cam.Camera] = Seq.empty[Cam.Camera]): String = {
+  def createXml(shapables: Seq[Shapable], title: String, backColor: Color): String = {
 
     val shapablesStr = shapables.map(_.toShape).mkString("\n")
-    val viewpointStr = cameras.map { c => Shapable.Viewpoint(c).toShape}.mkString("\n")
-
     s"""<?xml version="1.0" encoding="UTF-8"?>
        |<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.3//EN" "https://www.web3d.org/specifications/x3d-3.3.dtd">
        |<X3D profile='Interchange' version='3.3' xmlns:xsd='http://www.w3.org/2001/XMLSchema-instance' xsd:noNamespaceSchemaLocation='https://www.web3d.org/specifications/x3d-3.3.xsd'>
@@ -335,7 +335,6 @@ object X3d {
        |    <meta content='http://entelijan.net' name='reference'/>
        |  </head>
        |  <Scene>
-       |    $viewpointStr
        |    <WorldInfo title='$title'/>
        |    <Background skyColor='${backColor.strNoComma}'/>
        |    $shapablesStr
@@ -343,7 +342,7 @@ object X3d {
        |</X3D>""".stripMargin
   }
 
-  def createCamAnimatedXml(shapables: Seq[Shapable], cameras: Seq[Camera], backColor: Color, cycleIntervalInSeconds: Int) = {
+  def createCamAnimatedXml(shapables: Seq[Shapable], cameras: Seq[Gaia.Camera], backColor: Color, cycleIntervalInSeconds: Int, modelRotation: Rotation1) = {
     val rotzs = cameras.map { camera =>
       val rotPol = camera.dir.mul(-1).toPolarVec
       val rz = rotPol.ra
@@ -387,7 +386,15 @@ object X3d {
          |      </Transform>
          |      </Transform>
          |      </Transform>
+         |    <Transform rotation='0 0 1 ${f(modelRotation.z)}' center='0, 0, 0'>
+         |    <Transform rotation='0 1 0 ${f(modelRotation.y)}' center='0, 0, 0'>
+         |    <Transform rotation='1 0 0 ${f(modelRotation.x)}' center='0, 0, 0'>
+         |    <Group>
          |    $shapablesStr
+         |      </Group>
+         |      </Transform>
+         |      </Transform>
+         |      </Transform>
          |    <PositionInterpolator DEF='spinPos' key='$keysStr' keyValue='$posStr'/>
          |    <OrientationInterpolator DEF='spinZ' key='$keysStr' keyValue='$rotzStr'/>
          |    <OrientationInterpolator DEF='spinY' key='$keysStr' keyValue='$rotyStr'/>

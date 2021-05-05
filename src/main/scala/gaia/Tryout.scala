@@ -1,6 +1,6 @@
 package gaia
 
-import gaia.X3d.Shapable.CylinderRot
+import gaia.Gaia.VideoConfig
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -15,7 +15,6 @@ import scala.util.Random
 
 object Tryout {
 
-  import Automove._
   import Cam._
   import Data._
   import ImageUtil._
@@ -24,20 +23,28 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    println(s"calling tryout with arguments $args on work path $workPath")
-    camRot(workPath)
+    allVids()
   }
 
+  private def allVids(): Unit = {
+    Gaia.images
+      .values
+      .filter(_.videoConfig.exists(c => c.isInstanceOf[VideoConfig.Cams]))
+      .map(_.id)
+      .foreach(id => println(s"""sbt "run vidp $id" """))
+  }
+  
+  
   private def camRot(workPath: Path): Unit = {
     val bc = Color.veryDarkGreen
     //val shapables = ShapableFactory.sphereCoordinates(10)
     //val shapables = ImageFactory.sunms1(workPath, bc)
     //val shapables = ImageFactory.sund5(workPath, bc)
     val shapables = ImageFactory.sunms2(workPath, bc)
-    val cams = cameras(100, 20, 15, eccentricity= 0.8, offset = Vec(5, 0, 0))(500)
+    val cams = cameras(100, 20, 15, eccentricity = 0.8, offset = Vec(5, 0, 0))(500)
     val duration = 60
 
-    val xml: String = createCamAnimatedXml(shapables, cams, bc, duration)
+    val xml: String = createCamAnimatedXml(shapables, cams, bc, duration, Rotation1(0, 0, 0))
     val file = Gaia.workPath.resolve(s"tryout_cam_rot.x3d")
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
@@ -203,11 +210,14 @@ object Tryout {
 
     val bc = Color.veryDarkBlue
     val shapables = ShapableFactory.sphereCoordinates()
-    val qual = Gaia.VideoQuality.SVGA
+    val qual = Gaia.VideoQuality(
+      Gaia.VideoResolution.SVGA,
+      frameRate = 10,
+      antiAliasing = 3)
     val cams = cameras(raInDeg = 0, decInDeg = 20, 100.0)(500)
     println(s"Using ${shapables.size} shapes")
 
-    mkVideo("tryout_viewpont", "00", shapables, cams, qual, 2, 10, 10, bc, Gaia.workPath)
+    mkVideo("tryout_viewpont", "00", shapables, cams, Rotation1(0, 0, 0), qual, 10, bc, Gaia.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {
@@ -367,21 +377,6 @@ object Tryout {
     )
 
     Util.runAllCommands(cmds)
-  }
-
-  private def testRotAxes(): Unit = {
-    val rs = Seq(
-      RotAxesDeg(0, 0),
-      RotAxesDeg(0, 90),
-      RotAxesDeg(90, 0),
-    )
-
-    rs.map(r => (r, r.toVec)).foreach { case (a, b) => println(s"$a -> $b") }
-
-    val nearEcl = Vec(0, 45, 30).toPolarVec
-    val ra = radToDeg(nearEcl.ra)
-    val dec = radToDeg(nearEcl.dec)
-    println(s"steep: $ra, $dec")
   }
 
   private def amalyseStarsPerShell(): Seq[Unit] = {

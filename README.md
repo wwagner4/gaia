@@ -230,6 +230,12 @@ with `sbt run`, `sbt console` will start a Dotty REPL.
 For more information on the sbt-dotty plugin, see the
 [dotty-example-project](https://github.com/lampepfl/dotty-example-project/blob/master/README.md).
 
+### Data
+* http://entelijan.net/gaiadata.zip
+
+Download and put the content to ~/gaia/data/basic
+
+
 ### Music
 * https://freemusicarchive.org/
 * https://freemusicarchive.org/music/Daniel_Birch
@@ -237,4 +243,7 @@ For more information on the sbt-dotty plugin, see the
 * https://freemusicarchive.org/music/Michael_Bruckner
 
 ### TODOs
-- Improve descriptions and sort them by changing the IDs
+- add new features to camera create (when needed in the subsequent points). 
+  - moving center
+  - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180     
+- create camera configs in parallel

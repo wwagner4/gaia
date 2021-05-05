@@ -316,7 +316,7 @@ object ImageUtil {
 
   def toStarPosDirGalactic(star: StarPosDir): StarPosDir = {
     val gpos = toGalacticCoords(star.pos)
-    star.copy(pos = gpos, dir=star.dir.add(galacticSunDir))
+    star.copy(pos = gpos, dir = star.dir.add(galacticSunDir))
   }
 
   def toStarPosDir(star: Star): StarPosDir =

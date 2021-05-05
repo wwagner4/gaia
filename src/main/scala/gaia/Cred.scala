@@ -24,7 +24,7 @@ object Cred {
 
   def create(gaiaImage: GaiaImage, workPath: Path): Unit = {
 
-    val vq: VideoQuality = gaiaImage.videoQuality
+    val vq: VideoResolution = gaiaImage.videoQuality.videoResolution
     val w = vq.width
     val h = vq.height
 
