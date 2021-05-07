@@ -31,7 +31,13 @@ object Tryout {
       .values
       .filter(_.videoConfig.exists(c => c.isInstanceOf[VideoConfig.Cams]))
       .map(_.id)
-      .foreach(id => println(s"""sbt "run vidp $id" """))
+      .toSeq
+      .sorted
+      .foreach { id =>
+        println(s"""sbt "run vid $id" """)
+        println(s"""sbt "run still $id" """)
+        println(s"""sbt "run cred $id" """)
+      }
   }
   
   
@@ -204,20 +210,6 @@ object Tryout {
 
     val file = Gaia.workPath.resolve(s"tryout_$id.x3d")
     writeX3dFile1(bc, shapables, file)
-  }
-
-  private def viewpoint(): Unit = {
-
-    val bc = Color.veryDarkBlue
-    val shapables = ShapableFactory.sphereCoordinates()
-    val qual = Gaia.VideoQuality(
-      Gaia.VideoResolution.SVGA,
-      frameRate = 10,
-      antiAliasing = 3)
-    val cams = cameras(raInDeg = 0, decInDeg = 20, 100.0)(500)
-    println(s"Using ${shapables.size} shapes")
-
-    mkVideo("tryout_viewpont", "00", shapables, cams, Rotation1(0, 0, 0), qual, 10, bc, Gaia.workPath)
   }
 
   private def sphereCoordinatesModel(): Unit = {

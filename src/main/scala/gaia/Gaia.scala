@@ -56,6 +56,7 @@ object Gaia {
                      name: String,
                      pos: Vec,
                      dir: Vec,
+                     time: Int,
                    )
 
   type FCams = Int => Seq[Camera]
@@ -94,6 +95,7 @@ object Gaia {
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.default,
                         credits: CreditConfig = CreditConfig(),
+                        stillImageSeed: Long = 2348948509348L
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -363,9 +365,15 @@ object Gaia {
           |""".stripMargin.trim
       ),
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", Cam.cameras(0, 6, 20, eccentricity = 0.1), 130),
-        CameraConfig("b", Cam.cameras(44, 6, 30, eccentricity = 0.95), 130),
-        CameraConfig("c", Cam.cameras(10, 40, 15, eccentricity = 0.3, offset = Vec(-3, -3, 10)), modelRotation = rot(y = -30), durationInSec = 130),
+        CameraConfig("a", 
+          Cam.cameras(0, 6, 20, eccentricity = 0.1), 
+          durationInSec = 130),
+        CameraConfig("b", 
+          Cam.cameras(44, 6, 30, eccentricity = 0.95, reverse = true, offset = Vec(-3, -3, 1)), 
+          modelRotation = rot(y = 60), durationInSec = 130),
+        CameraConfig("c", 
+          Cam.cameras(10, 40, 15, eccentricity = 0.3, offset = Vec(-3, -3, 10)), 
+          modelRotation = rot(y = -30), durationInSec = 130),
       ))),
     ),
     GaiaImage(id = "gc1",

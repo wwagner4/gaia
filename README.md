@@ -246,4 +246,3 @@ Download and put the content to ~/gaia/data/basic
 - add new features to camera create (when needed in the subsequent points). 
   - moving center
   - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180     
-- create camera configs in parallel
