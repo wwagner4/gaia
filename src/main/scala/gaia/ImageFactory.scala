@@ -113,7 +113,6 @@ object ImageFactory {
       }
     println(s"filtered ${starss.size} stars")
     starss.toSeq
-      ++ shapablesCoordinatesGray(10, bc, brightness = 0.2)
   }
 
   def sund1(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -152,7 +151,6 @@ object ImageFactory {
     }
     println(s"There are ${starsFiltered.size} stars near the sun")
     shapabels(stars = starsFiltered).toSeq
-      ++ shapablesCoordinatesColored(maxDist * 1.2, bc)
   }
 
   def sund3(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -191,10 +189,10 @@ object ImageFactory {
 
   def sunos1(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars1 = StarCollections.basicStars(workPath)
-    val starsToShapable = shapabelsStarsToSpheres(0.02, Color.gray(1.0))(_)
+    val starsToShapable = shapabelsStarsToSpheres(0.01, Color.gray(1.0))(_)
     val min = 7.0
     val max = 9.0
-    val starProb = 0.1
+    val starProb = 0.5
     oneShell(stars1, bc, min, max, starProb, starsToShapable)
   }
 
@@ -386,6 +384,46 @@ object ImageFactory {
 
     shapes ++ circleShapes ++ coordShapes
 
+  }
+
+  def gc3(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+    val maxDist = 1.6
+    val colors = Palette.p5c8.colors
+    val gcstars = stars
+      .map(toStarPosDirGalactic)
+      .filter(s => s.pos.length < maxDist)
+      .toSeq
+
+    def stat(): Unit = {
+      val (min, mean, max) = {
+        val value = gcstars.map(_.dir.length)
+        val sum = value.sum
+        (value.min, sum / value.size, value.max)
+      }
+
+      println(min)
+      println(mean)
+      println(max)
+    }
+
+    val shapes = gcstars
+      .map { s =>
+        val ci = Math.floor(s.pos.length / maxDist * colors.size).toInt
+        val radius = s.dir.length / 727 * 0.04
+        Shapable.Sphere(color = colors(ci), position = s.pos, radius = radius)
+      }
+    println(s"created ${shapes.size} shapes")
+
+    val circleShapes = {
+      (4 to(28, 4)).map { r =>
+        Shapable.Circle(translation = Vec.zero,
+          rotation = Vec(0, 0, 0),
+          color = Color.gray(0.1), radius = r * 0.1)
+      }
+    }
+
+    shapes ++ circleShapes
   }
 
   def dens(workPath: Path, bc: Color): Seq[Shapable] = {
