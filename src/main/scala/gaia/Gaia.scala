@@ -468,7 +468,7 @@ object Gaia {
       fCreateModel = ImageFactory.gcd4,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", Cam.cameras(22, -66, 3, eccentricity = 0.8, offset = Vec(0, 2, 1)), 60),
+        CameraConfig("a", Cam.cameras(0, -10, 3, eccentricity = 0.2, offset = Vec(0, 0, 0)), 60),
       ))),
       credits = CreditConfig(references = Seq(
         "creation: entelijan",

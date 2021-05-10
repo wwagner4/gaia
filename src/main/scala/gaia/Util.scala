@@ -114,7 +114,7 @@ object Util {
   }
 
   def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
-    
+
     val allCnt = cmds.size
 
     class StreamGobbler(val name: String, val inputStream: InputStream) extends Runnable {
@@ -168,7 +168,7 @@ object Util {
 
       val futures = for ((cmd, i) <- cmds.zipWithIndex) yield {
         Thread.sleep(500)
-        procExec.submit(() => start(cmd.toList, i+1))
+        procExec.submit(() => start(cmd.toList, i + 1))
       }
       var states = futures.map(f => f.isDone)
       val sleepTimeMillis = 1000
@@ -203,6 +203,14 @@ object Util {
     }
 
     i(from, List.empty[(Double, Double)]).reverse
+  }
+
+  def angle2DDeg(x: Double, y: Double): Int = {
+    val a = radToDeg(math.asin(y / math.sqrt(x * x + y * y)))
+    val a1 = if x < 0 then 180 - a else a
+    val a2 = if a1 < 0 then a1 + 360.0 else a1
+    val a3 = math.round(a2).toInt
+    if a3 == 360 then 0 else a3
   }
 
 }

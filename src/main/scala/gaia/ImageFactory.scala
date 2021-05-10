@@ -373,7 +373,7 @@ object ImageFactory {
   def gcd4(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 3.0
-    val ci = Color.orange
+    val colors = X3d.Palette.p5c8.lazyColors
 
     def horzontalSlice(z: Double, thikness: Double)(star: StarPosDir): Boolean = {
       require(thikness > 0, s"thikness must be > 0.0. $thikness")
@@ -384,10 +384,11 @@ object ImageFactory {
     val shapes = stars
       .map(toStarPosDirGalactic)
       .filter(s => s.pos.length < maxDist)
-      .filter(horzontalSlice(0.4, 0.1))
+      .filter(horzontalSlice(1, 0.3))
       .toSeq
       .map { s =>
-        Shapable.Cone(color = ci, position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
+        val ci = Util.angle2DDeg(s.dir.x, s.dir.y) / 36
+        Shapable.Cone(color = colors(ci), position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
       }
     println(s"created ${shapes.size} shapes")
 
