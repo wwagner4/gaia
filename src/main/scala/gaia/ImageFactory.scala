@@ -343,17 +343,9 @@ object ImageFactory {
         Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc))
     }
 
-    val circleShapes = {
-      (5 to(40, 5)).map { r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, 0, 0),
-          color = Color.gray(0.4), radius = r * 0.1)
-      }
-    }
-
     val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.4), bc)
 
-    starShapes ++ circleShapes ++ coordshapes
+    starShapes ++ ImageUtil.circleShapes(40, 8) ++ coordshapes
   }
 
   def gcd2(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -372,17 +364,9 @@ object ImageFactory {
       }
     println(s"created ${shapes.size} shapes")
 
-    val circleShapes = {
-      (2 to(28, 2)).map { r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, 0, 0),
-          color = Color.gray(0.7), radius = r * 0.1)
-      }
-    }
-
     val coordShapes = shapablesCoordinatesOneColor(3, Color.gray(0.6), bc)
 
-    shapes ++ circleShapes ++ coordShapes
+    shapes ++ circleShapes(28, 14) ++ coordShapes
 
   }
 
@@ -401,25 +385,6 @@ object ImageFactory {
 
     shapes ++ circleShapes(maxDist, 4)
 
-  }
-
-  def circleShapes(distKpc: Double, cnt: Int): Seq[Shapable] = {
-
-    def dists: Seq[Double] = {
-      val diff = distKpc / cnt
-      val eps = 0.000001
-
-      def dr(v: Double, result: List[Double]): List[Double] = {
-        if v > distKpc + eps then result
-        else dr(v + diff, v :: result)
-      }
-
-      dr(diff, List())
-    }
-
-    dists.map(r => Shapable.Circle(translation = Vec.zero,
-      rotation = Vec(0, 0, 0),
-      color = Color.gray(0.7), radius = r))
   }
 
   def gc3(workPath: Path, bc: Color): Seq[Shapable] = {
@@ -451,15 +416,7 @@ object ImageFactory {
       }
     println(s"created ${shapes.size} shapes")
 
-    val circleShapes = {
-      (4 to(28, 4)).map { r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, 0, 0),
-          color = Color.gray(0.1), radius = r * 0.1)
-      }
-    }
-
-    shapes ++ circleShapes
+    shapes ++ circleShapes(28, 7)
   }
 
   def dens(workPath: Path, bc: Color): Seq[Shapable] = {
