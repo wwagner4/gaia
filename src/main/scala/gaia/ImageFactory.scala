@@ -386,6 +386,42 @@ object ImageFactory {
 
   }
 
+  def gcd4(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+    val maxDist = 1.0
+    val ci = Color.orange
+    val shapes = stars
+      .map(toStarPosDirGalactic)
+      .filter(s => s.pos.length < maxDist)
+      .toSeq
+      .map { s =>
+        Shapable.Cone(color = ci, position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
+      }
+    println(s"created ${shapes.size} shapes")
+
+    shapes ++ circleShapes(maxDist, 4)
+
+  }
+
+  def circleShapes(distKpc: Double, cnt: Int): Seq[Shapable] = {
+
+    def dists: Seq[Double] = {
+      val diff = distKpc / cnt
+      val eps = 0.000001
+
+      def dr(v: Double, result: List[Double]): List[Double] = {
+        if v > distKpc + eps then result
+        else dr(v + diff, v :: result)
+      }
+
+      dr(diff, List())
+    }
+
+    dists.map(r => Shapable.Circle(translation = Vec.zero,
+      rotation = Vec(0, 0, 0),
+      color = Color.gray(0.7), radius = r))
+  }
+
   def gc3(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 1.6
