@@ -375,20 +375,26 @@ object ImageFactory {
     val maxDist = 3.0
     val colors = X3d.Palette.p5c8.lazyColors
 
-    def horzontalSlice(z: Double, thikness: Double)(star: StarPosDir): Boolean = {
-      require(thikness > 0, s"thikness must be > 0.0. $thikness")
-      star.pos.z <= z + thikness && star.pos.z >= z - thikness
+    def horzontalSlice(z1: Double, z2: Double)(star: StarPosDir): Boolean = {
+      def between(x: Double, a: Double, b: Double): Boolean = {
+        if a > b then x <= a && x >= b
+        else x <= b && x >= a
+      }
+
+      between(star.pos.z, z1, z2)
     }
+
 
 
     val shapes = stars
       .map(toStarPosDirGalactic)
       .filter(s => s.pos.length < maxDist)
-      .filter(horzontalSlice(1, 0.3))
+      .filter(horzontalSlice(0.5, -0.5))
       .toSeq
       .map { s =>
         val ci = Util.angle2DDeg(s.dir.x, s.dir.y) / 36
-        Shapable.Cone(color = colors(ci), position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
+        Shapable.Cone(color = colors(ci), position = s.pos.copy(z = 0.0),
+          radius = 0.006, direction = s.dir.mul(0.001).copy(z = 0.0))
       }
     println(s"created ${shapes.size} shapes")
 
