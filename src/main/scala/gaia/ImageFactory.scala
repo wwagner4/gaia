@@ -384,21 +384,49 @@ object ImageFactory {
       between(star.pos.z, z1, z2)
     }
 
+    def sliceToMean(slices: Seq[(Double, Double)])(star: StarPosDir): Option[Double] = {
+      if slices.isEmpty then None
+      else {
+        val a = slices.head._1
+        val b = slices.head._2
+        if horzontalSlice(a, b)(star) then Some((a + b) / 2.0)
+        else sliceToMean(slices.tail)(star)
+      }
+    }
 
+    def slizeToShapes(mean: Double, stars: Seq[StarPosDir]): Seq[Shapable] = {
+      stars
+        .map { s =>
+          val ci = Util.angle2DDeg(s.dir.x, s.dir.y) / 36
+          Shapable.Cone(color = colors(ci), position = s.pos.copy(z = mean * 4.0),
+            radius = 0.006, direction = s.dir.mul(0.001).copy(z = 0.0))
+        }
+    }
 
-    val shapes = stars
+    val slices = Seq(
+      (-2.0, -1.5),
+      (-1.5, -1.0),
+      (-1.0, -0.5),
+      (0.5, 1.0),
+      (1.0, 1.5),
+      (1.5, 2.0),
+    )
+
+    val starSlices: Seq[(Double, Seq[StarPosDir])] = stars
       .map(toStarPosDirGalactic)
       .filter(s => s.pos.length < maxDist)
-      .filter(horzontalSlice(0.5, -0.5))
+      .groupBy(sliceToMean(slices))
+      .flatMap((a, b) => a.map(m => (m, b)))
       .toSeq
-      .map { s =>
-        val ci = Util.angle2DDeg(s.dir.x, s.dir.y) / 36
-        Shapable.Cone(color = colors(ci), position = s.pos.copy(z = 0.0),
-          radius = 0.006, direction = s.dir.mul(0.001).copy(z = 0.0))
-      }
-    println(s"created ${shapes.size} shapes")
 
-    shapes ++ circleShapes(maxDist, 4)
+    val shapes = starSlices
+      .flatMap((mean, stars) => slizeToShapes(mean, stars))
+
+    val nst = shapes.size
+    val nsl = slices.size
+    println(s"found $nst stars in $nsl slices")
+
+    shapes ++ circleShapes(maxDist * 2.0, 6)
 
   }
 
