@@ -425,7 +425,7 @@ object ImageFactory {
     val nsl = slices.size
     println(s"found $nst stars in $nsl slices")
 
-    shapes ++ circleShapes(maxDist * 2.0, 6, color = Color.gray(0.4))
+    shapes ++ circleShapes(maxDist * 1.5, 12, color = Color.gray(0.4))
 
   }
 
@@ -462,9 +462,7 @@ object ImageFactory {
     }
 
     val slices = Seq(
-      (0.5, 1.5),
-      (-0.5, 0.5),
-      (-0.5, -1.5),
+      (-1.0, 1.0),
     )
 
     val starSlices: Seq[(Double, Seq[StarPosDir])] = stars

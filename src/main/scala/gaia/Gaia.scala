@@ -112,8 +112,9 @@ object Gaia {
     Action("cred", "create credits", createCredits),
     Action("credtxt", "create credits", createCreditsTxt),
     Action("tryout", "Tryout something during development by calling 'doIt' in Tryout", Tryout.doit),
+    Action("cmd", "create commands for batch execution", cmd),
   ))
-
+  
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
     GaiaImage("sunos1", "One shell around the sun. Stars as spheres",
       ImageFactory.sunos1,
@@ -465,6 +466,7 @@ object Gaia {
     ),
     GaiaImage(id = "gcd4",
       desc = "around the galactic center",
+      textVal=Some("Direction of stars in different distances to the galactic plane"),
       fCreateModel = ImageFactory.gcd4,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
@@ -479,10 +481,12 @@ object Gaia {
     ),
     GaiaImage(id = "gcd5",
       desc = "around the galactic center",
+      textVal=Some("Direction of stars near the galactic plane around the galactic center"),
       fCreateModel = ImageFactory.gcd5,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)), 30),
+        CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)), durationInSec = 130, modelRotation = rot(y = 120)),
+        CameraConfig("b", Cam.cameras(0, -30, 6, eccentricity = 0.9, offset = Vec(-2, 0, 2), center = Vec(0, 0, 0)), durationInSec = 130),
       ))),
       credits = CreditConfig(references = Seq(
         "creation: entelijan",
@@ -529,6 +533,32 @@ object Gaia {
     } else
       usage(Some("You must define an Action-ID"))
   }
+
+  def cmd(args: List[String], workPath: Path): Unit = {
+    def forId(id: String): String = {
+      s"""sbt "run vid $id"
+        |sbt "run still $id"
+        |sbt "run cred $id"
+        |""".stripMargin.trim
+    }
+    
+    
+    val cmd = Gaia.images
+      .values
+      .filter(_.videoConfig.exists(c => c.isInstanceOf[VideoConfig.Cams]))
+      .map(_.id)
+      .toSeq
+      .sorted
+      .map(forId)
+      .mkString("\n# -----------------------------------------------------\n")
+
+    println()
+    println(cmd)
+    println()
+    println()
+  }
+
+
 
   private def createX3d(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = true
