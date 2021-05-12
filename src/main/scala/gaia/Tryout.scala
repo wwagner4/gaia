@@ -23,7 +23,43 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    allVids()
+    dirCol(workPath)
+  }
+
+  private def dirCol(workPath: Path): Unit = {
+    val bc = Color.green
+
+    def cos(dir: Vec) = {
+      val w = Util.angle2DDeg(dir.x, dir.y)
+      val min = 0.05
+      val a = (1.0 - min) / 2.0
+      val off = (2.0 + min) / 2.0
+      val b = off + a * math.cos(degToRad(w))
+      val c = Color.red.brightness(b)
+      c
+    }
+
+    def cols(dir: Vec) = {
+      val w = Util.angle2DDeg(dir.x, dir.y)
+      val colors = Palette.p2c10.colors
+      val d = colors.size.toDouble / 360
+      val ci = math.floor(w * d).toInt
+      colors(ci)
+    }
+
+    def coloredShape(dir: Vec): Shapable = {
+      val dir1 = dir.copy(z = Random.nextDouble() * 4.0 - 2.0)
+      val pos = Vec(x = Random.nextDouble() * 4.0 - 2.0, y = Random.nextDouble() * 4.0 - 2.0, z = 0.0)
+      val c: Color = cols(dir)
+      Shapable.Cone(position = pos, direction = dir1, color = c, radius = 0.05)
+    }
+
+    val shapables: Seq[Shapable] = (0 to(350, 10))
+      .map(d => PolarVec(1, degToRad(d), 0).toVec)
+      .map(coloredShape)
+
+    val file = Gaia.workPath.resolve(s"tryout-dir-col.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def allVids(): Unit = {
@@ -39,8 +75,8 @@ object Tryout {
         println(s"""sbt "run cred $id" """)
       }
   }
-  
-  
+
+
   private def camRot(workPath: Path): Unit = {
     val bc = Color.veryDarkGreen
     //val shapables = ShapableFactory.sphereCoordinates(10)
