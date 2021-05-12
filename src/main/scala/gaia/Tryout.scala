@@ -27,7 +27,7 @@ object Tryout {
   }
 
   private def dirCol(workPath: Path): Unit = {
-    val bc = Color.green
+    val bc = Color.veryDarkBlue
 
     def cos(dir: Vec) = {
       val w = Util.angle2DDeg(dir.x, dir.y)
@@ -39,22 +39,14 @@ object Tryout {
       c
     }
 
-    def cols(dir: Vec) = {
-      val w = Util.angle2DDeg(dir.x, dir.y)
-      val colors = Palette.p2c10.colors
-      val d = colors.size.toDouble / 360
-      val ci = math.floor(w * d).toInt
-      colors(ci)
-    }
-
     def coloredShape(dir: Vec): Shapable = {
-      val dir1 = dir.copy(z = Random.nextDouble() * 4.0 - 2.0)
-      val pos = Vec(x = Random.nextDouble() * 4.0 - 2.0, y = Random.nextDouble() * 4.0 - 2.0, z = 0.0)
-      val c: Color = cols(dir)
-      Shapable.Cone(position = pos, direction = dir1, color = c, radius = 0.05)
+      val dir1 = dir.copy(z = Random.nextDouble() * 1.0 - 0.5)
+      val pos = Vec(x = Random.nextDouble() * 1.0 - 0.5, y = Random.nextDouble() * 1.0 - 0.5, z = 0.0)
+      val c: Color = ImageUtil.colorFromDirection(dir.x, dir.y, palette = Palette.p1c10)
+      Shapable.Cone(position = pos, direction = dir1, color = c, radius = 0.01)
     }
 
-    val shapables: Seq[Shapable] = (0 to(350, 10))
+    val shapables: Seq[Shapable] = (0 to(360, 1))
       .map(d => PolarVec(1, degToRad(d), 0).toVec)
       .map(coloredShape)
 

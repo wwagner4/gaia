@@ -363,4 +363,14 @@ object ImageUtil {
       color = color, radius = r))
   }
 
+
+  def colorFromDirection(a: Double, b: Double, palette: Palette = Palette.p2c10) = {
+    val w = Util.angle2DDeg(a, b)
+    val colors = palette.colors
+    val d = colors.size.toDouble / 360
+    val ci = math.floor(w * d).toInt
+    colors(ci)
+  }
+
+
 }

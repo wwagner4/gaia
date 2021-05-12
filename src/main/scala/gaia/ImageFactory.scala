@@ -351,16 +351,14 @@ object ImageFactory {
   def gcd2(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 2.0
-    val colors = (0 to 10).map(i => Color.gray(i / 10.0))
-    val baseDirectionVec = Vec(1, 1, 1)
     val shapes = stars
       .map(toStarPosDirGalactic)
       .filter(_ => Random.nextDouble() < 0.7)
       .filter(s => s.pos.length < maxDist)
       .toSeq
       .map { s =>
-        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-        Shapable.Cone(color = colors(ci), position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
+        val col = ImageUtil.colorFromDirection(s.dir.x, s.dir.y)
+        Shapable.Cone(color = col, position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
       }
     println(s"created ${shapes.size} shapes")
 
@@ -373,7 +371,6 @@ object ImageFactory {
   def gcd4(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 4.0
-    val colors = X3d.Palette.p5c8.lazyColors
 
     def horzontalSlice(z1: Double, z2: Double)(star: StarPosDir): Boolean = {
       def between(x: Double, a: Double, b: Double): Boolean = {
@@ -397,14 +394,21 @@ object ImageFactory {
     def slizeToShapes(mean: Double, stars: Seq[StarPosDir]): Seq[Shapable] = {
       stars
         .map { s =>
-          val ci = Util.angle2DDeg(s.dir.x, s.dir.y) / 36
-          Shapable.Cone(color = colors(ci), position = s.pos.copy(z = mean),
+          val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y)
+          Shapable.Cone(color = color, position = s.pos.copy(z = mean),
             radius = 0.006, direction = s.dir.mul(0.001))
         }
     }
 
     val slices = Seq(
-      (1.0, 1.1),
+      (4.0, 4.5),
+      (3.0, 3.5),
+      (2.0, 2.5),
+      (1.0, 1.5),
+      (-1.0, -1.5),
+      (-2.0, -2.5),
+      (-3.0, -3.5),
+      (-4.0, -4.5),
     )
 
     val starSlices: Seq[(Double, Seq[StarPosDir])] = stars
@@ -421,7 +425,63 @@ object ImageFactory {
     val nsl = slices.size
     println(s"found $nst stars in $nsl slices")
 
-    shapes ++ circleShapes(maxDist * 2.0, 6)
+    shapes ++ circleShapes(maxDist * 2.0, 6, color = Color.gray(0.4))
+
+  }
+
+  def gcd5(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+    val maxDist = 2.0
+
+    def horzontalSlice(z1: Double, z2: Double)(star: StarPosDir): Boolean = {
+      def between(x: Double, a: Double, b: Double): Boolean = {
+        if a > b then x <= a && x >= b
+        else x <= b && x >= a
+      }
+
+      between(star.pos.z, z1, z2)
+    }
+
+    def sliceToMean(slices: Seq[(Double, Double)])(star: StarPosDir): Option[Double] = {
+      if slices.isEmpty then None
+      else {
+        val a = slices.head._1
+        val b = slices.head._2
+        if horzontalSlice(a, b)(star) then Some((a + b) / 2.0)
+        else sliceToMean(slices.tail)(star)
+      }
+    }
+
+    def slizeToShapes(mean: Double, stars: Seq[StarPosDir]): Seq[Shapable] = {
+      stars
+        .map { s =>
+          val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y, palette = Palette.p1c10)
+          Shapable.Cone(color = color, position = s.pos.copy(z = mean),
+            radius = 0.006, direction = s.dir.mul(0.001))
+        }
+    }
+
+    val slices = Seq(
+      (0.5, 1.5),
+      (-0.5, 0.5),
+      (-0.5, -1.5),
+    )
+
+    val starSlices: Seq[(Double, Seq[StarPosDir])] = stars
+      .map(toStarPosDirGalactic)
+      .filter(s => s.pos.length < maxDist)
+      .groupBy(sliceToMean(slices))
+      .flatMap((a, b) => a.map(m => (m, b)))
+      .toSeq
+
+    val shapes = starSlices
+      .flatMap((mean, stars) => slizeToShapes(mean, stars))
+
+    val nst = shapes.size
+    val nsl = slices.size
+    println(s"found $nst stars in $nsl slices")
+
+    shapes ++ circleShapes(maxDist * 1.3, 20, color = Color.gray(0.2))
 
   }
 

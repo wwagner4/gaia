@@ -365,14 +365,14 @@ object Gaia {
           |""".stripMargin.trim
       ),
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", 
-          Cam.cameras(0, 6, 20, eccentricity = 0.1), 
+        CameraConfig("a",
+          Cam.cameras(0, 6, 20, eccentricity = 0.1),
           durationInSec = 130),
-        CameraConfig("b", 
-          Cam.cameras(44, 6, 30, eccentricity = 0.95, reverse = true, offset = Vec(-3, -3, 1)), 
+        CameraConfig("b",
+          Cam.cameras(44, 6, 30, eccentricity = 0.95, reverse = true, offset = Vec(-3, -3, 1)),
           modelRotation = rot(y = 60), durationInSec = 130),
-        CameraConfig("c", 
-          Cam.cameras(10, 40, 15, eccentricity = 0.3, offset = Vec(-3, -3, 10)), 
+        CameraConfig("c",
+          Cam.cameras(10, 40, 15, eccentricity = 0.3, offset = Vec(-3, -3, 10)),
           modelRotation = rot(y = -30), durationInSec = 130),
       ))),
     ),
@@ -468,7 +468,21 @@ object Gaia {
       fCreateModel = ImageFactory.gcd4,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", Cam.cameras(0, -10, 3, eccentricity = 0.2, offset = Vec(0, 0, 0)), 60),
+        CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 5)), 60),
+        CameraConfig("b", Cam.cameras(0, -10, 5, eccentricity = 0.2, offset = Vec(0, 0, 0)), durationInSec = 60, modelRotation = rot(y = 80)),
+        CameraConfig("c", Cam.cameras(0, 30, 10, eccentricity = 0.9, offset = Vec(2, 0, 2)), durationInSec = 60, modelRotation = rot(y = -70)),
+      ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
+    ),
+    GaiaImage(id = "gcd5",
+      desc = "around the galactic center",
+      fCreateModel = ImageFactory.gcd5,
+      backColor = Color.veryDarkBlue,
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)), 30),
       ))),
       credits = CreditConfig(references = Seq(
         "creation: entelijan",
