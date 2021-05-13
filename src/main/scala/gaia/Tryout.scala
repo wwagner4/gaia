@@ -53,11 +53,27 @@ object Tryout {
     }
 
     val sectors = Util.sectors(7)
-    testStars
+    val starsGrouped = testStars
       .groupBy(starToSector(sectors))
       .toSeq
+
+    val minGroupSize = starsGrouped.map((_, sl) => sl.size).min
+
+    starsGrouped
       .sortBy(x => x._1.startDeg)
       .foreach((s, stars) => println(s"${s} - ${stars.size}"))
+
+    println(s"min group size $minGroupSize")
+
+    val starsEqual = starsGrouped.map{(s, ls) =>
+      val p = minGroupSize.toDouble / ls.size
+      val fs = ls.filter(_ => Random.nextDouble() < p)
+      (s, fs)
+    }
+    starsEqual
+      .sortBy(x => x._1.startDeg)
+      .foreach((s, stars) => println(s"${s} - ${stars.size}"))
+
   }
 
   private def dirCol(workPath: Path): Unit = {
