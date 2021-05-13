@@ -166,5 +166,27 @@ class Tests extends AnyFunSuite with must.Matchers {
     val ivs = Util.intervals(3, 0, 9)
     ivs.map(fiv).mkString(", ") mustBe Seq((0.0, 3.0), (3.0, 6.0), (6.0, 9.0)).map(fiv).mkString(", ") 
   }
-  
+
+  test("angle 2D in degree is never 360 ascending") {
+    val angles = (0 to 20)
+      .map(i => 359.2 + i.toDouble / 10)
+      .map(d => (d, degToRad(d)))
+      .map((ra, rar) => (ra, PolarVec(1, rar, 0).toVec))
+      .map((ra, v) => (ra, Util.angle2DDeg(v.x, v.y)))
+
+    val str = angles.map((ra, a) => f"$a%d").mkString(" ")
+    str mustBe ("359 359 359 359 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1")
+  }
+
+  test("angle 2D in degree is never 360 descending") {
+    val angles = (0 to 20)
+      .map(i => 361.2 - i.toDouble / 10)
+      .map(d => (d, degToRad(d)))
+      .map((ra, rar) => (ra, PolarVec(1, rar, 0).toVec))
+      .map((ra, v) => (ra, Util.angle2DDeg(v.x, v.y)))
+
+    val str = angles.map((ra, a) => f"$a%d").reverse.mkString(" ")
+    str mustBe ("359 359 359 359 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1")
+  }
+
 }
