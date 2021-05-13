@@ -221,8 +221,8 @@ object Util {
     val dist = 360.0 / cnt
 
     def borders(actBorder: Double, result: List[Int]): List[Int] = {
-      if actBorder > 360.00001 then result.reverse
-      else borders(actBorder + dist, actBorder.toInt :: result)
+      if actBorder > 360.0000001 then result.reverse
+      else borders(actBorder + dist, math.ceil(actBorder).toInt :: result)
     }
 
     val bs = borders(0.0, List())

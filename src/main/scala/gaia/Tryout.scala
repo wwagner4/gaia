@@ -1,6 +1,7 @@
 package gaia
 
 import gaia.Gaia.VideoConfig
+import gaia.Util.Sector
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -30,13 +31,33 @@ object Tryout {
     println("Grouping stars to sectors")
 
     def testStars: Seq[StarPosDir] = {
-      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.001)
+      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.01)
 
       stars.map(toStarPosDirGalactic)
         .filter(s => s.pos.length > 2.0)
     }
 
-    Util.sectors(13).foreach(s => println(f"$s%20s - ${s.endDeg - s.startDeg}"))
+
+    def starToSector(sectors: Seq[Sector])(star: StarPosDir): Sector = {
+      def inSector(star: StarPosDir, sector: Sector): Boolean = {
+        val a = Util.angle2DDeg(star.pos.x, star.pos.y)
+        a >= sector.startDeg && a <= sector.endDeg
+      }
+      if sectors.isEmpty then {
+        throw IllegalArgumentException("A star must always be in a sector. Check if your sectors are complete")
+      }
+      else {
+        if inSector(star, sectors.head) then sectors.head
+        else starToSector(sectors.tail)(star)
+      }
+    }
+
+    val sectors = Util.sectors(7)
+    testStars
+      .groupBy(starToSector(sectors))
+      .toSeq
+      .sortBy(x => x._1.startDeg)
+      .foreach((s, stars) => println(s"${s} - ${stars.size}"))
   }
 
   private def dirCol(workPath: Path): Unit = {
@@ -48,8 +69,7 @@ object Tryout {
       val a = (1.0 - min) / 2.0
       val off = (2.0 + min) / 2.0
       val b = off + a * math.cos(degToRad(w))
-      val c = Color.red.brightness(b)
-      c
+      Color.red.brightness(b)
     }
 
     def coloredShape(dir: Vec): Shapable = {
