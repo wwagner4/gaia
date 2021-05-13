@@ -23,7 +23,20 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    dirCol(workPath)
+    groupStarsToSectors(workPath)
+  }
+
+  private def groupStarsToSectors(workPath: Path): Unit = {
+    println("Grouping stars to sectors")
+
+    def testStars: Seq[StarPosDir] = {
+      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.001)
+
+      stars.map(toStarPosDirGalactic)
+        .filter(s => s.pos.length > 2.0)
+    }
+
+    Util.sectors(13).foreach(s => println(f"$s%20s - ${s.endDeg - s.startDeg}"))
   }
 
   private def dirCol(workPath: Path): Unit = {

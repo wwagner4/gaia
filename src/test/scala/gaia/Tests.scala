@@ -9,6 +9,7 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   import Vector._
   import Cam._
+  import Util._
 
   val delta = 0.000001
 
@@ -128,11 +129,14 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   val degStepsTestVals = Seq(
     (2, List(0.0, 180.0)),
-    (3, List(0.0, 360.0/ 3, 2.0 * 360.0/ 3)),
+    (3, List(0.0, 360.0 / 3, 2.0 * 360.0 / 3)),
     (4, List(0.0, 90.0, 180.0, 270.0)),
   )
 
-  for (n, l) <- degStepsTestVals do {
+  for (n
+  , l
+  ) <- degStepsTestVals
+  do {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
@@ -148,7 +152,10 @@ class Tests extends AnyFunSuite with must.Matchers {
     (4, List(360.0, 270.0, 180.0, 90.0)),
   )
 
-  for (n, l) <- degStepsReverseTestVals do {
+  for (n
+  , l
+  ) <- degStepsReverseTestVals
+  do {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
@@ -163,8 +170,9 @@ class Tests extends AnyFunSuite with must.Matchers {
     def fiv(i: (Double, Double)): String = {
       "(%.5f, %.5f)".format(i._1, i._2)
     }
+
     val ivs = Util.intervals(3, 0, 9)
-    ivs.map(fiv).mkString(", ") mustBe Seq((0.0, 3.0), (3.0, 6.0), (6.0, 9.0)).map(fiv).mkString(", ") 
+    ivs.map(fiv).mkString(", ") mustBe Seq((0.0, 3.0), (3.0, 6.0), (6.0, 9.0)).map(fiv).mkString(", ")
   }
 
   test("angle 2D in degree is never 360 ascending") {
@@ -187,6 +195,19 @@ class Tests extends AnyFunSuite with must.Matchers {
 
     val str = angles.map((ra, a) => f"$a%d").reverse.mkString(" ")
     str mustBe ("359 359 359 359 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1")
+  }
+
+
+  Seq(
+    (1, "0,359"),
+    (2, "0,179;180,359"),
+    (7, "0,50;51,101;102,153;154,204;205,256;257,307;308,359"),
+  ).foreach { (cnt, required) =>
+    def fsec(sseq: Seq[Sector]): String = sseq.map(s => s"${s.startDeg},${s.endDeg}").mkString(";")
+
+    test(s"secors $cnt") {
+      fsec(Util.sectors(cnt)) mustBe (required)
+    }
   }
 
 }
