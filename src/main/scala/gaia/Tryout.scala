@@ -30,6 +30,8 @@ object Tryout {
   private def groupStarsToSectors(workPath: Path): Unit = {
     println("Grouping stars to sectors")
 
+    def maxRadius = 5.0
+
     def testStars: Seq[StarPosDir] = {
 
       def inCylinder(radius: Double, thikness: Double)(star: StarPosDir): Boolean = {
@@ -38,8 +40,8 @@ object Tryout {
         dxy <= radius && star.pos.z <= t2 && star.pos.z >= -t2
       }
 
-      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.1)
-      stars.map(toStarPosDirGalactic).filter(inCylinder(5, 20))
+      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.7)
+      stars.map(toStarPosDirGalactic).filter(inCylinder(maxRadius, maxRadius * 0.8))
     }
 
     def starToSector(sectors: Seq[Sector])(star: StarPosDir): Sector = {
@@ -57,7 +59,7 @@ object Tryout {
       }
     }
 
-    val sectors = Util.sectors(20)
+    val sectors = Util.sectors(10)
     val starsGrouped = testStars
       .groupBy(starToSector(sectors))
       .toSeq
@@ -66,7 +68,7 @@ object Tryout {
 
     starsGrouped
       .sortBy(x => x._1.startDeg)
-      .foreach((s, stars) => println(f"${s}%30s - ${stars.size}%4d"))
+      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
 
     println(s"min group size $minGroupSize")
 
@@ -80,17 +82,20 @@ object Tryout {
     }.toSeq.sortBy(x => x._1.startDeg)
 
     starsEqual
-      .foreach((s, stars) => println(f"${s}%30s - ${stars.size}%4d"))
+      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
 
-    // val colors = Palette.p1c10.lazyColors
-    val colors = LazyList.continually(Seq(Color.white, Color.white.brightness(0.8))).flatten
+    val colors = Palette.p1c10.lazyColors
+    // val colors = LazyList.continually(Seq(Color.white, Color.white.brightness(0.8))).flatten
     val bc = Color.veryDarkBlue
     val shapablesStars = starsEqual
       .zip(colors)
       .flatMap(t => (t._1._2.zip(LazyList.continually(t._2))))
-      .map(t => Shapable.Sphere(position = t._1.pos, color = t._2, radius = 0.08))
+      .map(t => Shapable.Sphere(position = t._1.pos, color = t._2, radius = 0.02))
 
+    val cn = Color.orange.brightness(0.4)
     val shapables = shapablesStars
+      ++ ImageUtil.circleShapes(maxRadius * 1.3, 5, color = cn)
+      ++ Seq(Shapable.Line(start = Vec(0, 0, maxRadius), end = Vec(0, 0, -maxRadius), startColor = cn, endColor = cn))
 
     val file = Gaia.workPath.resolve(s"tryout-groupStarsToSectors.x3d")
     writeX3dFile1(bc, shapables, file)
