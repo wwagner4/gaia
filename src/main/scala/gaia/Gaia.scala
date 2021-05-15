@@ -95,7 +95,7 @@ object Gaia {
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.default,
                         credits: CreditConfig = CreditConfig(),
-                        stillImageSeed: Long = 2348948509348L
+                        seed: Long = 2348948509348L
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -493,6 +493,30 @@ object Gaia {
         "http://entelijan.net",
       )),
     ),
+    GaiaImage(id = "gcs1",
+      desc = "around the galactic center normalized by sector",
+      textVal=Some("Stars around the galactic center. The amount of stars in ten " +
+        "equally wide sectors is normalized in the way that every sector has about the same amount " +
+        "of stars as the sector with the least amount of stars"),
+      fCreateModel = ImageFactory.gcs1,
+      backColor = Color.veryDarkBlue,
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a",
+          Cam.cameras(0, -20, 6, eccentricity = 0.2, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 0)),
+        CameraConfig("b",
+          Cam.cameras(0, 50, 12, eccentricity = 0.9, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 80)),
+        CameraConfig("c",
+          Cam.cameras(0, 30, 15, eccentricity = 0.8, offset = Vec(5, 0, 3), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(x = 85)),
+      ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
+      seed = 304334L,
+    ),
   ))
 
   def startGaia(args: Array[String]): Unit = {
@@ -564,7 +588,6 @@ object Gaia {
     def filter(gi: GaiaImage): Boolean = true
 
     def exec(gi: GaiaImage, wp: Path): Unit = {
-      println(s"Creating gaia x3d model for ID ${gi.id}. ${gi.desc}")
       val outdir = workPath.resolve(gi.id).resolve("models")
       if Files.notExists(outdir) then Files.createDirectories(outdir)
       writeModelToFile(gi, outdir.resolve(s"${gi.id}.x3d"))
@@ -667,6 +690,7 @@ object Gaia {
       case None => throw IllegalArgumentException(s"Unknown ID $id for creating $name. $info")
       case Some(gaiaImage) =>
         println(s"Creating a $name for ID ${gaiaImage.id}. ${gaiaImage.desc}")
+        Random.setSeed(gaiaImage.seed)
         e(gaiaImage, workPath)
         println(s"Created a $name for ID ${gaiaImage.id}. ${gaiaImage.desc}")
     }

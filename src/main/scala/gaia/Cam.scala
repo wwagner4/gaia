@@ -34,8 +34,6 @@ object Cam {
 
   def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {
 
-    Random.setSeed(gaiaImage.stillImageSeed)
-
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val frameRate = gaiaImage.videoQuality.frameRate
 

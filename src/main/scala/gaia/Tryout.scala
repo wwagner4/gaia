@@ -24,83 +24,8 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    groupStarsToSectors(workPath)
+    println("no method defined")
   }
-
-  private def groupStarsToSectors(workPath: Path): Unit = {
-    println("Grouping stars to sectors")
-
-    def maxRadius = 5.0
-
-    def testStars: Seq[StarPosDir] = {
-
-      def inCylinder(radius: Double, thikness: Double)(star: StarPosDir): Boolean = {
-        val t2 = thikness / 2.0
-        val dxy = math.sqrt(star.pos.x * star.pos.x + star.pos.y * star.pos.y)
-        dxy <= radius && star.pos.z <= t2 && star.pos.z >= -t2
-      }
-
-      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.7)
-      stars.map(toStarPosDirGalactic).filter(inCylinder(maxRadius, maxRadius * 0.8))
-    }
-
-    def starToSector(sectors: Seq[Sector])(star: StarPosDir): Sector = {
-      def inSector(star: StarPosDir, sector: Sector): Boolean = {
-        val a = Util.angle2DDeg(star.pos.x, star.pos.y)
-        a >= sector.startDeg && a <= sector.endDeg
-      }
-
-      if sectors.isEmpty then {
-        throw IllegalArgumentException("A star must always be in a sector. Check if your sectors are complete")
-      }
-      else {
-        if inSector(star, sectors.head) then sectors.head
-        else starToSector(sectors.tail)(star)
-      }
-    }
-
-    val sectors = Util.sectors(10)
-    val starsGrouped = testStars
-      .groupBy(starToSector(sectors))
-      .toSeq
-
-    val minGroupSize = starsGrouped.map((_, sl) => sl.size).min
-
-    starsGrouped
-      .sortBy(x => x._1.startDeg)
-      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
-
-    println(s"min group size $minGroupSize")
-
-    val starsEqual: Seq[(Sector, Seq[StarPosDir])] = starsGrouped.flatMap { (s, ls) =>
-      val p = minGroupSize.toDouble / ls.size
-      if p < 0.01 then None
-      else {
-        val fs = ls.filter(_ => Random.nextDouble() < p)
-        Some((s, fs))
-      }
-    }.toSeq.sortBy(x => x._1.startDeg)
-
-    starsEqual
-      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
-
-    val colors = Palette.p1c10.lazyColors
-    // val colors = LazyList.continually(Seq(Color.white, Color.white.brightness(0.8))).flatten
-    val bc = Color.veryDarkBlue
-    val shapablesStars = starsEqual
-      .zip(colors)
-      .flatMap(t => (t._1._2.zip(LazyList.continually(t._2))))
-      .map(t => Shapable.Sphere(position = t._1.pos, color = t._2, radius = 0.02))
-
-    val cn = Color.orange.brightness(0.4)
-    val shapables = shapablesStars
-      ++ ImageUtil.circleShapes(maxRadius * 1.3, 5, color = cn)
-      ++ Seq(Shapable.Line(start = Vec(0, 0, maxRadius), end = Vec(0, 0, -maxRadius), startColor = cn, endColor = cn))
-
-    val file = Gaia.workPath.resolve(s"tryout-groupStarsToSectors.x3d")
-    writeX3dFile1(bc, shapables, file)
-  }
-
 
   private def dirCol(workPath: Path): Unit = {
     val bc = Color.veryDarkBlue
