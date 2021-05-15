@@ -3,7 +3,7 @@ package gaia
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, Future}
-import java.util.{Locale, stream}
+import java.util.{Locale, stream, Comparator}
 import scala.collection.JavaConverters._
 import scala.util.Random
 
@@ -123,9 +123,10 @@ object Util {
         def handle(cnt: Int): Unit = {
           val br = new BufferedReader(new InputStreamReader(in))
           try {
-            br.lines().forEach{line =>
+            br.lines().forEach { line =>
               val msg = if cnt > 0 then s"ERROR occurred $cnt ${name} - $line" else s"${name} - $line"
-              println(msg)}
+              println(msg)
+            }
             br.close()
           } catch {
             case e: Exception => {
@@ -139,6 +140,7 @@ object Util {
             }
           }
         }
+
         handle(0)
       }
 
@@ -228,6 +230,19 @@ object Util {
     val bs = borders(0.0, List())
     val bs1 = bs.tail
     bs.zip(bs1).map((from, to) => Sector(from, to - 1))
+  }
+
+  def runWithTmpdir(f: (tmpDir: Path) => Unit): Unit = {
+    val tmpWorkDir = Files.createTempDirectory("gaia")
+    println(s"--- created tmp dir: $tmpWorkDir")
+    try {
+      f(tmpWorkDir)
+    } finally {
+      Files.walk(tmpWorkDir)
+        .sorted(Comparator.reverseOrder)
+        .forEach(f => Files.delete(f))
+      println(s"--- deleted tmp dir: $tmpWorkDir")
+    }
   }
 
 }

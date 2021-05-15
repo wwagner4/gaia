@@ -114,7 +114,7 @@ object Gaia {
     Action("tryout", "Tryout something during development by calling 'doIt' in Tryout", Tryout.doit),
     Action("cmd", "create commands for batch execution", cmd),
   ))
-  
+
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
     GaiaImage("sunos1", "One shell around the sun. Stars as spheres",
       ImageFactory.sunos1,
@@ -466,7 +466,7 @@ object Gaia {
     ),
     GaiaImage(id = "gcd4",
       desc = "around the galactic center",
-      textVal=Some("Direction of stars in different distances to the galactic plane"),
+      textVal = Some("Direction of stars in different distances to the galactic plane"),
       fCreateModel = ImageFactory.gcd4,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
@@ -481,7 +481,7 @@ object Gaia {
     ),
     GaiaImage(id = "gcd5",
       desc = "around the galactic center",
-      textVal=Some("Direction of stars near the galactic plane around the galactic center"),
+      textVal = Some("Direction of stars near the galactic plane around the galactic center"),
       fCreateModel = ImageFactory.gcd5,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
@@ -495,7 +495,7 @@ object Gaia {
     ),
     GaiaImage(id = "gcs1",
       desc = "around the galactic center normalized by sector",
-      textVal=Some("Stars around the galactic center. The amount of stars in ten " +
+      textVal = Some("Stars around the galactic center. The amount of stars in ten " +
         "equally wide sectors is normalized in the way that every sector has about the same amount " +
         "of stars as the sector with the least amount of stars"),
       fCreateModel = ImageFactory.gcs1,
@@ -561,12 +561,12 @@ object Gaia {
   def cmd(args: List[String], workPath: Path): Unit = {
     def forId(id: String): String = {
       s"""sbt "run vid $id"
-        |sbt "run still $id"
-        |sbt "run cred $id"
-        |""".stripMargin.trim
+         |sbt "run still $id"
+         |sbt "run cred $id"
+         |""".stripMargin.trim
     }
-    
-    
+
+
     val cmd = Gaia.images
       .values
       .filter(_.videoConfig.exists(c => c.isInstanceOf[VideoConfig.Cams]))
@@ -581,7 +581,6 @@ object Gaia {
     println()
     println()
   }
-
 
 
   private def createX3d(args: List[String], workPath: Path): Unit = {

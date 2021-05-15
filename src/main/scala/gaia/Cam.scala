@@ -34,18 +34,20 @@ object Cam {
 
   def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {
 
-    val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val frameRate = gaiaImage.videoQuality.frameRate
+    Util.runWithTmpdir{ tmpDir =>
+      val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
+      val frameRate = gaiaImage.videoQuality.frameRate
 
-    val cmds = cameraConfigs.map { cfg =>
-      val duration = cfg.durationInSec
-      val steps = duration * frameRate
-      val cams = cfg.cams(steps)
-      val imageCount = gaiaImage.videoQuality.frameRate * duration
-      Random.shuffle(0 until imageCount).take(stillImgCnt).zipWithIndex.map((time, i) =>
-        mkStillCommand(gaiaImage.id, cfg.id, i.toString, shapables, cams, cfg.modelRotation, gaiaImage.videoQuality, duration, time, gaiaImage.backColor, workPath))
+      val cmds = cameraConfigs.map { cfg =>
+        val duration = cfg.durationInSec
+        val steps = duration * frameRate
+        val cams = cfg.cams(steps)
+        val imageCount = gaiaImage.videoQuality.frameRate * duration
+        Random.shuffle(0 until imageCount).take(stillImgCnt).zipWithIndex.map((time, i) =>
+          mkStillCommand(gaiaImage.id, cfg.id, i.toString, shapables, cams, cfg.modelRotation, gaiaImage.videoQuality, duration, time, gaiaImage.backColor, workPath, tmpDir))
+      }
+      cmds.foreach(cs => cs.foreach(c => Util.runAllCommands(Seq(c))))
     }
-    cmds.foreach(cs => cs.foreach(c => Util.runAllCommands(Seq(c))))
   }
 
   def mkStillCommand(
@@ -59,11 +61,10 @@ object Cam {
                       cycleIntervalInSeconds: Int,
                       time: Int,
                       backColor: Color,
-                      workPath: Path): Seq[String] = {
+                      workPath: Path,
+                      tmpWorkDir: Path): Seq[String] = {
     val stillOutDir = workPath.resolve(imageId).resolve("stills")
     if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
-    val tmpWorkDir = Files.createTempDirectory(imageId)
-
 
     val x3dFile = tmpWorkDir.resolve(s"$imageId-$videoId-$stillId.x3d")
     val xml = X3d.createCamAnimatedXml(shapables, cams, backColor, cycleIntervalInSeconds, modelRotation)
