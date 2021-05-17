@@ -517,6 +517,20 @@ object Gaia {
       )),
       seed = 304334L,
     ),
+    GaiaImage(id = "gcs2",
+      desc = "around the galactic center normalized by sector",
+      fCreateModel = ImageFactory.gcs2,
+      backColor = Color.black,
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a",
+          Cam.cameras(0, -20, 6, eccentricity = 0.2, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 0)),
+      ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
+    ),
   ))
 
   def startGaia(args: Array[String]): Unit = {
