@@ -523,8 +523,11 @@ object Gaia {
       backColor = Color.black,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
-          Cam.cameras(0, -20, 6, eccentricity = 0.2, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          Cam.cameras(0, 30, 6, eccentricity = 0.2, offset = Vec(0, 0, 0), center = Vec(0, 0, 2)),
           durationInSec = 130, modelRotation = rot(y = 0)),
+        CameraConfig("b",
+          Cam.cameras(-60, 50, 15, eccentricity = 0.7, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 88)),
       ))),
       credits = CreditConfig(references = Seq(
         "creation: entelijan",
