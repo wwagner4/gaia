@@ -235,6 +235,23 @@ For more information on the sbt-dotty plugin, see the
 
 Download and put the content to ~/gaia/data/basic
 
+### Run Gaia
+* install gnuplot
+* init and update submodule viz
+```shell
+git submodule init
+git submodule update
+```
+* build and publish viz library for generating diagrams
+```shell
+cd viz
+sbt publishLocal
+```
+* running gaia
+```shell
+sbt run
+```
+follow the instructions on stdout
 
 ### Music
 * https://freemusicarchive.org/

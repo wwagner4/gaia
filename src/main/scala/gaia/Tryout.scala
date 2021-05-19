@@ -120,6 +120,7 @@ object Tryout {
       )
 
       Viz.createDiagram(multiDiagram)
+      println(s"wrote diagram to $outDir")
 
     }
   }
