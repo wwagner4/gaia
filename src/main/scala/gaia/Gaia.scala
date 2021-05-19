@@ -95,7 +95,7 @@ object Gaia {
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.default,
                         credits: CreditConfig = CreditConfig(),
-                        stillImageSeed: Long = 2348948509348L
+                        seed: Long = 2348948509348L
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -112,6 +112,7 @@ object Gaia {
     Action("cred", "create credits", createCredits),
     Action("credtxt", "create credits", createCreditsTxt),
     Action("tryout", "Tryout something during development by calling 'doIt' in Tryout", Tryout.doit),
+    Action("cmd", "create commands for batch execution", cmd),
   ))
 
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
@@ -365,15 +366,34 @@ object Gaia {
           |""".stripMargin.trim
       ),
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", 
-          Cam.cameras(0, 6, 20, eccentricity = 0.1), 
+        CameraConfig("a",
+          Cam.cameras(0, 6, 20, eccentricity = 0.1),
           durationInSec = 130),
-        CameraConfig("b", 
-          Cam.cameras(44, 6, 30, eccentricity = 0.95, reverse = true, offset = Vec(-3, -3, 1)), 
+        CameraConfig("b",
+          Cam.cameras(44, 6, 30, eccentricity = 0.95, reverse = true, offset = Vec(-3, -3, 1)),
           modelRotation = rot(y = 60), durationInSec = 130),
-        CameraConfig("c", 
-          Cam.cameras(10, 40, 15, eccentricity = 0.3, offset = Vec(-3, -3, 10)), 
+        CameraConfig("c",
+          Cam.cameras(10, 40, 15, eccentricity = 0.3, offset = Vec(-3, -3, 10)),
           modelRotation = rot(y = -30), durationInSec = 130),
+      ))),
+    ),
+    GaiaImage(id = "dens1",
+      desc = "density of stars as shown by gaia",
+      fCreateModel = ImageFactory.dens,
+      hpOrder = Some(170),
+      backColor = Color.veryDarkBlue,
+      video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
+      textVal = Some(
+        """Density of stars seen by gaia in a cube around the center of
+          |galaxy. The side of that cube is 16 kpc.
+          |Regions with many stars are marked as green bowls.
+          |The center of the galaxy is marked with a crosshair.
+          |""".stripMargin.trim
+      ),
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a", Cam.cameras(0, 6, 10, eccentricity = 0.1, offset = Vec(0, 0, 0)), 130),
+        CameraConfig("b", Cam.cameras(80, 60, 30, eccentricity = 0.1, offset = Vec(0, 0, 0)), 130),
+        CameraConfig("c", Cam.cameras(10, -30, 20, eccentricity = 0.5, offset = Vec(0, 8, 0), reverse = true), 130),
       ))),
     ),
     GaiaImage(id = "gc1",
@@ -444,24 +464,75 @@ object Gaia {
           modelRotation = rot(y = 66, z = 22)),
       ))),
     ),
-    GaiaImage(id = "dens1",
-      desc = "density of stars as shown by gaia",
-      fCreateModel = ImageFactory.dens,
-      hpOrder = Some(170),
+    GaiaImage(id = "gcd4",
+      desc = "around the galactic center",
+      textVal = Some("Direction of stars in different distances to the galactic plane"),
+      fCreateModel = ImageFactory.gcd4,
       backColor = Color.veryDarkBlue,
-      video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
-      textVal = Some(
-        """Density of stars seen by gaia in a cube around the center of
-          |galaxy. The side of that cube is 16 kpc.
-          |Regions with many stars are marked as green bowls.
-          |The center of the galaxy is marked with a crosshair.
-          |""".stripMargin.trim
-      ),
       videoConfig = Some(VideoConfig.Cams(Seq(
-        CameraConfig("a", Cam.cameras(0, 6, 10, eccentricity = 0.1, offset = Vec(0, 0, 0)), 130),
-        CameraConfig("b", Cam.cameras(80, 60, 30, eccentricity = 0.1, offset = Vec(0, 0, 0)), 130),
-        CameraConfig("c", Cam.cameras(10, -30, 20, eccentricity = 0.5, offset = Vec(0, 8, 0), reverse = true), 130),
+        CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 5)), 60),
+        CameraConfig("b", Cam.cameras(0, -10, 5, eccentricity = 0.2, offset = Vec(0, 0, 0)), durationInSec = 60, modelRotation = rot(y = 80)),
+        CameraConfig("c", Cam.cameras(0, 30, 10, eccentricity = 0.9, offset = Vec(2, 0, 2)), durationInSec = 60, modelRotation = rot(y = -70)),
       ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
+    ),
+    GaiaImage(id = "gcd5",
+      desc = "around the galactic center",
+      textVal = Some("Direction of stars near the galactic plane around the galactic center"),
+      fCreateModel = ImageFactory.gcd5,
+      backColor = Color.veryDarkBlue,
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)), durationInSec = 130, modelRotation = rot(y = 120)),
+        CameraConfig("b", Cam.cameras(0, -30, 6, eccentricity = 0.9, offset = Vec(-2, 0, 2), center = Vec(0, 0, 0)), durationInSec = 130),
+      ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
+    ),
+    GaiaImage(id = "gcs1",
+      desc = "around the galactic center normalized by sector",
+      textVal = Some("Stars around the galactic center. The amount of stars in ten " +
+        "equally wide sectors is normalized in the way that every sector has about the same amount " +
+        "of stars as the sector with the least amount of stars"),
+      fCreateModel = ImageFactory.gcs1,
+      backColor = Color.veryDarkBlue,
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a",
+          Cam.cameras(0, -20, 6, eccentricity = 0.2, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 0)),
+        CameraConfig("b",
+          Cam.cameras(0, 50, 12, eccentricity = 0.9, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 80)),
+        CameraConfig("c",
+          Cam.cameras(0, 30, 15, eccentricity = 0.8, offset = Vec(5, 0, 3), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(x = 85)),
+      ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
+      seed = 304334L,
+    ),
+    GaiaImage(id = "gcs2",
+      desc = "around the galactic center normalized by sector",
+      fCreateModel = ImageFactory.gcs2,
+      backColor = Color.black,
+      videoConfig = Some(VideoConfig.Cams(Seq(
+        CameraConfig("a",
+          Cam.cameras(0, 30, 6, eccentricity = 0.2, offset = Vec(0, 0, 0), center = Vec(0, 0, 2)),
+          durationInSec = 130, modelRotation = rot(y = 0)),
+        CameraConfig("b",
+          Cam.cameras(-60, 50, 15, eccentricity = 0.7, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)),
+          durationInSec = 130, modelRotation = rot(y = 88)),
+      ))),
+      credits = CreditConfig(references = Seq(
+        "creation: entelijan",
+        "http://entelijan.net",
+      )),
     ),
   ))
 
@@ -504,11 +575,35 @@ object Gaia {
       usage(Some("You must define an Action-ID"))
   }
 
+  def cmd(args: List[String], workPath: Path): Unit = {
+    def forId(id: String): String = {
+      s"""sbt "run vid $id"
+         |sbt "run still $id"
+         |sbt "run cred $id"
+         |""".stripMargin.trim
+    }
+
+
+    val cmd = Gaia.images
+      .values
+      .filter(_.videoConfig.exists(c => c.isInstanceOf[VideoConfig.Cams]))
+      .map(_.id)
+      .toSeq
+      .sorted
+      .map(forId)
+      .mkString("\n# -----------------------------------------------------\n")
+
+    println()
+    println(cmd)
+    println()
+    println()
+  }
+
+
   private def createX3d(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = true
 
     def exec(gi: GaiaImage, wp: Path): Unit = {
-      println(s"Creating gaia x3d model for ID ${gi.id}. ${gi.desc}")
       val outdir = workPath.resolve(gi.id).resolve("models")
       if Files.notExists(outdir) then Files.createDirectories(outdir)
       writeModelToFile(gi, outdir.resolve(s"${gi.id}.x3d"))
@@ -611,6 +706,7 @@ object Gaia {
       case None => throw IllegalArgumentException(s"Unknown ID $id for creating $name. $info")
       case Some(gaiaImage) =>
         println(s"Creating a $name for ID ${gaiaImage.id}. ${gaiaImage.desc}")
+        Random.setSeed(gaiaImage.seed)
         e(gaiaImage, workPath)
         println(s"Created a $name for ID ${gaiaImage.id}. ${gaiaImage.desc}")
     }

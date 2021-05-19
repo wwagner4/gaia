@@ -344,4 +344,33 @@ object ImageUtil {
     Shapable.Line(start = a, end = b, startColor = backColor, endColor = endColor)
   }
 
+  def circleShapes(distKpc: Double, cnt: Int, color: Color = Color.gray(0.7)): Seq[Shapable] = {
+
+    def dists: Seq[Double] = {
+      val diff = distKpc / cnt
+      val eps = 0.000001
+
+      def distsRecursive(currentValue: Double, result: List[Double]): List[Double] = {
+        if currentValue > distKpc + eps then result
+        else distsRecursive(currentValue + diff, currentValue :: result)
+      }
+
+      distsRecursive(diff, List())
+    }
+
+    dists.map(r => Shapable.Circle(translation = Vec.zero,
+      rotation = Vec(0, 0, 0),
+      color = color, radius = r))
+  }
+
+
+  def colorFromDirection(a: Double, b: Double, palette: Palette = Palette.p2c10) = {
+    val w = Util.angle2DDeg(a, b)
+    val colors = palette.colors
+    val d = colors.size.toDouble / 360
+    val ci = math.floor(w * d).toInt
+    colors(ci)
+  }
+
+
 }

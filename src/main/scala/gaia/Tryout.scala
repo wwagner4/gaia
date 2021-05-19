@@ -1,6 +1,7 @@
 package gaia
 
 import gaia.Gaia.VideoConfig
+import gaia.Util.Sector
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -23,7 +24,34 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    allVids()
+    println("no method defined")
+  }
+
+  private def dirCol(workPath: Path): Unit = {
+    val bc = Color.veryDarkBlue
+
+    def cos(dir: Vec) = {
+      val w = Util.angle2DDeg(dir.x, dir.y)
+      val min = 0.05
+      val a = (1.0 - min) / 2.0
+      val off = (2.0 + min) / 2.0
+      val b = off + a * math.cos(degToRad(w))
+      Color.red.brightness(b)
+    }
+
+    def coloredShape(dir: Vec): Shapable = {
+      val dir1 = dir.copy(z = Random.nextDouble() * 1.0 - 0.5)
+      val pos = Vec(x = Random.nextDouble() * 1.0 - 0.5, y = Random.nextDouble() * 1.0 - 0.5, z = 0.0)
+      val c: Color = ImageUtil.colorFromDirection(dir.x, dir.y, palette = Palette.p1c10)
+      Shapable.Cone(position = pos, direction = dir1, color = c, radius = 0.01)
+    }
+
+    val shapables: Seq[Shapable] = (0 to(360, 1))
+      .map(d => PolarVec(1, degToRad(d), 0).toVec)
+      .map(coloredShape)
+
+    val file = Gaia.workPath.resolve(s"tryout-dir-col.x3d")
+    writeX3dFile1(bc, shapables, file)
   }
 
   private def allVids(): Unit = {
@@ -39,8 +67,8 @@ object Tryout {
         println(s"""sbt "run cred $id" """)
       }
   }
-  
-  
+
+
   private def camRot(workPath: Path): Unit = {
     val bc = Color.veryDarkGreen
     //val shapables = ShapableFactory.sphereCoordinates(10)

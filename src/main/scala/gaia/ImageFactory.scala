@@ -16,6 +16,7 @@ object ImageFactory {
   import ImageUtil._
   import Data._
   import Vector._
+  import Util._
 
   def sund4(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
@@ -343,46 +344,143 @@ object ImageFactory {
         Shapable.Line(start = s.pos, end = e, startColor = c, endColor = bc))
     }
 
-    val circleShapes = {
-      (5 to(40, 5)).map { r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, 0, 0),
-          color = Color.gray(0.4), radius = r * 0.1)
-      }
-    }
-
     val coordshapes = shapablesCoordinatesOneColor(4, Color.gray(0.4), bc)
 
-    starShapes ++ circleShapes ++ coordshapes
+    starShapes ++ ImageUtil.circleShapes(40, 8) ++ coordshapes
   }
 
   def gcd2(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 2.0
-    val colors = (0 to 10).map(i => Color.gray(i / 10.0))
-    val baseDirectionVec = Vec(1, 1, 1)
     val shapes = stars
       .map(toStarPosDirGalactic)
       .filter(_ => Random.nextDouble() < 0.7)
       .filter(s => s.pos.length < maxDist)
       .toSeq
       .map { s =>
-        val ci = math.floor(s.dir.angle(baseDirectionVec) * colors.size / 180).toInt
-        Shapable.Cone(color = colors(ci), position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
+        val col = ImageUtil.colorFromDirection(s.dir.x, s.dir.y)
+        Shapable.Cone(color = col, position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
       }
     println(s"created ${shapes.size} shapes")
 
-    val circleShapes = {
-      (2 to(28, 2)).map { r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, 0, 0),
-          color = Color.gray(0.7), radius = r * 0.1)
+    val coordShapes = shapablesCoordinatesOneColor(3, Color.gray(0.6), bc)
+
+    shapes ++ circleShapes(28, 14) ++ coordShapes
+
+  }
+
+  def gcd4(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+    val maxDist = 4.0
+
+    def horzontalSlice(z1: Double, z2: Double)(star: StarPosDir): Boolean = {
+      def between(x: Double, a: Double, b: Double): Boolean = {
+        if a > b then x <= a && x >= b
+        else x <= b && x >= a
+      }
+
+      between(star.pos.z, z1, z2)
+    }
+
+    def sliceToMean(slices: Seq[(Double, Double)])(star: StarPosDir): Option[Double] = {
+      if slices.isEmpty then None
+      else {
+        val a = slices.head._1
+        val b = slices.head._2
+        if horzontalSlice(a, b)(star) then Some((a + b) / 2.0)
+        else sliceToMean(slices.tail)(star)
       }
     }
 
-    val coordShapes = shapablesCoordinatesOneColor(3, Color.gray(0.6), bc)
+    def slizeToShapes(mean: Double, stars: Seq[StarPosDir]): Seq[Shapable] = {
+      stars
+        .map { s =>
+          val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y)
+          Shapable.Cone(color = color, position = s.pos.copy(z = mean),
+            radius = 0.006, direction = s.dir.mul(0.001))
+        }
+    }
 
-    shapes ++ circleShapes ++ coordShapes
+    val slices = Seq(
+      (4.0, 4.5),
+      (3.0, 3.5),
+      (2.0, 2.5),
+      (1.0, 1.5),
+      (-1.0, -1.5),
+      (-2.0, -2.5),
+      (-3.0, -3.5),
+      (-4.0, -4.5),
+    )
+
+    val starSlices: Seq[(Double, Seq[StarPosDir])] = stars
+      .map(toStarPosDirGalactic)
+      .filter(s => s.pos.length < maxDist)
+      .groupBy(sliceToMean(slices))
+      .flatMap((a, b) => a.map(m => (m, b)))
+      .toSeq
+
+    val shapes = starSlices
+      .flatMap((mean, stars) => slizeToShapes(mean, stars))
+
+    val nst = shapes.size
+    val nsl = slices.size
+    println(s"found $nst stars in $nsl slices")
+
+    shapes ++ circleShapes(maxDist * 1.5, 12, color = Color.gray(0.4))
+
+  }
+
+  def gcd5(workPath: Path, bc: Color): Seq[Shapable] = {
+    val stars = StarCollections.basicStars(workPath)
+    val maxDist = 2.0
+
+    def horzontalSlice(z1: Double, z2: Double)(star: StarPosDir): Boolean = {
+      def between(x: Double, a: Double, b: Double): Boolean = {
+        if a > b then x <= a && x >= b
+        else x <= b && x >= a
+      }
+
+      between(star.pos.z, z1, z2)
+    }
+
+    def sliceToMean(slices: Seq[(Double, Double)])(star: StarPosDir): Option[Double] = {
+      if slices.isEmpty then None
+      else {
+        val a = slices.head._1
+        val b = slices.head._2
+        if horzontalSlice(a, b)(star) then Some((a + b) / 2.0)
+        else sliceToMean(slices.tail)(star)
+      }
+    }
+
+    def slizeToShapes(mean: Double, stars: Seq[StarPosDir]): Seq[Shapable] = {
+      stars
+        .map { s =>
+          val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y, palette = Palette.p1c10)
+          Shapable.Cone(color = color, position = s.pos.copy(z = mean),
+            radius = 0.006, direction = s.dir.mul(0.001))
+        }
+    }
+
+    val slices = Seq(
+      (-1.0, 1.0),
+    )
+
+    val starSlices: Seq[(Double, Seq[StarPosDir])] = stars
+      .map(toStarPosDirGalactic)
+      .filter(s => s.pos.length < maxDist)
+      .groupBy(sliceToMean(slices))
+      .flatMap((a, b) => a.map(m => (m, b)))
+      .toSeq
+
+    val shapes = starSlices
+      .flatMap((mean, stars) => slizeToShapes(mean, stars))
+
+    val nst = shapes.size
+    val nsl = slices.size
+    println(s"found $nst stars in $nsl slices")
+
+    shapes ++ circleShapes(maxDist * 1.3, 20, color = Color.gray(0.2))
 
   }
 
@@ -415,15 +513,147 @@ object ImageFactory {
       }
     println(s"created ${shapes.size} shapes")
 
-    val circleShapes = {
-      (4 to(28, 4)).map { r =>
-        Shapable.Circle(translation = Vec.zero,
-          rotation = Vec(0, 0, 0),
-          color = Color.gray(0.1), radius = r * 0.1)
+    shapes ++ circleShapes(28, 7)
+  }
+
+  def gcs1(workPath: Path, bc: Color): Seq[Shapable] = {
+    def maxRadius = 5.0
+
+    def testStars: Seq[StarPosDir] = {
+
+      def inCylinder(radius: Double, thikness: Double)(star: StarPosDir): Boolean = {
+        val t2 = thikness / 2.0
+        val dxy = math.sqrt(star.pos.x * star.pos.x + star.pos.y * star.pos.y)
+        dxy <= radius && star.pos.z <= t2 && star.pos.z >= -t2
+      }
+
+      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 0.7)
+      stars.map(toStarPosDirGalactic).filter(inCylinder(maxRadius, maxRadius * 0.8))
+    }
+
+    def starToSector(sectors: Seq[Sector])(star: StarPosDir): Sector = {
+      def inSector(star: StarPosDir, sector: Sector): Boolean = {
+        val a = Util.angle2DDeg(star.pos.x, star.pos.y)
+        a >= sector.startDeg && a <= sector.endDeg
+      }
+
+      if sectors.isEmpty then {
+        throw IllegalArgumentException("A star must always be in a sector. Check if your sectors are complete")
+      }
+      else {
+        if inSector(star, sectors.head) then sectors.head
+        else starToSector(sectors.tail)(star)
       }
     }
 
-    shapes ++ circleShapes
+    val sectors = Util.sectors(10)
+    val starsGrouped = testStars
+      .groupBy(starToSector(sectors))
+      .toSeq
+
+    val minGroupSize = starsGrouped.map((_, sl) => sl.size).min
+
+    starsGrouped
+      .sortBy(x => x._1.startDeg)
+      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
+
+    println(s"min group size $minGroupSize")
+
+    val starsEqual: Seq[(Sector, Seq[StarPosDir])] = starsGrouped.flatMap { (s, ls) =>
+      val p = minGroupSize.toDouble / ls.size
+      if p < 0.01 then None
+      else {
+        val fs = ls.filter(_ => Random.nextDouble() < p)
+        Some((s, fs))
+      }
+    }.toSeq.sortBy(x => x._1.startDeg)
+
+    starsEqual
+      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
+
+    val colors = Palette.p1c10.lazyColors
+    val bc = Color.veryDarkBlue
+    val shapablesStars = starsEqual
+      .zip(colors)
+      .flatMap(t => (t._1._2.zip(LazyList.continually(t._2))))
+      .map(t => Shapable.Sphere(position = t._1.pos, color = t._2, radius = 0.02))
+    println(s"selected ${shapablesStars.size} stars")
+
+    val cn = Color.orange.brightness(0.4)
+    shapablesStars
+      ++ ImageUtil.circleShapes(maxRadius * 1.3, 5, color = cn)
+      ++ Seq(Shapable.Line(start = Vec(0, 0, maxRadius), end = Vec(0, 0, -maxRadius), startColor = cn, endColor = cn))
+    //++ shapablesCoordinatesColored(len = 10, bgColor = bc)
+  }
+
+  def gcs2(workPath: Path, bc: Color): Seq[Shapable] = {
+    def maxRadius = 8.0
+
+    def testStars: Seq[StarPosDir] = {
+
+      def inCylinder(radius: Double, zStart: Double, zStop: Double)(star: StarPosDir): Boolean = {
+        val (t1, t2) = if zStart < zStop then (zStart, zStop) else (zStop, zStart)
+        val dxy = math.sqrt(star.pos.x * star.pos.x + star.pos.y * star.pos.y)
+        dxy <= radius && star.pos.z <= t2 && star.pos.z >= t1
+      }
+
+      val stars = StarCollections.basicStars(workPath).filter(_ => Random.nextDouble() < 1.0)
+      stars.map(toStarPosDirGalactic).filter(inCylinder(maxRadius, 2.0, 3.0))
+    }
+
+    def starToSector(sectors: Seq[Sector])(star: StarPosDir): Sector = {
+      def inSector(star: StarPosDir, sector: Sector): Boolean = {
+        val a = Util.angle2DDeg(star.pos.x, star.pos.y)
+        a >= sector.startDeg && a <= sector.endDeg
+      }
+
+      if sectors.isEmpty then {
+        throw IllegalArgumentException("A star must always be in a sector. Check if your sectors are complete")
+      }
+      else {
+        if inSector(star, sectors.head) then sectors.head
+        else starToSector(sectors.tail)(star)
+      }
+    }
+
+    val sectors = Util.sectors(10)
+    val starsGrouped = testStars
+      .groupBy(starToSector(sectors))
+      .toSeq
+
+    val minGroupSize = starsGrouped.map((_, sl) => sl.size).min
+
+    starsGrouped
+      .sortBy(x => x._1.startDeg)
+      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
+
+    println(s"min group size $minGroupSize")
+
+    val starsEqual: Seq[(Sector, Seq[StarPosDir])] = starsGrouped.flatMap { (s, ls) =>
+      val p = minGroupSize.toDouble / ls.size
+      if p < 0.01 then None
+      else {
+        val fs = ls.filter(_ => Random.nextDouble() < p)
+        Some((s, fs))
+      }
+    }.toSeq.sortBy(x => x._1.startDeg)
+
+    starsEqual
+      .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
+
+    val colors = Palette.p1c10.lazyColors
+    val bc = Color.veryDarkBlue
+    val shapablesStars = starsEqual
+      .zip(colors)
+      .flatMap(t => (t._1._2.zip(LazyList.continually(t._2))))
+      .map(t => Shapable.Sphere(position = t._1.pos, color = t._2, radius = 0.02))
+    println(s"selected ${shapablesStars.size} stars")
+
+    val cn = Color.orange.brightness(0.2)
+    shapablesStars
+      ++ ImageUtil.circleShapes(maxRadius * 1.3, 5, color = cn)
+      ++ Seq(Shapable.Line(start = Vec(0, 0, maxRadius), end = Vec(0, 0, -maxRadius), startColor = cn, endColor = cn))
+    //++ shapablesCoordinatesColored(len = 10, bgColor = bc)
   }
 
   def dens(workPath: Path, bc: Color): Seq[Shapable] = {

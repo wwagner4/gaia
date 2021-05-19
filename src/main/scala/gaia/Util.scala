@@ -3,7 +3,7 @@ package gaia
 import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, PrintWriter}
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, Future}
-import java.util.{Locale, stream}
+import java.util.{Locale, stream, Comparator}
 import scala.collection.JavaConverters._
 import scala.util.Random
 
@@ -114,7 +114,7 @@ object Util {
   }
 
   def runAllCommands(cmds: Iterable[Iterable[String]]): Unit = {
-    
+
     val allCnt = cmds.size
 
     class StreamGobbler(val name: String, val inputStream: InputStream) extends Runnable {
@@ -123,9 +123,10 @@ object Util {
         def handle(cnt: Int): Unit = {
           val br = new BufferedReader(new InputStreamReader(in))
           try {
-            br.lines().forEach{line =>
+            br.lines().forEach { line =>
               val msg = if cnt > 0 then s"ERROR occurred $cnt ${name} - $line" else s"${name} - $line"
-              println(msg)}
+              println(msg)
+            }
             br.close()
           } catch {
             case e: Exception => {
@@ -139,6 +140,7 @@ object Util {
             }
           }
         }
+
         handle(0)
       }
 
@@ -168,7 +170,7 @@ object Util {
 
       val futures = for ((cmd, i) <- cmds.zipWithIndex) yield {
         Thread.sleep(500)
-        procExec.submit(() => start(cmd.toList, i+1))
+        procExec.submit(() => start(cmd.toList, i + 1))
       }
       var states = futures.map(f => f.isDone)
       val sleepTimeMillis = 1000
@@ -203,6 +205,48 @@ object Util {
     }
 
     i(from, List.empty[(Double, Double)]).reverse
+  }
+
+  def angle2DDeg(x: Double, y: Double): Int = {
+    val a = radToDeg(math.asin(y / math.sqrt(x * x + y * y)))
+    val a1 = if x < 0 then 180 - a else a
+    val a2 = if a1 < 0 then a1 + 360.0 else a1
+    val a3 = math.round(a2).toInt
+    if a3 == 360 then 0 else a3
+  }
+
+  case class Sector(startDeg: Int, endDeg: Int)
+
+  def sectors(cnt: Int): Seq[Sector] = {
+    require(cnt > 0, "There must be at least one sector")
+    require(cnt <= 360, "More than 360 sectors make no sense")
+    val dist = 360.0 / cnt
+
+    def borders(actBorder: Double, result: List[Int]): List[Int] = {
+      if actBorder > 360.0000001 then result.reverse
+      else borders(actBorder + dist, math.ceil(actBorder).toInt :: result)
+    }
+
+    val bs = borders(0.0, List())
+    val bs1 = bs.tail
+    bs.zip(bs1).map((from, to) => Sector(from, to - 1))
+  }
+
+  def runWithTmpdir(f: (tmpDir: Path) => Unit): Unit = {
+    val tmpWorkDir = Files.createTempDirectory("gaia")
+    println(s"created tmp dir: $tmpWorkDir")
+    try {
+      f(tmpWorkDir)
+    } finally {
+      deleteDirRecursive(tmpWorkDir)
+    }
+  }
+
+  def deleteDirRecursive(dir: Path): Unit = {
+    Files.walk(dir)
+      .sorted(Comparator.reverseOrder)
+      .forEach(f => Files.delete(f))
+    println(s"deleted dir: $dir")
   }
 
 }

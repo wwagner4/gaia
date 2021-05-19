@@ -9,6 +9,7 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   import Vector._
   import Cam._
+  import Util._
 
   val delta = 0.000001
 
@@ -128,11 +129,14 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   val degStepsTestVals = Seq(
     (2, List(0.0, 180.0)),
-    (3, List(0.0, 360.0/ 3, 2.0 * 360.0/ 3)),
+    (3, List(0.0, 360.0 / 3, 2.0 * 360.0 / 3)),
     (4, List(0.0, 90.0, 180.0, 270.0)),
   )
 
-  for (n, l) <- degStepsTestVals do {
+  for (n
+  , l
+  ) <- degStepsTestVals
+  do {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
@@ -148,7 +152,10 @@ class Tests extends AnyFunSuite with must.Matchers {
     (4, List(360.0, 270.0, 180.0, 90.0)),
   )
 
-  for (n, l) <- degStepsReverseTestVals do {
+  for (n
+  , l
+  ) <- degStepsReverseTestVals
+  do {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
@@ -163,8 +170,45 @@ class Tests extends AnyFunSuite with must.Matchers {
     def fiv(i: (Double, Double)): String = {
       "(%.5f, %.5f)".format(i._1, i._2)
     }
+
     val ivs = Util.intervals(3, 0, 9)
-    ivs.map(fiv).mkString(", ") mustBe Seq((0.0, 3.0), (3.0, 6.0), (6.0, 9.0)).map(fiv).mkString(", ") 
+    ivs.map(fiv).mkString(", ") mustBe Seq((0.0, 3.0), (3.0, 6.0), (6.0, 9.0)).map(fiv).mkString(", ")
   }
-  
+
+  test("angle 2D in degree is never 360 ascending") {
+    val angles = (0 to 20)
+      .map(i => 359.2 + i.toDouble / 10)
+      .map(d => (d, degToRad(d)))
+      .map((ra, rar) => (ra, PolarVec(1, rar, 0).toVec))
+      .map((ra, v) => (ra, Util.angle2DDeg(v.x, v.y)))
+
+    val str = angles.map((ra, a) => f"$a%d").mkString(" ")
+    str mustBe ("359 359 359 359 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1")
+  }
+
+  test("angle 2D in degree is never 360 descending") {
+    val angles = (0 to 20)
+      .map(i => 361.2 - i.toDouble / 10)
+      .map(d => (d, degToRad(d)))
+      .map((ra, rar) => (ra, PolarVec(1, rar, 0).toVec))
+      .map((ra, v) => (ra, Util.angle2DDeg(v.x, v.y)))
+
+    val str = angles.map((ra, a) => f"$a%d").reverse.mkString(" ")
+    str mustBe ("359 359 359 359 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1")
+  }
+
+
+  Seq(
+    (1, "0,359"),
+    (2, "0,179;180,359"),
+    (7, "0,51;52,102;103,154;155,205;206,257;258,308;309,360"),
+    (13, "0,27;28,55;56,83;84,110;111,138;139,166;167,193;194,221;222,249;250,276;277,304;305,332;333,359"),
+  ).foreach { (cnt, required) =>
+    def fsec(sseq: Seq[Sector]): String = sseq.map(s => s"${s.startDeg},${s.endDeg}").mkString(";")
+
+    test(s"secors $cnt") {
+      fsec(Util.sectors(cnt)) mustBe (required)
+    }
+  }
+
 }

@@ -20,34 +20,39 @@ object Cam {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val frameRate = videoQuality.frameRate
 
-    val cmds = cameraConfigs.map { cfg =>
-      val duration = cfg.durationInSec
-      val steps = duration * frameRate
-      val cams = cfg.cams(steps)
-      mkVideoCmds(gaiaImage.id, cfg.id, shapables, cams, cfg.modelRotation, videoQuality, duration, gaiaImage.backColor, workPath)
-    }
+    val cmdsDirs = cameraConfigs
+      .map(cfg => (cfg, Files.createTempDirectory("gaia_vid")))
+    val cmds = cmdsDirs
+      .map { (cfg, tmpDir) =>
+        val duration = cfg.durationInSec
+        val steps = duration * frameRate
+        val cams = cfg.cams(steps)
+        mkVideoCmds(gaiaImage.id, cfg.id, shapables, cams, cfg.modelRotation, videoQuality, duration, gaiaImage.backColor, workPath, tmpDir)
+      }
     val allView3dCmds = cmds.map((view3dCmd, _) => view3dCmd)
     Util.runAllCommands(allView3dCmds)
     val allFfmpegCmds = cmds.map((_, ffmpegCmd) => ffmpegCmd)
     allFfmpegCmds.foreach(cmd => Util.runAllCommands(Seq(cmd)))
+
+    cmdsDirs.foreach((_, tmpDir) => Util.deleteDirRecursive(tmpDir))
   }
 
   def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {
 
-    Random.setSeed(gaiaImage.stillImageSeed)
+    Util.runWithTmpdir { tmpDir =>
+      val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
+      val frameRate = gaiaImage.videoQuality.frameRate
 
-    val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val frameRate = gaiaImage.videoQuality.frameRate
-
-    val cmds = cameraConfigs.map { cfg =>
-      val duration = cfg.durationInSec
-      val steps = duration * frameRate
-      val cams = cfg.cams(steps)
-      val imageCount = gaiaImage.videoQuality.frameRate * duration
-      Random.shuffle(0 until imageCount).take(stillImgCnt).zipWithIndex.map((time, i) =>
-        mkStillCommand(gaiaImage.id, cfg.id, i.toString, shapables, cams, cfg.modelRotation, gaiaImage.videoQuality, duration, time, gaiaImage.backColor, workPath))
+      val cmds = cameraConfigs.map { cfg =>
+        val duration = cfg.durationInSec
+        val steps = duration * frameRate
+        val cams = cfg.cams(steps)
+        val imageCount = gaiaImage.videoQuality.frameRate * duration
+        Random.shuffle(0 until imageCount).take(stillImgCnt).zipWithIndex.map((time, i) =>
+          mkStillCommand(gaiaImage.id, cfg.id, i.toString, shapables, cams, cfg.modelRotation, gaiaImage.videoQuality, duration, time, gaiaImage.backColor, workPath, tmpDir))
+      }
+      cmds.foreach(cs => cs.foreach(c => Util.runAllCommands(Seq(c))))
     }
-    cmds.foreach(cs => cs.foreach(c => Util.runAllCommands(Seq(c))))
   }
 
   def mkStillCommand(
@@ -61,11 +66,10 @@ object Cam {
                       cycleIntervalInSeconds: Int,
                       time: Int,
                       backColor: Color,
-                      workPath: Path): Seq[String] = {
+                      workPath: Path,
+                      tmpWorkDir: Path): Seq[String] = {
     val stillOutDir = workPath.resolve(imageId).resolve("stills")
     if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
-    val tmpWorkDir = Files.createTempDirectory(imageId)
-
 
     val x3dFile = tmpWorkDir.resolve(s"$imageId-$videoId-$stillId.x3d")
     val xml = X3d.createCamAnimatedXml(shapables, cams, backColor, cycleIntervalInSeconds, modelRotation)
@@ -91,8 +95,8 @@ object Cam {
                    quality: VideoQuality,
                    cycleIntervalInSeconds: Int,
                    backColor: Color,
-                   workPath: Path): (Seq[String], Seq[String]) = {
-    val tmpWorkDir = Files.createTempDirectory(imageId)
+                   workPath: Path,
+                   tmpWorkDir: Path): (Seq[String], Seq[String]) = {
     val videoOutDir = workPath.resolve(imageId).resolve("videos")
     if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
     val x3d0File = tmpWorkDir.resolve(s"$imageId.x3d")
