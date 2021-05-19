@@ -1,6 +1,7 @@
 package gaia
 
-import gaia.Gaia.VideoConfig
+import entelijan.viz.{Viz, VizCreator, VizCreators, DefaultDirectories}
+import gaia.Gaia.{VideoConfig, workPath}
 import gaia.Util.Sector
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
@@ -24,8 +25,105 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    println("no method defined")
+    firstDia(workPath)
   }
+
+  private def firstDia(dir: Path): Unit = {
+
+    val outDir = dir.resolve("tryout-dia")
+    if Files.notExists(outDir) then Files.createDirectories(outDir)
+
+    Util.runWithTmpdir{ tmpDir =>
+      implicit val creator: VizCreator[Viz.XY] =
+        VizCreators.gnuplot(
+          scriptDir = tmpDir.toFile,
+          imageDir = outDir.toFile,
+          clazz = classOf[Viz.XY])
+
+      val yr = Some(Viz.Range(Some(0), Some(5)))
+
+      val multiDiagram = Viz.MultiDiagram[Viz.XY](
+        "vizMultidiagramTryout01",
+        2,
+        title = Some("Multidiagram 01"),
+        diagrams = Seq(
+          Viz.Diagram[Viz.XY](
+            "a",
+            "Diagram A",
+            yRange = yr,
+            dataRows = Seq(
+              Viz.DataRow[Viz.XY](
+                data = Seq(
+                  Viz.XY(1, 2),
+                  Viz.XY(2, 1),
+                  Viz.XY(3, 1),
+                  Viz.XY(4, 2),
+                )
+              ),
+              Viz.DataRow[Viz.XY](
+                data = Seq(
+                  Viz.XY(1, 3),
+                  Viz.XY(2, 2),
+                  Viz.XY(3, 3),
+                  Viz.XY(4, 2),
+                )
+              ),
+            )
+          ),
+          Viz.Diagram[Viz.XY](
+            "b",
+            "Diagram B",
+            yRange = yr,
+            dataRows = Seq(
+              Viz.DataRow[Viz.XY](
+                data = Seq(
+                  Viz.XY(1, 1),
+                  Viz.XY(2, 1.1),
+                  Viz.XY(3, 1.2),
+                  Viz.XY(4, 1.4),
+                )
+              ),
+              Viz.DataRow[Viz.XY](
+                data = Seq(
+                  Viz.XY(1, 3),
+                  Viz.XY(2, 1),
+                  Viz.XY(3, 1),
+                  Viz.XY(4, 2),
+                )
+              ),
+            )
+          ),
+          Viz.Diagram[Viz.XY](
+            "c",
+            "Diagram C",
+            yRange = yr,
+            dataRows = Seq(
+              Viz.DataRow[Viz.XY](
+                data = Seq(
+                  Viz.XY(1, 1),
+                  Viz.XY(2, 1.1),
+                  Viz.XY(3, 1.4),
+                  Viz.XY(4, 1.8),
+                )
+              ),
+              Viz.DataRow[Viz.XY](
+                data = Seq(
+                  Viz.XY(1, 2),
+                  Viz.XY(2, 3),
+                  Viz.XY(3, 2),
+                  Viz.XY(4, 2.1),
+                )
+              ),
+            )
+          ),
+        )
+      )
+
+      Viz.createDiagram(multiDiagram)
+
+    }
+  }
+
 
   private def dirCol(workPath: Path): Unit = {
     val bc = Color.veryDarkBlue
