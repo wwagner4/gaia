@@ -204,10 +204,10 @@ class Tests extends AnyFunSuite with must.Matchers {
     (7, "0,51;52,102;103,154;155,205;206,257;258,308;309,360"),
     (13, "0,27;28,55;56,83;84,110;111,138;139,166;167,193;194,221;222,249;250,276;277,304;305,332;333,359"),
   ).foreach { (cnt, required) =>
-    def fsec(sseq: Seq[Sector]): String = sseq.map(s => s"${s.startDeg},${s.endDeg}").mkString(";")
+    def fsec(sseq: Seq[DataUtil.Sector]): String = sseq.map(s => s"${s.startDeg},${s.endDeg}").mkString(";")
 
     test(s"secors $cnt") {
-      fsec(Util.sectors(cnt)) mustBe (required)
+      fsec(DataUtil.createSectors(cnt)) mustBe (required)
     }
   }
 

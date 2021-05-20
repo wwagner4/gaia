@@ -1,8 +1,6 @@
 package gaia
 
 import entelijan.viz.{Viz, VizCreator, VizCreators, DefaultDirectories}
-import gaia.Gaia.{VideoConfig, workPath}
-import gaia.Util.Sector
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -22,6 +20,8 @@ object Tryout {
   import ImageUtil._
   import Vector._
   import X3d._
+  import Gaia.{VideoConfig, workPath}
+  import DataUtil._
 
 
   def doit(args: List[String], workPath: Path): Unit = {
@@ -40,23 +40,39 @@ object Tryout {
           imageDir = outDir.toFile,
           clazz = classOf[Viz.XY])
 
-      val yr = Some(Viz.Range(Some(0), Some(5)))
+      val radius = 10
 
-      val data: Seq[Viz.XY] = DataUtil.starsEqualPerSector(workPath, 10, 10, 1, 2, 0.2)
-        .flatten
-        .map(s => Viz.XY(s.pos.x, s.pos.y))
+      val distances: Seq[DataUtil.Region] = Seq(
+        DataUtil.Cylinder("a", radius, -2.5, -2),
+        DataUtil.Cylinder("b", radius, -2, -1.5),
+        DataUtil.Cylinder("c", radius, -1.5, -1),
+        DataUtil.Cylinder("d", radius, -1, -0.5),
+        DataUtil.Cylinder("e", radius, 0.5, 1),
+        DataUtil.Cylinder("f", radius, 1, 1.5),
+        DataUtil.Cylinder("g", radius, 1.5, 2),
+        DataUtil.Cylinder("h", radius, 2, 2.5),
+        DataUtil.Cylinder("h", radius, 2.5, 3),
+      )
+
+      val starsFiltered = DataUtil.starsAroundGalacticCenter(workPath, 1)
+
+      val diagrams = starsPerRegion(starsFiltered, distances)
+        .map((r, stars) => (r, DataUtil.starsPerSectorEqualized(stars, 10).flatten))
+        .map((r, stars) => (r, stars.map(s => Viz.XY(s.pos.x, s.pos.y))))
+        .map((region, data) => Viz.Diagram[Viz.XY](
+          id = region.id,
+          title = f"Stars in ${region.toString}",
+          dataRows = Seq(Viz.DataRow[Viz.XY](
+            data = data,
+            style = Viz.Style_DOTS))))
 
       val multiDiagram = Viz.MultiDiagram[Viz.XY](
-        id = "vizMultidiagramTryout01",
-        columns = 1,
-        title = Some("Multidiagram 01"),
-        diagrams = Seq(
-          Viz.Diagram[Viz.XY](
-            "a",
-            "Diagram A",
-            dataRows = Seq(Viz.DataRow[Viz.XY](data = data, style = Viz.Style_POINTS))
-          ),
-        )
+        id = "gcs1",
+        columns = 3,
+        width = 1300,
+        height = 1300,
+        title = Some("Galaxy in Slices"),
+        diagrams = diagrams,
       )
 
       Viz.createDiagram(multiDiagram)

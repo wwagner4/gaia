@@ -547,7 +547,7 @@ object ImageFactory {
       }
     }
 
-    val sectors = Util.sectors(10)
+    val sectors = DataUtil.createSectors(10)
     val starsGrouped = testStars
       .groupBy(starToSector(sectors))
       .toSeq
@@ -589,7 +589,9 @@ object ImageFactory {
 
   def gcs2(workPath: Path, bc: Color): Seq[Shapable] = {
     val maxRadius = 8.0
-    val starsEqual: Seq[Seq[StarPosDir]] = starsEqualPerSector(workPath, 10, maxRadius, 2.0, 3.0, 1.0)
+    val stars = DataUtil.starsAroundGalacticCenter(workPath, 1.0)
+      .filter(s => DataUtil.Cylinder("a", maxRadius, 2.0, 3.0).contains(s))
+    val starsEqual: Seq[Seq[StarPosDir]] = starsPerSectorEqualized(stars, 10)
 
     val colors = Palette.p1c10.lazyColors
     val bc = Color.veryDarkBlue
