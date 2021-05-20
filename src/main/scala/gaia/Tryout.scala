@@ -40,24 +40,16 @@ object Tryout {
           imageDir = outDir.toFile,
           clazz = classOf[Viz.XY])
 
-      val radius = 10
+      val radius = 20
 
-      val distances: Seq[DataUtil.Region] = Seq(
-        DataUtil.Cylinder("a", radius, -2.5, -2),
-        DataUtil.Cylinder("b", radius, -2, -1.5),
-        DataUtil.Cylinder("c", radius, -1.5, -1),
-        DataUtil.Cylinder("d", radius, -1, -0.5),
-        DataUtil.Cylinder("e", radius, 0.5, 1),
-        DataUtil.Cylinder("f", radius, 1, 1.5),
-        DataUtil.Cylinder("g", radius, 1.5, 2),
-        DataUtil.Cylinder("h", radius, 2, 2.5),
-        DataUtil.Cylinder("h", radius, 2.5, 3),
-      )
+      val regions = Util.intervals(16, -3, 3)
+        .zipWithIndex
+        .map{case ((z1, z2), i) => Cylinder(f"a$i%03d", radius, z1, z2) }
 
       val starsFiltered = DataUtil.starsAroundGalacticCenter(workPath, 1)
 
-      val diagrams = starsPerRegion(starsFiltered, distances)
-        .map((r, stars) => (r, DataUtil.starsPerSectorEqualized(stars, 10).flatten))
+      val diagrams = starsPerRegion(starsFiltered, regions)
+        .map((r, stars) => (r, DataUtil.starsPerSectorEqualized(stars, 20).flatten))
         .map((r, stars) => (r, stars.map(s => Viz.XY(s.pos.x, s.pos.y))))
         .map((region, data) => Viz.Diagram[Viz.XY](
           id = region.id,
@@ -68,7 +60,7 @@ object Tryout {
 
       val multiDiagram = Viz.MultiDiagram[Viz.XY](
         id = "gcs1",
-        columns = 3,
+        columns = 4,
         width = 1300,
         height = 1300,
         title = Some("Galaxy in Slices"),

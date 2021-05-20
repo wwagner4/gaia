@@ -22,7 +22,7 @@ object DataUtil {
       dxy <= radius && star.pos.z <= t2 && star.pos.z >= t1
     }
 
-    override def toString: String = f"CYL($id $radius%.1f $z1%.1f $z2%.1f)"
+    override def toString: String = f"cyl($z1%.1f $z2%.1f)"
   }
 
   case class Sector(startDeg: Int, endDeg: Int)
@@ -53,14 +53,14 @@ object DataUtil {
 
   def starsPerRegion(stars: Seq[StarPosDir], regions: Seq[Region]): Seq[(Region, Seq[StarPosDir])] = {
 
-    def assign(regions: Seq[Region])(starPosDir: StarPosDir): Option[Region] = {
+    def starToRegion(regions: Seq[Region])(stars: StarPosDir): Option[Region] = {
       if regions.isEmpty then None
-      else if regions.head.contains(starPosDir) then Some(regions.head)
-      else assign(regions.tail)(starPosDir)
+      else if regions.head.contains(stars) then Some(regions.head)
+      else starToRegion(regions.tail)(stars)
     }
 
     stars
-      .groupBy(assign(regions))
+      .groupBy(starToRegion(regions))
       .toList
       .flatMap((o, d) => o.map(k => (k, d)))
       .sortBy((r, _) => r.id)
