@@ -215,24 +215,14 @@ object Util {
     if a3 == 360 then 0 else a3
   }
 
-  case class Sector(startDeg: Int, endDeg: Int)
-
-  def sectors(cnt: Int): Seq[Sector] = {
-    require(cnt > 0, "There must be at least one sector")
-    require(cnt <= 360, "More than 360 sectors make no sense")
-    val dist = 360.0 / cnt
-
-    def borders(actBorder: Double, result: List[Int]): List[Int] = {
-      if actBorder > 360.0000001 then result.reverse
-      else borders(actBorder + dist, math.ceil(actBorder).toInt :: result)
+  def runWithTmpdir(f: (tmpDir: Path) => Unit): Unit = {
+    def deleteDirRecursive(dir: Path): Unit = {
+      Files.walk(dir)
+        .sorted(Comparator.reverseOrder)
+        .forEach(f => Files.delete(f))
+      println(s"deleted dir: $dir")
     }
 
-    val bs = borders(0.0, List())
-    val bs1 = bs.tail
-    bs.zip(bs1).map((from, to) => Sector(from, to - 1))
-  }
-
-  def runWithTmpdir(f: (tmpDir: Path) => Unit): Unit = {
     val tmpWorkDir = Files.createTempDirectory("gaia")
     println(s"created tmp dir: $tmpWorkDir")
     try {
@@ -240,13 +230,6 @@ object Util {
     } finally {
       deleteDirRecursive(tmpWorkDir)
     }
-  }
-
-  def deleteDirRecursive(dir: Path): Unit = {
-    Files.walk(dir)
-      .sorted(Comparator.reverseOrder)
-      .forEach(f => Files.delete(f))
-    println(s"deleted dir: $dir")
   }
 
 }

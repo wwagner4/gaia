@@ -20,21 +20,21 @@ object Cam {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val frameRate = videoQuality.frameRate
 
-    val cmdsDirs = cameraConfigs
-      .map(cfg => (cfg, Files.createTempDirectory("gaia_vid")))
-    val cmds = cmdsDirs
-      .map { (cfg, tmpDir) =>
-        val duration = cfg.durationInSec
-        val steps = duration * frameRate
-        val cams = cfg.cams(steps)
-        mkVideoCmds(gaiaImage.id, cfg.id, shapables, cams, cfg.modelRotation, videoQuality, duration, gaiaImage.backColor, workPath, tmpDir)
-      }
-    val allView3dCmds = cmds.map((view3dCmd, _) => view3dCmd)
-    Util.runAllCommands(allView3dCmds)
-    val allFfmpegCmds = cmds.map((_, ffmpegCmd) => ffmpegCmd)
-    allFfmpegCmds.foreach(cmd => Util.runAllCommands(Seq(cmd)))
-
-    cmdsDirs.foreach((_, tmpDir) => Util.deleteDirRecursive(tmpDir))
+    Util.runWithTmpdir{tmpDir =>
+      val cmds = cameraConfigs
+        .map { cfg =>
+          val duration = cfg.durationInSec
+          val steps = duration * frameRate
+          val cams = cfg.cams(steps)
+          val td = tmpDir.resolve(cfg.id)
+          if Files.notExists(td) then Files.createDirectories(td)
+          mkVideoCmds(gaiaImage.id, cfg.id, shapables, cams, cfg.modelRotation, videoQuality, duration, gaiaImage.backColor, workPath, td)
+        }
+      val allView3dCmds = cmds.map((view3dCmd, _) => view3dCmd)
+      Util.runAllCommands(allView3dCmds)
+      val allFfmpegCmds = cmds.map((_, ffmpegCmd) => ffmpegCmd)
+      allFfmpegCmds.foreach(cmd => Util.runAllCommands(Seq(cmd)))
+    }
   }
 
   def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {

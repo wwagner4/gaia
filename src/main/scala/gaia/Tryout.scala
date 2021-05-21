@@ -1,7 +1,6 @@
 package gaia
 
-import gaia.Gaia.VideoConfig
-import gaia.Util.Sector
+import entelijan.viz.{Viz, VizCreator, VizCreators, DefaultDirectories}
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -21,11 +20,59 @@ object Tryout {
   import ImageUtil._
   import Vector._
   import X3d._
+  import Gaia.{VideoConfig, workPath}
+  import DataUtil._
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    println("no method defined")
+    firstDia(workPath)
   }
+
+  private def firstDia(dir: Path): Unit = {
+
+    val outDir = dir.resolve("tryout-dia")
+    if Files.notExists(outDir) then Files.createDirectories(outDir)
+
+    Util.runWithTmpdir { tmpDir =>
+      implicit val creator: VizCreator[Viz.XY] =
+        VizCreators.gnuplot(
+          scriptDir = tmpDir.toFile,
+          imageDir = outDir.toFile,
+          clazz = classOf[Viz.XY])
+
+      val radius = 20
+
+      val regions = Util.intervals(16, -3, 3)
+        .zipWithIndex
+        .map{case ((z1, z2), i) => Cylinder(f"a$i%03d", radius, z1, z2) }
+
+      val starsFiltered = DataUtil.starsAroundGalacticCenter(workPath, 1)
+
+      val diagrams = starsPerRegion(starsFiltered, regions)
+        .map((r, stars) => (r, DataUtil.starsPerSectorEqualized(stars, 20).flatten))
+        .map((r, stars) => (r, stars.map(s => Viz.XY(s.pos.x, s.pos.y))))
+        .map((region, data) => Viz.Diagram[Viz.XY](
+          id = region.id,
+          title = f"Stars in ${region.toString}",
+          dataRows = Seq(Viz.DataRow[Viz.XY](
+            data = data,
+            style = Viz.Style_DOTS))))
+
+      val multiDiagram = Viz.MultiDiagram[Viz.XY](
+        id = "gcs1",
+        columns = 4,
+        width = 1300,
+        height = 1300,
+        title = Some("Galaxy in Slices"),
+        diagrams = diagrams,
+      )
+
+      Viz.createDiagram(multiDiagram)
+      println(s"wrote diagram to $outDir")
+
+    }
+  }
+
 
   private def dirCol(workPath: Path): Unit = {
     val bc = Color.veryDarkBlue

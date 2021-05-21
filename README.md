@@ -235,6 +235,23 @@ For more information on the sbt-dotty plugin, see the
 
 Download and put the content to ~/gaia/data/basic
 
+### Run Gaia
+* install gnuplot
+* init and update submodule viz
+```shell
+git submodule init
+git submodule update
+```
+* build and publish viz library for generating diagrams
+```shell
+cd viz
+sbt publishLocal
+```
+* running gaia
+```shell
+sbt run
+```
+follow the instructions on stdout
 
 ### Music
 * https://freemusicarchive.org/
@@ -243,6 +260,5 @@ Download and put the content to ~/gaia/data/basic
 * https://freemusicarchive.org/music/Michael_Bruckner
 
 ### TODOs
-- add new features to camera create (when needed in the subsequent points). 
-  - moving center
-  - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180     
+- add new features to camera create (when needed in the subsequent points).
+  - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180

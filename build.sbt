@@ -10,4 +10,5 @@ lazy val root = project
 
     libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.8",
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.8" % "test",
-)
+    libraryDependencies += "net.entelijan" %% "viz" % "0.2-SNAPSHOT"
+  )
