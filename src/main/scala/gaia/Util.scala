@@ -216,6 +216,13 @@ object Util {
   }
 
   def runWithTmpdir(f: (tmpDir: Path) => Unit): Unit = {
+    def deleteDirRecursive(dir: Path): Unit = {
+      Files.walk(dir)
+        .sorted(Comparator.reverseOrder)
+        .forEach(f => Files.delete(f))
+      println(s"deleted dir: $dir")
+    }
+
     val tmpWorkDir = Files.createTempDirectory("gaia")
     println(s"created tmp dir: $tmpWorkDir")
     try {
@@ -223,13 +230,6 @@ object Util {
     } finally {
       deleteDirRecursive(tmpWorkDir)
     }
-  }
-
-  def deleteDirRecursive(dir: Path): Unit = {
-    Files.walk(dir)
-      .sorted(Comparator.reverseOrder)
-      .forEach(f => Files.delete(f))
-    println(s"deleted dir: $dir")
   }
 
 }
