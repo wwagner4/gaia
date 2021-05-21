@@ -12,7 +12,7 @@ Sources of data and data descriptions
 
 ## Gaia
 
-* ra: 0, 360
+* ra: 0, 360https://git-scm.com/downloads
 * dec: -90 +90
 * parallax: -51 + 304 Why negative ?
 
@@ -181,6 +181,26 @@ docker run -d --rm -v /root/gaia:/root/gaia/data/out  --name gaia gaia sbt "run 
 # see the logs
 docker run -d --rm -v /root/gaia:/root/gaia/data/out  --name gaia gaia sbt "run dt"
 ```
+
+view3dscene in docker https://github.com/uberconverter/uc-docker-core/blob/master/view3dscene/Dockerfile
+
+get latest release
+```shell
+get_latest_release() {
+curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
+grep '"tag_name":' |                                            # Get tag line
+sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
+}
+
+# Usage
+# $ get_latest_release "creationix/nvm"
+# v0.31.4
+
+```
+```
+https://jenkins.castle-engine.io/public/builds/view3dscene/
+```
+
 ### X3d
 Overview of geometric nodes
 ```
@@ -262,3 +282,5 @@ follow the instructions on stdout
 ### TODOs
 - add new features to camera create (when needed in the subsequent points).
   - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180
+- make docker running again
+

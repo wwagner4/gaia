@@ -96,8 +96,7 @@ object Gaia {
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.default,
                         credits: CreditConfig = CreditConfig(),
-                        seed: Long = 2348948509348L,
-                        fDiagram: Option[(workPath: Path) => Viz.Dia[Viz.XY]] = None
+                        seed: Long = 2348948509348L
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -106,15 +105,15 @@ object Gaia {
 
   val actions: Map[String, Action] = identifiableToMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
-    Action("x3d", "create x3d files for an image", createX3d),
-    Action("x3da", "create x3d animation file files for an image", createX3dAnimation),
-    Action("vid", "create video sniplets from ax3d model", createVideo),
-    Action("vidp", "create preview video sniplets from a x3d model", createPreviewVideo),
-    Action("still", "create still images from a x3d model", createStill),
-    Action("cred", "create credits", createCredits),
-    Action("credtxt", "create credits", createCreditsTxt),
-    Action("tryout", "Tryout something during development by calling 'doIt' in Tryout", Tryout.doit),
-    Action("cmd", "create commands for batch execution", cmd),
+    Action("x3d", "create a x3d model", createX3d),
+    Action("x3da", "create an animated x3d model", createX3dAnimation),
+    Action("vid", "create video sniplets", createVideo),
+    Action("vidp", "create preview video sniplets", createPreviewVideo),
+    Action("still", "create still images", createStill),
+    Action("cred", "create video credits", createCredits),
+    Action("credtxt", "create video text credits", createCreditsTxt),
+    Action("tryout", "Tryout something during development", Tryout.doit),
+    Action("cmd", "create shell commands for batch execution", cmd),
     Action("dia", "create diagran", createDiagram),
   ))
 
@@ -536,7 +535,6 @@ object Gaia {
         "creation: entelijan",
         "http://entelijan.net",
       )),
-      fDiagram = Some(DiagramFactory.gcs2)
     ),
   ))
 
@@ -601,28 +599,6 @@ object Gaia {
     println(cmd)
     println()
     println()
-  }
-
-  def createDiagram(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = gi.fDiagram.isDefined
-
-    def exec(gi: GaiaImage, wp: Path): Unit = {
-      val outDir = wp.resolve(Path.of(gi.id, "diagram"))
-      if Files.notExists(outDir) then Files.createDirectories(outDir)
-
-      Util.runWithTmpdir { tmpDir =>
-        implicit val creator: VizCreator[Viz.XY] =
-          VizCreators.gnuplot(
-            scriptDir = tmpDir.toFile,
-            imageDir = outDir.toFile,
-            clazz = classOf[Viz.XY])
-        val dia = gi.fDiagram.get(wp)
-        Viz.createDiagram(dia)
-      }
-      println(s"wrote diagram to $outDir")
-    }
-
-    createSomething(args, "diagram", workPath, filter, exec)
   }
 
 
