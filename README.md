@@ -260,8 +260,7 @@ follow the instructions on stdout
 * https://freemusicarchive.org/music/Michael_Bruckner
 
 ### TODOs
-- integrate dia in GaiaImage
-- add new features to camera create (when needed in the subsequent points). 
-  - moving center
-  - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180
+- diagram as gaia action
 - use only one tmp dir for one execution. pass that around e.g for video creation.
+- add new features to camera create (when needed in the subsequent points).
+  - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180
