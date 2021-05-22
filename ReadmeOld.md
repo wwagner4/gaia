@@ -281,6 +281,7 @@ follow the instructions on stdout
 
 ### TODOs
 - add new features to camera create (when needed in the subsequent points).
-    - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180
+  - other ranges than 0 - 360, e.g longer 0 - 400, shorter 0, 180
 - make docker running again
+
 
