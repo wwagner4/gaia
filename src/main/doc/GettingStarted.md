@@ -13,6 +13,13 @@ For generating x3d models you need to have [view3dimage](https://castle-engine.i
 
 For generating videos you have to have [ffmpeg](https://www.ffmpeg.org/download.html)
 
+## Download and provide data
+The actual dataset can be downloaded from 
+```
+http://entelijan.net/gaiadata.zip
+```
+
+Download unzip and copy the *.gz files to ~/gaia/data/basic
 
 ## Download, compile and run
 

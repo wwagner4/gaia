@@ -6,11 +6,34 @@ RUN apt-get -qq install -y curl
 RUN apt-get -qq install -y unzip
 RUN apt-get -qq install -y zip
 
-RUN curl -s https://get.sdkman.io | bash
-RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && \
-    yes | sdk install java 16-open && \
-    yes | sdk install sbt && \
-    rm -rf $HOME/.sdkman/archives/* && \
-    rm -rf $HOME/.sdkman/tmp/*"
+RUN apt-get install -qq default-jdk
 
+RUN apt-get -qq install -y gnupg2
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list
+RUN curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add
+RUN apt-get update
+RUN apt-get install -y sbt
+
+WORKDIR /app
+RUN git clone https://github.com/wwagner4/gaia
+WORKDIR /app/gaia
+RUN git submodule init
+RUN git submodule update
+WORKDIR /app/gaia/viz
+RUN sbt publishLocal
+
+WORKDIR /tmp
+RUN curl -sL "http://entelijan.net/gaiadata.zip" | jar xvf /dev/stdin
+RUN mkdir -p $HOME/gaia
+RUN mkdir -p $HOME/gaia/data
+RUN mkdir -p $HOME/gaia/data/basic
+
+RUN mv /tmp/gaia/*.gz $HOME/gaia/data/basic
+
+RUN apt-get install -qq view3dscene
+RUN apt-get install -y libgtkglext1
+RUN apt-get install -y x11vnc xvfb
+
+# WORKDIR /app/gaia
 WORKDIR /project
