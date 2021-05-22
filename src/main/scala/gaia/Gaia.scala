@@ -106,16 +106,16 @@ object Gaia {
 
   val actions: Map[String, Action] = identifiableToMap(Seq(
     Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
-    Action("x3d", "create x3d files for an image", createX3d),
-    Action("x3da", "create x3d animation file files for an image", createX3dAnimation),
-    Action("vid", "create video sniplets from ax3d model", createVideo),
-    Action("vidp", "create preview video sniplets from a x3d model", createPreviewVideo),
-    Action("still", "create still images from a x3d model", createStill),
-    Action("cred", "create credits", createCredits),
-    Action("credtxt", "create credits", createCreditsTxt),
-    Action("tryout", "Tryout something during development by calling 'doIt' in Tryout", Tryout.doit),
-    Action("cmd", "create commands for batch execution", cmd),
-    Action("dia", "create diagran", createDiagram),
+    Action("x3d", "create a x3d model", createX3d),
+    Action("x3da", "create an animated x3d model", createX3dAnimation),
+    Action("vid", "create video sniplets", createVideo),
+    Action("vidp", "create preview video sniplets", createPreviewVideo),
+    Action("still", "create still images", createStill),
+    Action("cred", "create video credits", createCredits),
+    Action("credtxt", "create video text credits", createCreditsTxt),
+    Action("tryout", "Tryout something during development", Tryout.doit),
+    Action("cmd", "create shell commands for batch execution", cmd),
+    Action("dia", "create diagram", createDiagram),
   ))
 
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
