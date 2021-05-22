@@ -52,3 +52,13 @@ sbt run
 
 follow the instructions in stdout to run any of the available gaia features
 
+## Docker
+All these prerequisites are also defined in a docker file
+
+```shell
+docker build -t gaia .
+```
+
+```shell
+docker run -v /home/itsv.org.sv-services.at/31100428/prj/gaia:/project -it gaia bash
+```
