@@ -232,5 +232,10 @@ object Util {
     }
   }
 
+  def inDocker: Boolean = {
+    val v = System.getenv("GAIA_IN_DOCKER")
+    v != null && v == "YES"
+  }
+
 }
 

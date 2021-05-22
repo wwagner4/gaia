@@ -80,11 +80,14 @@ object Cam {
     val imageFiles = stillOutDir.resolve(s"$imageId-$videoId-$stillId-@counter($numLen).png")
     val antiAliasing = quality.antiAliasing
 
-    Seq("view3dscene", s"${x3dFile.toAbsolutePath}",
+    val view3dCmd = Seq("view3dscene", s"${x3dFile.toAbsolutePath}",
       "--anti-alias", s"$antiAliasing", "--geometry", s"$geometryStr",
       "--screenshot-range", time.toString, f"$timeStep%.4f", "1", s"$imageFiles")
-
+    if Util.inDocker then xvfbCmd ++ view3dCmd
+    else view3dCmd
   }
+
+  def xvfbCmd = Seq("xvfb-run", "--auto-servernum", "-e", "/dev/stdout")
 
   def mkVideoCmds(
                    imageId: String,
@@ -113,9 +116,10 @@ object Cam {
     val imgFile = tmpWorkDir.resolve(s"img$iFmtFf.png").toAbsolutePath.toString
     val videoFile = videoOutDir.resolve(s"${imageId}_${videoId}_$frameRate.mp4").toAbsolutePath.toString
 
-    val view3dCmd = Seq("view3dscene", s"${x3d0File.toAbsolutePath}",
+    val view3dCmdPlain = Seq("view3dscene", s"${x3d0File.toAbsolutePath}",
       "--anti-alias", s"$antiAliasing", "--geometry", s"$geometryStr",
       "--screenshot-range", "0", f"$timeStep%.4f", s"$imageCount", s"$imageFiles")
+    val view3dCmd = if Util.inDocker then xvfbCmd ++ view3dCmdPlain else view3dCmdPlain
     val ffmpegCmd = Seq("ffmpeg", "-y", "-r", frameRate.toString, "-i", imgFile, "-c:v", "libx265", videoFile)
     (view3dCmd, ffmpegCmd)
   }

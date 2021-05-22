@@ -34,6 +34,9 @@ RUN mv /tmp/gaia/*.gz $HOME/gaia/data/basic
 RUN apt-get install -qq view3dscene
 RUN apt-get install -y libgtkglext1
 RUN apt-get install -y x11vnc xvfb
+RUN apt-get install -y ffmpeg
+
+ENV GAIA_IN_DOCKER=YES
 
 # WORKDIR /app/gaia
 WORKDIR /project
