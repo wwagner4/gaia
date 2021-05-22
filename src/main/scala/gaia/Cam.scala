@@ -68,7 +68,7 @@ object Cam {
                       backColor: Color,
                       workPath: Path,
                       tmpWorkDir: Path): Seq[String] = {
-    val stillOutDir = workPath.resolve(imageId).resolve("stills")
+    val stillOutDir = outPath(workPath).resolve(imageId).resolve("stills")
     if Files.notExists(stillOutDir) then Files.createDirectories(stillOutDir)
 
     val x3dFile = tmpWorkDir.resolve(s"$imageId-$videoId-$stillId.x3d")
@@ -100,7 +100,7 @@ object Cam {
                    backColor: Color,
                    workPath: Path,
                    tmpWorkDir: Path): (Seq[String], Seq[String]) = {
-    val videoOutDir = workPath.resolve(imageId).resolve("videos")
+    val videoOutDir = outPath(workPath).resolve(imageId).resolve("videos")
     if Files.notExists(videoOutDir) then Files.createDirectories(videoOutDir)
     val x3d0File = tmpWorkDir.resolve(s"$imageId.x3d")
     val xml = X3d.createCamAnimatedXml(shapables, cams, backColor, cycleIntervalInSeconds, modelRotation)

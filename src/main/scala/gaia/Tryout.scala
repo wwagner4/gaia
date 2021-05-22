@@ -1,6 +1,7 @@
 package gaia
 
-import entelijan.viz.{Viz, VizCreator, VizCreators, DefaultDirectories}
+import entelijan.viz.{DefaultDirectories, Viz, VizCreator, VizCreators}
+import gaia.Gaia.outPath
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -28,9 +29,9 @@ object Tryout {
     firstDia(workPath)
   }
 
-  private def firstDia(dir: Path): Unit = {
+  private def firstDia(workPath: Path): Unit = {
 
-    val outDir = dir.resolve("tryout-dia")
+    val outDir = outPath(workPath).resolve("tryout-dia")
     if Files.notExists(outDir) then Files.createDirectories(outDir)
 
     Util.runWithTmpdir { tmpDir =>
@@ -97,7 +98,7 @@ object Tryout {
       .map(d => PolarVec(1, degToRad(d), 0).toVec)
       .map(coloredShape)
 
-    val file = Gaia.workPath.resolve(s"tryout-dir-col.x3d")
+    val file = outPath(workPath).resolve(s"tryout-dir-col.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
@@ -126,7 +127,7 @@ object Tryout {
     val duration = 60
 
     val xml: String = createCamAnimatedXml(shapables, cams, bc, duration, Rotation1(0, 0, 0))
-    val file = Gaia.workPath.resolve(s"tryout_cam_rot.x3d")
+    val file = outPath(workPath).resolve(s"tryout_cam_rot.x3d")
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
   }
@@ -212,7 +213,7 @@ object Tryout {
     val shapables =
       combi()
         ++ shapablesCoordinatesColored(3, bc)
-    val file = Gaia.workPath.resolve(s"tryout_x3dDir.x3d")
+    val file = outPath(workPath).resolve(s"tryout_x3dDir.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
@@ -227,7 +228,7 @@ object Tryout {
     println(gsun)
   }
 
-  private def sunSpaceMotion(): Unit = {
+  private def sunSpaceMotion(workPath: Path): Unit = {
     println("sun space motion")
     val id = "sun_space_motion"
 
@@ -237,14 +238,14 @@ object Tryout {
 
     def galacticDist(s: Star) = toStarPosDirGalactic(s).pos.length
 
-    val starsFiltered = readBasic
+    def starsFiltered(workPath: Path) = readBasic(workPath)
       .filter(galacticDist(_) < 50)
       .map(toStarPosDirGalactic)
       .toSeq
 
-    val stars = Util.intervals(10, 0, pimul2)
+    def stars(workPath: Path) = Util.intervals(10, 0, pimul2)
       .zip(X3d.Palette.p3c11.lazyColors)
-      .zip(LazyList.continually(starsFiltered))
+      .zip(LazyList.continually(starsFiltered(workPath)))
       .flatMap { case (((from, to), c), sf) =>
         val in = sf.filter { spd =>
           val ra = {
@@ -260,8 +261,6 @@ object Tryout {
           .zip(LazyList.continually(c))
       }
 
-    println(s"filtered ${stars.size} stars")
-
     val shapesCircle = {
       (2 to(10, 2)).map { r =>
         Shapable.Circle(translation = Vec.zero,
@@ -275,7 +274,7 @@ object Tryout {
       Shapable.Sphere(position = sun.pos, color = Color.white, radius = 0.3)
     )
 
-    val shapablesStars = stars
+    val shapablesStars = stars(workPath)
       .map { (star, c) =>
         val sg = toStarPosDirGalactic(star)
         Shapable.Sphere(position = sg.pos, color = c, radius = 0.1)
@@ -283,14 +282,14 @@ object Tryout {
 
     val shapables = shapesCircle ++ shapesCoord ++ shapableSun ++ shapablesStars
 
-    val file = Gaia.workPath.resolve(s"tryout_$id.x3d")
+    val file = outPath(workPath).resolve(s"tryout_$id.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
-  private def sphereCoordinatesModel(): Unit = {
+  private def sphereCoordinatesModel(workPath: Path): Unit = {
     val bc = Color.black
     val shapables = ShapableFactory.sphereCoordinates()
-    val file = Gaia.workPath.resolve("tryout_sphere_coordinates.x3d")
+    val file = outPath(workPath).resolve("tryout_sphere_coordinates.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
@@ -312,11 +311,11 @@ object Tryout {
       }
     val shapables = camShapes ++ ImageUtil.shapablesCoordinatesColored(len = 3, bgColor = bc, showSign = true)
 
-    val file = workPath.resolve("tryout_cam.x3d")
+    val file = outPath(workPath).resolve("tryout_cam.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
-  private def cylinder(): Unit = {
+  private def cylinder(workPath: Path): Unit = {
     def fromDef = {
       val dirVecs = for (ra <- 0 to(350, 10); dec <- -70 to(70, 10)) yield {
         PolarVec(1, degToRad(ra), degToRad(dec)).toVec
@@ -328,14 +327,14 @@ object Tryout {
     }
 
     val shapables = fromDef
-    val file = Gaia.workPath.resolve("tryout_cylinder.x3d")
+    val file = outPath(workPath).resolve("tryout_cylinder.x3d")
     val xml = X3d.createXml(shapables, file.getFileName.toString, Color.gray(0.7))
     gaia.Util.writeString(file, xml)
     println(s"wrote to $file")
   }
 
 
-  private def displayCones(): Unit = {
+  private def displayCones(workPath: Path): Unit = {
 
     import ImageUtil._
     val bc = Color.veryDarkBlue
@@ -346,11 +345,11 @@ object Tryout {
     )
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Gaia.workPath.resolve("tryout_cones.x3d")
+    val file = outPath(workPath).resolve("tryout_cones.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
-  private def displyDirections(): Unit = {
+  private def displyDirections(workPath: Path): Unit = {
 
     import ImageUtil._
     val bc = Color.veryDarkBlue
@@ -373,7 +372,7 @@ object Tryout {
     }
 
     val shapables = fromDef ++ shapablesCoordinatesColored(2, bc, showSign = true)
-    val file = Gaia.workPath.resolve("tryout_directions.x3d")
+    val file = outPath(workPath).resolve("tryout_directions.x3d")
     writeX3dFile1(bc, shapables, file)
   }
 
@@ -446,7 +445,7 @@ object Tryout {
     Util.runAllCommands(cmds)
   }
 
-  private def amalyseStarsPerShell(): Seq[Unit] = {
+  private def amalyseStarsPerShell(workPath: Path): Seq[Unit] = {
     val shells = Seq(
       (" 1 kpc", 1.0, 1.1),
       (" 2 kpc", 2.0, 2.1),
@@ -472,17 +471,17 @@ object Tryout {
     }
 
     for ((id, min, max) <- shells) yield {
-      val cnt = readBasic.flatMap(filterBasic(_)(min, max)).size
+      val cnt = readBasic(workPath).flatMap(filterBasic(_)(min, max)).size
       println(s"$id - $cnt stars")
     }
   }
 
-  private def analyseDataNegativeParallax(): Unit = {
+  private def analyseDataNegativeParallax(workPath: Path): Unit = {
     var cntAll = 0
     var cntNegPar = 0
     var min = Double.MaxValue
     var max = Double.MinValue
-    readBasic.foreach(s => {
+    readBasic(workPath).foreach(s => {
       if (s.parallax <= 0) {
         cntNegPar += 1
         if (s.parallax < min) min = s.parallax
@@ -499,12 +498,12 @@ object Tryout {
     println(f" max dist:      $minDist%20.3f kpc    min dist:     $maxDist%.3f kpc")
   }
 
-  private def analyseDataBasicSize(): Unit = {
-    val size = readBasic.size
+  private def analyseDataBasicSize(workPath: Path): Unit = {
+    val size = readBasic(workPath).size
     println(s"Size of basic is $size")
   }
 
-  private def analyseDataBasicTop(): Unit = readBasic.take(20).foreach(println(_))
+  private def analyseDataBasicTop(workPath: Path): Unit = readBasic(workPath).take(20).foreach(println(_))
 
   private def analyseDataHeader(): Unit = {
     val fn = "GaiaSource_1000172165251650944_1000424567594791808.csv.gz"

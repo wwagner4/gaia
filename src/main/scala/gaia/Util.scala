@@ -15,16 +15,14 @@ object Util {
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
 
-  def datapath: Path = {
-    val home = Path.of(System.getProperty("user.home"))
-    val result = home.resolve(Path.of("gaia", "data"))
-    if !Files.exists(result) then
-      Files.createDirectories(result)
-    result
+  def datapath(workPath: Path): Path = {
+    val dataPath = workPath.resolve("data")
+    if Files.notExists(dataPath) then Files.createDirectories(dataPath)
+    dataPath
   }
 
-  def outpath: Path = {
-    val result = datapath.resolve("out")
+  def outpath(workPath: Path): Path = {
+    val result = datapath(workPath).resolve("out")
     if !Files.exists(result) then
       Files.createDirectories(result)
     result

@@ -32,7 +32,7 @@ object Cred {
       "%.0f".format(h * (percent.toDouble / 100))
     }
 
-    val imgPath = workPath.resolve(gaiaImage.id)
+    val imgPath = outPath(workPath).resolve(gaiaImage.id)
     val creditsDir = imgPath.resolve("credits")
     if Files.notExists(creditsDir) then Files.createDirectories(creditsDir)
     val tmpWorkDir = Files.createTempDirectory(gaiaImage.id)

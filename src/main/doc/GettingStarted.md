@@ -67,5 +67,8 @@ docker build -t gaia .
 ```
 
 ```shell
-docker run -v /home/itsv.org.sv-services.at/31100428/prj/gaia:/project -it gaia bash
+docker run -it \
+-v /home/wwagner4/prj/gaia:/project \
+-v /data/work/gaia/dout:/work/gaia/out \
+gaia bash
 ```
