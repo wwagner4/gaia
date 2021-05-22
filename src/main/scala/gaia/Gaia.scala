@@ -96,7 +96,8 @@ object Gaia {
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.default,
                         credits: CreditConfig = CreditConfig(),
-                        seed: Long = 2348948509348L
+                        seed: Long = 2348948509348L,
+                        fDiagram: Option[(workPath: Path) => Viz.Dia[Viz.XY]] = None
                       ) extends Identifiable {
     def text: String = if (textVal.isDefined) textVal.get else desc
 
@@ -114,7 +115,7 @@ object Gaia {
     Action("credtxt", "create video text credits", createCreditsTxt),
     Action("tryout", "Tryout something during development", Tryout.doit),
     Action("cmd", "create shell commands for batch execution", cmd),
-    Action("dia", "create diagran", createDiagram),
+    Action("dia", "create diagram", createDiagram),
   ))
 
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
@@ -535,6 +536,7 @@ object Gaia {
         "creation: entelijan",
         "http://entelijan.net",
       )),
+      fDiagram = Some(DiagramFactory.gcs2)
     ),
   ))
 
@@ -599,6 +601,28 @@ object Gaia {
     println(cmd)
     println()
     println()
+  }
+
+  def createDiagram(args: List[String], workPath: Path): Unit = {
+    def filter(gi: GaiaImage): Boolean = gi.fDiagram.isDefined
+
+    def exec(gi: GaiaImage, wp: Path): Unit = {
+      val outDir = wp.resolve(Path.of(gi.id, "diagram"))
+      if Files.notExists(outDir) then Files.createDirectories(outDir)
+
+      Util.runWithTmpdir { tmpDir =>
+        implicit val creator: VizCreator[Viz.XY] =
+          VizCreators.gnuplot(
+            scriptDir = tmpDir.toFile,
+            imageDir = outDir.toFile,
+            clazz = classOf[Viz.XY])
+        val dia = gi.fDiagram.get(wp)
+        Viz.createDiagram(dia)
+      }
+      println(s"wrote diagram to $outDir")
+    }
+
+    createSomething(args, "diagram", workPath, filter, exec)
   }
 
 
