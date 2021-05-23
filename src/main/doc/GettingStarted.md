@@ -13,6 +13,13 @@ For generating x3d models you need to have [view3dimage](https://castle-engine.i
 
 For generating videos you have to have [ffmpeg](https://www.ffmpeg.org/download.html)
 
+## Download and provide data
+The actual dataset can be downloaded from 
+```
+http://entelijan.net/gaiadata.zip
+```
+
+Download unzip and copy the *.gz files to ~/gaia/data/basic
 
 ## Download, compile and run
 
@@ -52,3 +59,16 @@ sbt run
 
 follow the instructions in stdout to run any of the available gaia features
 
+## Docker
+All these prerequisites are also defined in a docker file
+
+```shell
+docker build -t gaia .
+```
+
+```shell
+docker run -it \
+-v /home/wwagner4/prj/gaia:/project \
+-v /data/work/gaia/dout:/work/gaia/out \
+gaia bash
+```

@@ -54,7 +54,7 @@ object ImageUtil {
       }
 
       val cacheFile = createCacheFile("basic", workPath)
-      starsFilteredAndCached(cacheFile, filter)
+      starsFilteredAndCached(cacheFile, filter, workPath)
     }
 
     def nearSunStars(workPath: Path): Seq[Star] = {
@@ -67,7 +67,7 @@ object ImageUtil {
       }
 
       val cacheFile = createCacheFile("near_sun", workPath)
-      starsFilteredAndCached(cacheFile, filter)
+      starsFilteredAndCached(cacheFile, filter, workPath)
     }
 
 
@@ -79,7 +79,7 @@ object ImageUtil {
     cacheDir.resolve(s"cache_$id.csv")
   }
 
-  private def starsFilteredAndCached(cache: Path, filterStar: Star => Boolean): Seq[Star] = {
+  private def starsFilteredAndCached(cache: Path, filterStar: Star => Boolean, workPath: Path): Seq[Star] = {
 
     def fromCsv(): Seq[Star] = {
       def convert(a: Array[String]): Star = {
@@ -119,7 +119,7 @@ object ImageUtil {
     }
     else {
       println(s"creating data from base and store in $cache")
-      val stars = Data.readBasic
+      val stars = Data.readBasic(workPath)
         .filter(filterStar)
         .toSeq
       toCsv(stars)
@@ -161,17 +161,6 @@ object ImageUtil {
   private def toDir(star: Star): Vec = {
     val sm = properMotionToSpaceMotion(star)
     spaceMotionToGalacticMotion(star, sm)
-  }
-
-  def writeModelToFile(gaiaImage: GaiaImage, file: Path): Unit = {
-    val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-    val modelsPath = workPath.resolve("models")
-    if (notExists(modelsPath)) createDirectories(modelsPath)
-    val bgColor = gaiaImage.backColor
-    val id = gaiaImage.id
-    val xml = X3d.createXml(shapables, file.getFileName.toString, bgColor)
-    gaia.Util.writeString(file, xml)
-    println(s"Created image for $id at ${file.toAbsolutePath}")
   }
 
   def shapablesCoordinatesGray(len: Double, bgColor: Color, offset: Vec = Vec.zero, brightness: Double = 0.9): Seq[Shapable] = {

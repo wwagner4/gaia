@@ -59,9 +59,9 @@ object Data {
     println(s"running $id")
   }
 
-  def quickDownloadBasic: Unit = downloadGrouped(downloadConfigs("BASIC"), Util.outpath)
+  def quickDownloadBasic(workPath: Path): Unit = downloadGrouped(downloadConfigs("BASIC"), Util.outpath(workPath))
 
-  def readBasic: Iterator[Star] = {
+  def readBasic(workPath: Path): Iterator[Star] = {
 
     def extractId(filePath: Path): Option[(Int, Path)] = {
       val fnamRegex = """.*gaia.*group_(.*)_of.*""".r
@@ -71,7 +71,7 @@ object Data {
       }
     }
 
-    val basicPath = Util.datapath.resolve("basic")
+    val basicPath = Util.datapath(workPath).resolve("basic")
     require(Files.exists(basicPath), s"Directory for basic data does not exist. $basicPath")
 
     Files.list(basicPath)

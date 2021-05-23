@@ -16,7 +16,7 @@ object Gaia {
   import X3d._
   import Vector._
 
-  lazy val workPath: Path = getCreateWorkPath
+  private lazy val workPath: Path = getCreateWorkPath
 
   enum VideoResolution(val width: Int, val height: Int):
     case VGA extends VideoResolution(640, 480)
@@ -625,14 +625,24 @@ object Gaia {
     createSomething(args, "diagram", workPath, filter, exec)
   }
 
+  def outPath(workPath: Path): Path = {
+    val outPath = workPath.resolve("out")
+    if Files.notExists(outPath) then Files.createDirectories(outPath)
+    outPath
+  }
 
   private def createX3d(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = true
 
-    def exec(gi: GaiaImage, wp: Path): Unit = {
-      val outdir = workPath.resolve(gi.id).resolve("models")
-      if Files.notExists(outdir) then Files.createDirectories(outdir)
-      writeModelToFile(gi, outdir.resolve(s"${gi.id}.x3d"))
+    def exec(gaiaImage: GaiaImage, workPath: Path): Unit = {
+      val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
+      val modelsPath = outPath(workPath).resolve("models")
+      if (notExists(modelsPath)) createDirectories(modelsPath)
+      val fileName = s"${gaiaImage.id}.x3d"
+      val xml = X3d.createXml(shapables, fileName, gaiaImage.backColor)
+      val file = modelsPath.resolve(fileName)
+      Util.writeString(file, xml)
+      println(s"Created image for ${gaiaImage.id} at ${file.toAbsolutePath}")
     }
 
     createSomething(args, "x3d model", workPath, filter, exec)
@@ -645,7 +655,7 @@ object Gaia {
     def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach {
       case VideoConfig.Cams(camConfigs) => {
         println(s"Creating gaia x3d for ID ${gi.id}. ${gi.desc}")
-        val modelsDirir = workPath.resolve(gi.id).resolve("models")
+        val modelsDirir = outPath(workPath).resolve(gi.id).resolve("models")
         if Files.notExists(modelsDirir) then Files.createDirectories(modelsDirir)
         val shapables = gi.fCreateModel(workPath, gi.backColor)
         gi.videoConfig.foreach {
