@@ -120,7 +120,7 @@ object Cam {
       "--anti-alias", s"$antiAliasing", "--geometry", s"$geometryStr",
       "--screenshot-range", "0", f"$timeStep%.4f", s"$imageCount", s"$imageFiles")
     val view3dCmd = if Util.inDocker then xvfbCmd ++ view3dCmdPlain else view3dCmdPlain
-    val ffmpegCmd = Seq("ffmpeg", "-y", "-r", frameRate.toString, "-i", imgFile, "-c:v", "libx265", videoFile)
+    val ffmpegCmd = Seq("ffmpeg", "-y", "-r", frameRate.toString, "-i", imgFile, videoFile)
     (view3dCmd, ffmpegCmd)
   }
 
