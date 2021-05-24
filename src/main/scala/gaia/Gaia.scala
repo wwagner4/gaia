@@ -607,7 +607,7 @@ object Gaia {
     def filter(gi: GaiaImage): Boolean = gi.fDiagram.isDefined
 
     def exec(gi: GaiaImage, wp: Path): Unit = {
-      val outDir = wp.resolve(Path.of(gi.id, "diagram"))
+      val outDir = outPath(wp).resolve(Path.of(gi.id, "diagram"))
       if Files.notExists(outDir) then Files.createDirectories(outDir)
 
       Util.runWithTmpdir { tmpDir =>

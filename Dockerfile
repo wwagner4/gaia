@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
 ENV GAIA_IN_DOCKER=YES
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 RUN apt-get install -y curl
@@ -19,6 +20,8 @@ RUN apt-get install -y x11vnc xvfb
 RUN apt-get install -y ffmpeg
 RUN apt-get install -y default-jdk
 RUN apt-get install -y sbt
+RUN apt-get install -y gnuplot-data
+RUN apt-get install -y gnuplot-mode
 
 RUN mkdir -p /work/gaia/data/basic
 ENV GAIA_WORK_BASE=/work
@@ -28,6 +31,8 @@ RUN curl -sL "http://entelijan.net/gaiadata.zip" | jar xvf /dev/stdin
 RUN mv /tmp/gaia/*.gz /work/gaia/data/basic
 
 WORKDIR /app
+# force no cache an change
+ADD https://api.github.com/repos/wwagner4/gaia/git/refs/heads/master version.json
 RUN git clone https://github.com/wwagner4/gaia
 WORKDIR /app/gaia
 RUN git submodule init
@@ -35,9 +40,11 @@ RUN git submodule update
 WORKDIR /app/gaia/viz
 RUN sbt publishLocal
 
-
+WORKDIR /app/gaia
+RUN sbt test
 
 RUN chmod 777 /work/gaia
 
+WORKDIR /
 # WORKDIR /app/gaia
-WORKDIR /project
+# WORKDIR /project

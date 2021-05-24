@@ -62,13 +62,21 @@ follow the instructions in stdout to run any of the available gaia features
 ## Docker
 All these prerequisites are also defined in a docker file
 
+build
 ```shell
 docker build -t gaia .
 ```
 
+For development
 ```shell
-docker run -it \
--v /home/wwagner4/prj/gaia:/project \
--v /data/work/gaia/dout:/work/gaia/out \
-gaia bash
+docker run -it  -v <your project dir>/gaia:/project -v <your work dir>/gaia/dout:/work/gaia/out -u root gaia bash
 ```
+* cd /project
+* sbt
+
+To run it
+```shell
+docker run -it  -v  -v <your work dir>/gaia/dout:/work/gaia/out -u root gaia bash
+```
+* cd /app/gaia
+* sbt
