@@ -16,7 +16,7 @@ For generating videos you have to have [ffmpeg](https://www.ffmpeg.org/download.
 ## Download and provide data
 The actual dataset can be downloaded from 
 ```
-http://entelijan.net/gaiadata.zip
+https://drive.google.com/file/d/1YvV2LIO_ml4_bokMKW3JLAHYJxBTNp4n/view?usp=sharing
 ```
 
 Download unzip and copy the *.gz files to ~/gaia/data/basic
