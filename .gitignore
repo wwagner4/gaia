@@ -4,3 +4,7 @@ target
 .bsp
 html
 credits
+boot
+src/main/doc/*.swp
+/src/main/doc/.~lock*
+/external-resources/

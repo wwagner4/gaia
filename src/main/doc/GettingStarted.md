@@ -64,19 +64,85 @@ All these prerequisites are also defined in a docker file
 
 build
 ```shell
-docker build -t gaia .
+docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t gaia .
+```
+### For development
+```shell
+docker run -it  \
+-v <your project dir>/gaia:/home/ugaia/project \
+-v <your work dir>/gaia/out:/home/ugaia/work/gaia/out \
+-u $(id -u):$(id -g)  gaia bash
+
+Make sure '<your work dir>/gaia/out' exists. Otherwise it will be created as 'root'
+
+```
+e.g.
+```shell
+# wallace
+docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
+-v /home/wwagner4/work/gaia/out:/home/ugaia/work/gaia/out \
+-u $(id -u):$(id -g) gaia bash
+```
+```shell
+# ben
+docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
+-v /data/work/gaia/out:/home/ugaia/work/gaia/out \
+-u $(id -u):$(id -g) gaia bash
+```
+```shell
+# work
+docker run -it  -v /home/itsv.org.sv-services.at/31100428/prj/gaia:/home/ugaia/project \
+-v /home/itsv.org.sv-services.at/31100428/work/gaia/out:/home/ugaia/work/gaia/out \
+-u $(id -u):$(id -g) gaia bash
 ```
 
-For development
+Multirun: 
+Use file 'mrun' in project root
 ```shell
-docker run -it  -v <your project dir>/gaia:/project -v <your work dir>/gaia/dout:/work/gaia/out -u root gaia bash
+docker run --name gaiamrun --rm \
+-v /home/itsv.org.sv-services.at/31100428/prj/gaia:/home/ugaia/project \
+-v /home/itsv.org.sv-services.at/31100428/work/gaia/out:/home/ugaia/work/gaia/out -d -u $(id -u):$(id -g) \
+gaia bash project/mrun
 ```
-* cd /project
+```shell
+# ben
+docker run --name gaiamrun --rm \
+-v /home/wwagner4/prj/gaia:/home/ugaia/project \
+-v /data/work/gaia/out:/home/ugaia/work/gaia/out -d -u $(id -u):$(id -g) \
+gaia bash project/mrun
+```
+
+```shell
+# wallace
+docker run --name gaiamrun --rm \
+-v /home/wwagner4/prj/gaia:/home/ugaia/project \
+-v /home/wwagner4/work/gaia/out:/home/ugaia/work/gaia/out -d -u $(id -u):$(id -g) \
+gaia bash project/mrun
+```
+
+File might look like
+```shell
+cd project && sbt "\
+;test\
+;run tryout\
+;run tryout\
+;run tryout\
+;test\
+"
+```
+
+
+
+
+* cd /home/ugaia/project
 * sbt
 
-To run it
+### For just running
 ```shell
-docker run -it  -v  -v <your work dir>/gaia/dout:/work/gaia/out -u root gaia bash
+docker run -it  \
+-v <your project dir>/gaia:/home/ugaia/project \
+-v <your work dir>:/home/ugaia/work \
+-u $(id -u):$(id -g)  gaia bash
 ```
-* cd /app/gaia
+* cd /home/ugaia/app/gaia
 * sbt

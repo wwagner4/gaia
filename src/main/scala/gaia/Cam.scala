@@ -6,12 +6,14 @@ import java.nio.file.{Files, Path}
 import scala.annotation.tailrec
 import scala.collection.SeqView.Reverse
 import scala.util.Random
+import scala.jdk.StreamConverters._
 
 object Cam {
 
   import Vector._
   import X3d._
   import Gaia._
+  import Hp1._
 
   val numLen = 4
   val stillImgCnt = 4
@@ -20,7 +22,7 @@ object Cam {
     val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
     val frameRate = videoQuality.frameRate
 
-    Util.runWithTmpdir{tmpDir =>
+    Util.runWithTmpdir() { tmpDir =>
       val cmds = cameraConfigs
         .map { cfg =>
           val duration = cfg.durationInSec
@@ -39,7 +41,7 @@ object Cam {
 
   def mkStillcameraConfig(gaiaImage: GaiaImage, cameraConfigs: Seq[CameraConfig], workPath: Path): Unit = {
 
-    Util.runWithTmpdir { tmpDir =>
+    Util.runWithTmpdir() { tmpDir =>
       val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
       val frameRate = gaiaImage.videoQuality.frameRate
 
@@ -48,10 +50,17 @@ object Cam {
         val steps = duration * frameRate
         val cams = cfg.cams(steps)
         val imageCount = gaiaImage.videoQuality.frameRate * duration
-        Random.shuffle(0 until imageCount).take(stillImgCnt).zipWithIndex.map((time, i) =>
-          mkStillCommand(gaiaImage.id, cfg.id, i.toString, shapables, cams, cfg.modelRotation, gaiaImage.videoQuality, duration, time, gaiaImage.backColor, workPath, tmpDir))
+        Random.shuffle(0 until imageCount).take(stillImgCnt).zipWithIndex.map { (time, i) =>
+          val iid = i.toString
+          val iidFull = s"$iid-full"
+          val iidPrev = s"$iid-prev"
+          Seq(
+            mkStillCommand(gaiaImage.id, cfg.id, iidFull, shapables, cams, cfg.modelRotation, gaiaImage.videoQuality, duration, time, gaiaImage.backColor, workPath, tmpDir),
+            mkStillCommand(gaiaImage.id, cfg.id, iidPrev, shapables, cams, cfg.modelRotation, VideoQuality.stillPreview, duration, time, gaiaImage.backColor, workPath, tmpDir),
+          )
+        }
       }
-      cmds.foreach(cs => cs.foreach(c => Util.runAllCommands(Seq(c))))
+      cmds.foreach(cs => cs.foreach(c => Util.runAllCommands(c)))
     }
   }
 
@@ -175,6 +184,60 @@ object Cam {
       then math.sqrt(r2 * (1.0 - e2) * (1.0 - x2 / r2))
       else -math.sqrt(r2 * (1.0 - e2) * (1.0 - x2 / r2))
     Vec(v1.x, y, v1.z)
+  }
+
+  def mkCompleteVideo(gi: GaiaImage, outFile: Path, workPath: Path): Unit = {
+    val lenInMin = 1.5
+    val lenSliceSec = 15.0
+    val lenOpenSec = 15.0
+    val lenCloseSec = 10.0
+    val fadeDurationInSeconds = 3.0
+    val fadeOverlappingInSeconds = 2.0 // from HP1:267
+
+    val lenInSec = lenInMin * 60
+    val sliceLenSec = lenInSec - lenOpenSec - lenCloseSec
+    val sliceCnt = math.floor(sliceLenSec / lenSliceSec).toInt 
+
+    Util.runWithTmpdir(Some(workPath)) { td =>
+      val imgDir = Util.fileDirInOutDir(workPath, gi.id)
+      val vidDir = imgDir.resolve("videos")
+      if Files.notExists(vidDir) then throw IllegalThreadStateException("video directory $vidDir does not exist")
+      val sizeGroups = Files.list(vidDir).toScala(Seq)
+        .filter(p => p.getFileName.toString.endsWith("mp4"))
+        .map { p =>
+          val info = Hp1.vidInfo(p)
+          ((info.width, info.height), info, p)
+        }
+        .groupBy(_._1)
+      sizeGroups.toList.foreach { case ((w, h), videos) =>
+        val vidInfo = videos.head._2
+        val frameRate = vidInfo.frameRate.getNumerator
+        val videosCnt = videos.size
+        val sliceDurRelative = (lenSliceSec + 2 * (fadeDurationInSeconds + fadeOverlappingInSeconds)) / vidInfo.durationSeconds
+        val slicePerVidCnt = math.ceil(sliceCnt.toDouble / videosCnt).toInt  
+
+        val openingImg = Cred.createOpeningCredit(gi, w, h, td)
+        val closingImg = Cred.createClosingCredit(gi, w, h, td)
+        val openingCredPath = td.resolve(s"opening-cred-${gi.id}.mp4")
+        val closingCredPath = td.resolve(s"closing-cred-${gi.id}.mp4")
+        val scale = s"scale=$w:$h"
+        val cmdOpening = Seq("ffmpeg", "-loop", "1", "-i", openingImg.toString, "-r", frameRate.toString, "-t", lenOpenSec.toString, "-vf",
+          scale, openingCredPath.toString)
+        val cmdClosing = Seq("ffmpeg", "-loop", "1", "-i", closingImg.toString, "-r", frameRate.toString, "-t", lenCloseSec.toString, "-vf",
+          scale, closingCredPath.toString)
+        Util.runAllCommands(Seq(cmdOpening, cmdClosing))
+
+        val slicedVideos = videos.flatMap { case (_, _, p) =>
+          val baseName = p.getFileName.toString.replaceFirst("[.][^.]+$", "")
+          for i <- 1 to slicePerVidCnt yield vidSlice(p, s"$baseName-$i", td, durationRelative = sliceDurRelative)
+        }
+        val allVideos = Seq(openingCredPath) ++ Random.shuffle(slicedVideos).take(sliceCnt) ++ Seq(closingCredPath)
+        val concatFile = Hp1.vidConcat(allVideos.toList, 0, td, fadeDurationInSeconds = fadeDurationInSeconds.toInt)
+        println(s"Concatenated sliced files to $concatFile")
+        Files.copy(concatFile, outFile)
+        println(s"Copied result to $outFile")
+      }
+    }
   }
 
 }

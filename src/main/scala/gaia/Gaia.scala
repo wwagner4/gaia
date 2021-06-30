@@ -7,6 +7,9 @@ import java.nio.file.{Files, Path}
 import scala.io._
 import scala.util.Random
 import entelijan.viz.{Viz, VizCreator, VizCreators, DefaultDirectories}
+import scala.jdk.StreamConverters._
+import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
 
 
 object Gaia {
@@ -37,6 +40,8 @@ object Gaia {
     def default = VideoQuality(VideoResolution._4k, antiAliasing = 1, frameRate = 60)
 
     def defaultPreview = VideoQuality(VideoResolution.SVGA, antiAliasing = 3, frameRate = 5)
+
+    def stillPreview = VideoQuality(VideoResolution.FullHD, antiAliasing = 3, frameRate = 60)
   }
 
 
@@ -88,14 +93,17 @@ object Gaia {
                         id: String,
                         desc: String,
                         fCreateModel: (workPath: Path, backColor: Color) => Seq[Shapable],
-                        video: Option[String] = None,
+                        youTubeId: Seq[String] = Seq(),
                         hpOrder: Option[Int] = None,
                         textVal: Option[String] = None,
                         realCreatable: Boolean = true,
                         videoConfig: Option[VideoConfig] = None,
                         backColor: Color = Color.black,
                         videoQuality: VideoQuality = VideoQuality.default,
-                        credits: CreditConfig = CreditConfig(),
+                        credits: CreditConfig  = CreditConfig(references = Seq(
+                            "creation: entelijan",
+                            "http://entelijan.net",
+                          )),
                         seed: Long = 2348948509348L,
                         fDiagram: Option[(workPath: Path) => Viz.Dia[Viz.XY]] = None
                       ) extends Identifiable {
@@ -105,57 +113,63 @@ object Gaia {
   }
 
   val actions: Map[String, Action] = identifiableToMap(Seq(
-    Action("hp", "create homepage files and snipplets", gaia.Hp.createHp),
+    Action("hp", "create homepage files and snipplets", createHp(copyResources = false)),
     Action("x3d", "create a x3d model", createX3d),
     Action("x3da", "create an animated x3d model", createX3dAnimation),
     Action("vid", "create video sniplets", createVideo),
     Action("vidp", "create preview video sniplets", createPreviewVideo),
+    Action("vidc", "create complet video from sniplets", createCompleteVideo),
     Action("still", "create still images", createStill),
-    Action("cred", "create video credits", createCredits),
-    Action("credtxt", "create video text credits", createCreditsTxt),
     Action("tryout", "Tryout something during development", Tryout.doit),
-    Action("cmd", "create shell commands for batch execution", cmd),
     Action("dia", "create diagram", createDiagram),
   ))
 
   val images: Map[String, GaiaImage] = identifiableToMap(Seq(
-    GaiaImage("sunos1", "One shell around the sun. Stars as spheres",
-      ImageFactory.sunos1,
+    GaiaImage("sunos1",
+      desc = "around the sun 7 to 9 kpc",
+      textVal = Some(
+        """One shell around the sun between 7 and 9 kpc. 
+          |The shell contains 2710 Stars which are visualized as spheres. 
+          |The sun and the galactic center is displayed as cross hairs.
+          |""".stripMargin.trim
+      ),
+      fCreateModel = ImageFactory.sunos1,
       hpOrder = Some(20),
-      video = Some("https://www.youtube.com/embed/jAuJPadoYvs"),
+      youTubeId = Seq("jAuJPadoYvs"),
       backColor = Color.darkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("far", Cam.cameras(90, 20, 15), 130),
         CameraConfig("ecc", Cam.cameras(120, -30, 15, eccentricity = 0.8, offset = Vec(0, 0, 5)), 130),
         CameraConfig("aeq", Cam.cameras(0, 60, 18, eccentricity = 0.7, offset = Vec(3, 0, 3)), 130),
       ))),
-      textVal = Some(
-        """One shell around the sun between 7 and 9 kpc.
-          |The shell contains 2710 Stars which are visualized as spheres.
-          |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
-      )
     ),
-    GaiaImage("sunos2", "One shell around the sun. Stars as points",
-      ImageFactory.sunos2,
-      hpOrder = Some(10),
-      backColor = Color.darkBlue,
-      video = Some("https://www.youtube.com/embed/cEVH0IhlJ4Y"),
+    GaiaImage("sunos2", 
+      desc = "around the sun 7 to 9 kpc",
       textVal = Some(
-        """One shell around the sun between 7 and 9 kpc.
-          |The shell contains 27104 Stars which are visualized as points.
-          |The sun and the galactic center is displayed as crosshairs.
+        """One shell around the sun between 7 and 9 kpc. The shell contains 2710 Stars which are visualized as spheres. 
+          |The sun and the galactic center is displayed as cross hairs.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sunos2,
+      hpOrder = Some(10),
+      backColor = Color.darkBlue,
+      youTubeId = Seq("cEVH0IhlJ4Y"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("aqu", Cam.cameras(0, 15, 15, eccentricity = 0.7), 100, rot(y = 60)),
         CameraConfig("pol", Cam.cameras(100, 80, 22, eccentricity = 0.5), 100)
       ))),
     ),
-    GaiaImage("sunms1", "Multiple shells around the sun. Stars as spheres",
-      ImageFactory.sunms1,
+    GaiaImage("sunms1", 
+      desc = "around the sun 5 8 11 kpc",
+      textVal = Some(
+        """Three shells around the sun with distances 5, 8 and 11 kpc. 
+          |The shells contains 1700, 2000 and 1000 Stars from the inner to the outer shell which are visualized as spheres. 
+          |The sun and the galactic center is displayed as cross hairs.
+          |""".stripMargin.trim
+      ),
+      fCreateModel = ImageFactory.sunms1,
       hpOrder = Some(40),
-      video = Some("https://www.youtube.com/embed/irbUh9Y_Ifg"),
+      youTubeId = Seq("irbUh9Y_Ifg"),
       backColor = Color.darkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("simple",
@@ -169,44 +183,35 @@ object Gaia {
           durationInSec = 120,
           modelRotation = rot(0, 70, 0)),
       ))),
-      textVal = Some(
-        """Three shells around the sun with distances 5, 8 and 11 kpc.
-          |The shells contains 1700, 2000 and 1000 Stars from the inner to the outer shell
-          |which are visualized as spheres.
-          |The sun and the galactic center is displayed as crosshairs.
-          |""".stripMargin.trim
-      )
     ),
-    GaiaImage("sunms2", "Multiple shells around the sun. Stars as points",
-      ImageFactory.sunms2,
-      hpOrder = Some(30),
-      backColor = Color.darkBlue,
+    GaiaImage("sunms2", 
+      desc = "around the sun 5 8 11 kpc",
       textVal = Some(
-        """Three shells around the sun with distances 5, 8 and 11 kpc.
-          |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell
-          |which are visualized as points.
-          |The sun and the galactic center is displayed as crosshairs.
+        """Three shells around the sun with distances 5, 8 and 11 kpc. 
+          |The shells contains 4000, 8000 and 14000 Stars from the inner to the outer shell which are visualized as points. 
+          |The sun and the galactic center is displayed as cross hairs.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sunms2,
+      hpOrder = Some(30),
+      backColor = Color.darkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("simple",
           Cam.cameras(0, 15, 25, eccentricity = 0.0, offset = Vec(0, 0, 0)),
           durationInSec = 60),
       ))),
-      video = Some("https://www.youtube.com/embed/JelflHQSamo"),
+      youTubeId = Seq("JelflHQSamo"),
     ),
-    GaiaImage("sunnear1", "Stars near the sun (2kpc). Stars as spheres",
-      ImageFactory.sunnear1,
-      hpOrder = Some(80),
-      backColor = Color.black,
-      video = Some("https://www.youtube.com/embed/lp-Y_jpYmnw"),
+    GaiaImage("sunnear1", 
+      desc = "around the sun 2 kpc",
       textVal = Some(
-        """Stars around the sun with a maximum distance of 2 kpc.
-          |Some stars are filtered out to make the image clearer.
-          |Near the center more stars are filtered out than close to the edge
-          |to avoid bulges around the sun.
+        """Stars around the sun with a maximum distance of 2 kpc. Some stars are filtered out to make the image clearer. 
+          |Near the center more stars are filtered out than close to the edge to avoid bulges around the sun.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sunnear1,
+      backColor = Color.black,
+      youTubeId = Seq("lp-Y_jpYmnw"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("far",
           Cam.cameras(45, 15, 5, eccentricity = 0.5, offset = Vec(0, 0.4, 0)),
@@ -218,28 +223,27 @@ object Gaia {
           durationInSec = 60),
       ))),
     ),
-    GaiaImage("sunnear2", "Stars near thes sun (5kpc). Stars as spheres",
-      ImageFactory.sunnear2,
-      hpOrder = Some(70),
-      backColor = Color.black,
+    GaiaImage("sunnear2", 
+      desc = "around the sun 5 kpc",
       textVal = Some(
-        """Stars around the sun with a maximum distance of 5 kpc.
-          |Some stars are filtered out to make the image clearer.
-          |Near the center more stars are filtered out than close to the edge
-          |to avoid bulges around the sun.
+        """Stars around the sun with a maximum distance of 5 kpc. Some stars are filtered out to make the image clearer. 
+          |Near the center more stars are filtered out than close to the edge to avoid bulges around the sun.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sunnear2,
+      backColor = Color.black,
+      youTubeId = Seq("aH2YRU485vk"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
           Cam.cameras(20, 15, 7, eccentricity = 0.7, offset = Vec(1, 0, 0)),
           durationInSec = 60),
+        CameraConfig("b",
+          Cam.cameras(120, 50, 7, eccentricity = 0.9, offset = Vec(5, 0, 3), reverse = true),
+          durationInSec = 60),
       ))),
     ),
-    GaiaImage("sunnear3", "stars within a distance of 8 kpc to the sun",
-      ImageFactory.sunnear3,
-      hpOrder = Some(60),
-      video = Some("https://www.youtube.com/embed/LbW1O-GUPS8"),
-      backColor = Color.black,
+    GaiaImage("sunnear3", 
+      desc = "around the sun 8 kpc",
       textVal = Some(
         """Stars around the sun with a maximum distance of 8 kpc.
           |Some stars are filtered out to make the image clearer.
@@ -247,6 +251,9 @@ object Gaia {
           |to avoid bulges around the sun.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sunnear3,
+      youTubeId = Seq("LbW1O-GUPS8"),
+      backColor = Color.black,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
           Cam.cameras(20, 15, 7, eccentricity = 0.7, offset = Vec(1, 0, 0)),
@@ -260,42 +267,50 @@ object Gaia {
           durationInSec = 60),
       ))),
     ),
-    GaiaImage("sun16", "stars within a distance of 16 kpc to the sun",
-      ImageFactory.sun16,
-      hpOrder = Some(50),
-      backColor = Color.black,
+    GaiaImage("sun16", 
+      desc="around the sun 16 kpc",
       textVal = Some(
-        """Stars around the sun with a maximum distance of 16 kpc.
-          |Some stars are filtered out to make the image clearer.
-          |Near the center more stars are filtered out than close to the edge
-          |to avoid bulges around the sun.
+        """Stars around the sun with a maximum distance of 16 kpc. Some stars are filtered out to make the image clearer. 
+          |Near the sun more stars are filtered out than at to the edge to avoid bulges around the sun.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sun16,
+      youTubeId = Seq("thGXoBR6ewA"),
+      backColor = Color.black,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
           Cam.cameras(20, 15, 7, eccentricity = 0.7, offset = Vec(1, 0, 0)),
           durationInSec = 60),
+        CameraConfig("b",
+          Cam.cameras(90, -35, 8, eccentricity = 0.9, offset = Vec(5, 1, 0), reverse = true),
+          durationInSec = 60),
       ))),
     ),
-    GaiaImage("sund27", "direction of stars within a distance of 27 pc to sun",
-      ImageFactory.sund27,
-      hpOrder = Some(90),
+    GaiaImage("sund27", 
+      desc = "around the sun 27 pc",
+      textVal = Some(
+        """Stars around the sun up to a distance of 27 pc. 
+          |Proper motion of the stars is symbolized by the length of cylinders.
+          |""".stripMargin.trim
+      ),
+      fCreateModel = ImageFactory.sund27,
       backColor = Color.veryDarkGreen,
-      video = Some("https://www.youtube.com/embed/JuK80k5m4vU"),
+      hpOrder = Some(145),
+      youTubeId = Seq("JuK80k5m4vU"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
-          Cam.cameras(20, 15, 7, eccentricity = 0.7, offset = Vec(1, 0, 0)),
+          Cam.cameras(20, 15, 0.01, eccentricity = 0.9, offset = Vec(0, 0, 0)),
           durationInSec = 60),
       ))),
     ),
     GaiaImage(id = "sund1",
-      desc = "around the sun 40",
+      desc = "around the sun 40 pc",
       textVal = Some(
-        """direction and velocety of stars up to a distace of 40 pc
+        """Proper motion of stars around the sun up to a distance of 40 pc.
           |""".stripMargin),
       fCreateModel = ImageFactory.sund1,
-      video = Some(" https://youtu.be/AZaBZWo0uwQ"),
-      hpOrder = Some(100),
+      hpOrder = Some(106),
+      youTubeId = Seq("AZaBZWo0uwQ"),
       backColor = Color.veryDarkGreen,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("near", Cam.cameras(0, 20, 0.05), 60),
@@ -308,19 +323,31 @@ object Gaia {
         "https://freemusicarchive.org/music/Daniel_Birch",
       )),
     ),
-    GaiaImage("sund2", "direction and velocety of stars in shell with distance 40 pc",
-      ImageFactory.sund2,
+    GaiaImage("sund2", 
+      desc = "around the sun 40 pc radial",
+      textVal = Some(
+        """Proper motion of stars around the sun up to a distance of 40 pc. 
+          |Distance of all stars is set to 40 pc. The direction of all motion is set to radial from the sun. 
+          |""".stripMargin.trim
+      ),
+      fCreateModel = ImageFactory.sund2,
       hpOrder = Some(105),
+      youTubeId = Seq("Fee7OpM1Kno"),
       backColor = Color.black,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a", Cam.cameras(0, 80, 0.1), 60),
         CameraConfig("b", Cam.cameras(0, 20, 0.2, eccentricity = 0.99), 60),
       ))),
     ),
-    GaiaImage("sund3", "direction and velocety of stars of 45 pc distance",
+    GaiaImage("sund3", 
+      desc = "around the sun 45 pc",
+      textVal = Some(
+        """Stars and their proper motion around the sun up to a distance of 45 pc
+          |""".stripMargin.trim
+      ),
       fCreateModel = ImageFactory.sund3,
       hpOrder = Some(110),
-      video = Some("https://www.youtube.com/embed/hUqVxwHVTZg"),
+      youTubeId = Seq("hUqVxwHVTZg"),
       backColor = Color.veryDarkGreen,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a", Cam.cameras(0, 40, 0.08), 60),
@@ -328,10 +355,15 @@ object Gaia {
         CameraConfig("c", Cam.cameras(99, 20, 0.2, eccentricity = 0.999), modelRotation = rot(y = -45), durationInSec = 60),
       ))),
     ),
-    GaiaImage("sund4", "direction and velocety of stars  8 kpc from the sun",
-      ImageFactory.sund4,
+    GaiaImage("sund4", 
+      desc = "around the sun 8 kpc",
+      textVal = Some(
+        """Stars and their proper motion around the sun at a distance of 8 kpc.
+          |""".stripMargin.trim
+      ),
+      fCreateModel = ImageFactory.sund4,
       hpOrder = Some(120),
-      video = Some("https://www.youtube.com/embed/bZ0KkVM-Kwc"),
+      youTubeId = Seq("bZ0KkVM-Kwc"),
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a", Cam.cameras(0, 60, 20, eccentricity = 0.9), 120),
@@ -340,17 +372,16 @@ object Gaia {
       ))),
     ),
     GaiaImage(id = "sund5",
-      desc = "direction and velocety of stars arond the sun",
-      fCreateModel = ImageFactory.sund5,
-      hpOrder = Some(140),
-      video = Some("https://www.youtube.com/embed/NWRHYBLjFv0"),
-      backColor = Color.veryDarkBlue,
+      desc = "around the sun 6 8 10 kpc",
       textVal = Some(
-        """
-          |Movement of stars around the sun in 3 shells.
-          |Crosshairs indicate the sun and the center of the galaxy
+        """Proper motion of stars around the sun in 3 shells (6, 8 and 10 kpc). 
+          |Cross hairs indicate the sun and the center of the galaxy.
           |""".stripMargin.trim
       ),
+      fCreateModel = ImageFactory.sund5,
+      hpOrder = Some(140),
+      youTubeId = Seq("NWRHYBLjFv0"),
+      backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a", Cam.cameras(0, 6, 20, eccentricity = 0.1), 130),
         CameraConfig("b", Cam.cameras(90, -40, 15, eccentricity = 0.4, center = Vec(0, -2, -1)), modelRotation = rot(y = 70), durationInSec = 130),
@@ -358,16 +389,15 @@ object Gaia {
       ))),
     ),
     GaiaImage(id = "sund6",
-      desc = "stars as spheres with direction color coded. 8 to 23 kpc",
+      desc = "around the sun between 8 and 23 kpc",
+      textVal = Some(
+        """Proper Motion of stars around the sun in a distance between 8 and 23 kpc.
+          |""".stripMargin.trim
+      ),
       fCreateModel = ImageFactory.sund6,
       hpOrder = Some(150),
       backColor = Color.black,
-      video = Some("https://www.youtube.com/embed/j1GaECAYAi8"),
-      textVal = Some(
-        """
-          |Movement of stars around the sun in a distance between 8 and 23 kpc.
-          |""".stripMargin.trim
-      ),
+      youTubeId = Seq("CxndKkrbk-4"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
           Cam.cameras(0, 6, 20, eccentricity = 0.1),
@@ -381,18 +411,17 @@ object Gaia {
       ))),
     ),
     GaiaImage(id = "dens1",
-      desc = "density of stars as shown by gaia",
+      desc = "density of stars as gaia sees it",
+      textVal = Some(
+        """Density of stars as seen by gaia in a cube around the center of galaxy. 
+          |The side of that cube is 16 kpc. The number of stars in different 
+          |sectors is shown by spheres with different size.
+          |""".stripMargin.trim
+      ),
       fCreateModel = ImageFactory.dens,
       hpOrder = Some(170),
       backColor = Color.veryDarkBlue,
-      video = Some("https://www.youtube.com/embed/FMIKp63XT1U"),
-      textVal = Some(
-        """Density of stars seen by gaia in a cube around the center of
-          |galaxy. The side of that cube is 16 kpc.
-          |Regions with many stars are marked as green bowls.
-          |The center of the galaxy is marked with a crosshair.
-          |""".stripMargin.trim
-      ),
+      youTubeId = Seq("FMIKp63XT1U", "SjuCFmUmQQk"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a", Cam.cameras(0, 6, 10, eccentricity = 0.1, offset = Vec(0, 0, 0)), 130),
         CameraConfig("b", Cam.cameras(80, 60, 30, eccentricity = 0.1, offset = Vec(0, 0, 0)), 130),
@@ -400,11 +429,15 @@ object Gaia {
       ))),
     ),
     GaiaImage(id = "gc1",
-      desc = "galactic center 1.7",
-      textVal = Some("stars around the galactic center up to a distance of 1.7 kpc"),
+      desc = "around the galactic center 1.7 kpc",
+      textVal = Some(
+        """Stars around the galactic center up to a distance of 1.7 kpc. 
+          |The galactic plane is symbolized by circles.
+          |""".stripMargin),
+      hpOrder = Some(200),
       fCreateModel = ImageFactory.gc1,
       backColor = Color.veryDarkBlue,
-      video = Some(" https://youtu.be/6ORL4caNz9g "),
+      youTubeId = Seq("6ORL4caNz9g"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("near", Cam.cameras(0, 20, 4), 80),
         CameraConfig("far", Cam.cameras(0, -45, 6, reverse = true), 80),
@@ -417,11 +450,15 @@ object Gaia {
       )),
     ),
     GaiaImage(id = "gcd1",
-      desc = "around the galactic center",
-      textVal = Some("stars around the galactic center up a distance of 3 kpc"),
+      desc = "around the galactic center 3 kpc",
+      textVal = Some(
+        """Stars around the galactic center up to a distance of 3 kpc. 
+          |The proper motion of the stars is indicated by little ‘tails’
+          |""".stripMargin),
+      hpOrder = Some(210),
       fCreateModel = ImageFactory.gcd1,
       backColor = Color.black,
-      video = Some("https://youtu.be/ZP0GFgninZc"),
+      youTubeId = Seq("ZP0GFgninZc"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("far", Cam.cameras(0, -45, 6, eccentricity = 0.7), 60),
         CameraConfig("near", Cam.cameras(33, 95, 3, reverse = true, eccentricity = 0.85), 60),
@@ -434,11 +471,14 @@ object Gaia {
       )),
     ),
     GaiaImage(id = "gcd2",
-      desc = "around the galactic center",
-      textVal = Some("stars around the galactic center up a distance of 2 kpc and their direction"),
+      desc = "around the galactic center 2 kpc with movements",
+      textVal = Some(
+        """Stars around the galactic center with direction and velocity of their proper motion up to a distance of 2 kpc.
+          |""".stripMargin),
+      hpOrder = Some(220),
       fCreateModel = ImageFactory.gcd2,
       backColor = Color.white,
-      video = Some("https://youtu.be/m6VKmQIKj04"),
+      youTubeId = Seq("m6VKmQIKj04"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("far", Cam.cameras(22, -66, 3, eccentricity = 0.8, offset = Vec(0, 2, 1)), 60),
         CameraConfig("equator", Cam.cameras(99, 5, 4, eccentricity = 0.7, offset = Vec(0, 0, 0.5)), 60),
@@ -452,10 +492,15 @@ object Gaia {
       )),
     ),
     GaiaImage(id = "gc3",
-      desc = "around the galactic center",
-      textVal = Some("stars around the galactic center up a distance of 1.6 kpc"),
+      desc = "around the galactic center 1.6 kpc",
+      textVal = Some(
+        """Stars around the galactic center up to a distance of 1.6 kpc. 
+          |The galactic plane is symbolized by circles.
+          |""".stripMargin),
       fCreateModel = ImageFactory.gc3,
+      hpOrder = Some(230),
       backColor = Color.black,
+      youTubeId = Seq("AE6muFf1nvA"),
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
           Cam.cameras(22, -10, 3, eccentricity = 0.2, offset = Vec(0, 0, 0)),
@@ -468,8 +513,12 @@ object Gaia {
       ))),
     ),
     GaiaImage(id = "gcd4",
-      desc = "around the galactic center",
-      textVal = Some("Direction of stars in different distances to the galactic plane"),
+      desc = "horizontal slices around the galactic center",
+      textVal = Some(
+        """Proper motions of stars in slices 1 and 3 kpc away from the galactic plane.
+          |""".stripMargin),
+      hpOrder = Some(240),
+      youTubeId = Seq("jXdOY-bJ5Ns"),
       fCreateModel = ImageFactory.gcd4,
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
@@ -477,31 +526,32 @@ object Gaia {
         CameraConfig("b", Cam.cameras(0, -10, 5, eccentricity = 0.2, offset = Vec(0, 0, 0)), durationInSec = 60, modelRotation = rot(y = 80)),
         CameraConfig("c", Cam.cameras(0, 30, 10, eccentricity = 0.9, offset = Vec(2, 0, 2)), durationInSec = 60, modelRotation = rot(y = -70)),
       ))),
-      credits = CreditConfig(references = Seq(
-        "creation: entelijan",
-        "http://entelijan.net",
-      )),
     ),
     GaiaImage(id = "gcd5",
-      desc = "around the galactic center",
-      textVal = Some("Direction of stars near the galactic plane around the galactic center"),
+      desc = "around the galactic center 2 kpc",
+      textVal = Some(
+        """Proper motion of stars around the galactic center up to a distance of 2 kpc away from the center. 
+          |Distance from the galactic plane (z) of all stars is set to zero.
+          |""".stripMargin),
+      hpOrder = Some(250),
       fCreateModel = ImageFactory.gcd5,
+      youTubeId = Seq("Ktimgtm991A"),
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a", Cam.cameras(0, -20, 3, eccentricity = 0.5, offset = Vec(0, 0, 0), center = Vec(0, 0, 0)), durationInSec = 130, modelRotation = rot(y = 120)),
         CameraConfig("b", Cam.cameras(0, -30, 6, eccentricity = 0.9, offset = Vec(-2, 0, 2), center = Vec(0, 0, 0)), durationInSec = 130),
       ))),
-      credits = CreditConfig(references = Seq(
-        "creation: entelijan",
-        "http://entelijan.net",
-      )),
     ),
     GaiaImage(id = "gcs1",
       desc = "around the galactic center normalized by sector",
-      textVal = Some("Stars around the galactic center. The amount of stars in ten " +
-        "equally wide sectors is normalized in the way that every sector has about the same amount " +
-        "of stars as the sector with the least amount of stars"),
+      textVal = Some(
+        """Stars around the galactic center within a cylinder of radius 5 kpc and height 4 kpc. 
+          |The amount of stars in ten equally wide sectors is normalized in the way that every sector 
+          |has about the same amount of stars as the sector with the least amount of stars
+          |""".stripMargin),
+      hpOrder = Some(260),
       fCreateModel = ImageFactory.gcs1,
+      youTubeId = Seq("Xmheem6PED0"),
       backColor = Color.veryDarkBlue,
       videoConfig = Some(VideoConfig.Cams(Seq(
         CameraConfig("a",
@@ -514,14 +564,17 @@ object Gaia {
           Cam.cameras(0, 30, 15, eccentricity = 0.8, offset = Vec(5, 0, 3), center = Vec(0, 0, 0)),
           durationInSec = 130, modelRotation = rot(x = 85)),
       ))),
-      credits = CreditConfig(references = Seq(
-        "creation: entelijan",
-        "http://entelijan.net",
-      )),
       seed = 304334L,
     ),
     GaiaImage(id = "gcs2",
       desc = "around the galactic center normalized by sector",
+      textVal = Some(
+        """Stars around the galactic center within a cylinder of radius 5 kpc and height from 2 to 3 kpc above the galactic plane. 
+          |The amount of stars in ten equally wide sectors is normalized in the way that every sector 
+          |has about the same amount of stars as the sector with the least amount of stars.
+          |""".stripMargin),
+      hpOrder = Some(270),
+      youTubeId = Seq("Xmheem6PED0"),
       fCreateModel = ImageFactory.gcs2,
       backColor = Color.black,
       videoConfig = Some(VideoConfig.Cams(Seq(
@@ -579,30 +632,6 @@ object Gaia {
       usage(Some("You must define an Action-ID"))
   }
 
-  def cmd(args: List[String], workPath: Path): Unit = {
-    def forId(id: String): String = {
-      s"""sbt "run vid $id"
-         |sbt "run still $id"
-         |sbt "run cred $id"
-         |""".stripMargin.trim
-    }
-
-
-    val cmd = Gaia.images
-      .values
-      .filter(_.videoConfig.exists(c => c.isInstanceOf[VideoConfig.Cams]))
-      .map(_.id)
-      .toSeq
-      .sorted
-      .map(forId)
-      .mkString("\n# -----------------------------------------------------\n")
-
-    println()
-    println(cmd)
-    println()
-    println()
-  }
-
   def createDiagram(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = gi.fDiagram.isDefined
 
@@ -610,7 +639,7 @@ object Gaia {
       val outDir = outPath(wp).resolve(Path.of(gi.id, "diagram"))
       if Files.notExists(outDir) then Files.createDirectories(outDir)
 
-      Util.runWithTmpdir { tmpDir =>
+      Util.runWithTmpdir() { tmpDir =>
         implicit val creator: VizCreator[Viz.XY] =
           VizCreators.gnuplot(
             scriptDir = tmpDir.toFile,
@@ -631,13 +660,17 @@ object Gaia {
     outPath
   }
 
-  private def createX3d(args: List[String], workPath: Path): Unit = {
+  private def createHp(copyResources: Boolean)(args: List[String], workPath: Path): Unit = {
+    Hp1.createHp(workPath, gaiaImages = images.values.toSeq, copyResources)
+  }
+
+  def createX3d(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = true
 
     def exec(gaiaImage: GaiaImage, workPath: Path): Unit = {
       val shapables = gaiaImage.fCreateModel(workPath, gaiaImage.backColor)
-      val modelsPath = outPath(workPath).resolve("models")
-      if (notExists(modelsPath)) createDirectories(modelsPath)
+      val idir = Util.fileDirInOutDir(workPath, gaiaImage.id)
+      val modelsPath = Util.fileDirFromDir(idir, "models")
       val fileName = s"${gaiaImage.id}.x3d"
       val xml = X3d.createXml(shapables, fileName, gaiaImage.backColor)
       val file = modelsPath.resolve(fileName)
@@ -649,21 +682,21 @@ object Gaia {
   }
 
 
-  private def createX3dAnimation(args: List[String], workPath: Path): Unit = {
+  def createX3dAnimation(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = gi.videoConfig.map(vc => vc.isInstanceOf[VideoConfig.Cams]).getOrElse(false)
 
     def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach {
       case VideoConfig.Cams(camConfigs) => {
         println(s"Creating gaia x3d for ID ${gi.id}. ${gi.desc}")
-        val modelsDirir = outPath(workPath).resolve(gi.id).resolve("models")
-        if Files.notExists(modelsDirir) then Files.createDirectories(modelsDirir)
+        val modelsDir = outPath(workPath).resolve(gi.id).resolve("models")
+        if Files.notExists(modelsDir) then Files.createDirectories(modelsDir)
         val shapables = gi.fCreateModel(workPath, gi.backColor)
         gi.videoConfig.foreach {
           case VideoConfig.Call(_) =>
             throw IllegalStateException(
               "X3d animation cannot be created with VideoConfig.Call. You need VideoConfig.Cams")
           case VideoConfig.Cams(camConfs) => camConfs.foreach { camConfig =>
-            val file = modelsDirir.resolve(s"${gi.id}_${camConfig.id}_animation.x3d")
+            val file = modelsDir.resolve(s"${gi.id}_${camConfig.id}_animation.x3d")
             val xml = X3d.createCamAnimatedXml(shapables, camConfig.cams(500), gi.backColor, camConfig.durationInSec, camConfig.modelRotation)
             gaia.Util.writeString(file, xml)
             println(s"Created x3d animation for ${gi.id} at ${file.toAbsolutePath}")
@@ -687,22 +720,6 @@ object Gaia {
     createSomething(args, "still images", workPath, filter, exec)
   }
 
-  private def createCredits(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = true
-
-    def exec(gi: GaiaImage, wp: Path): Unit = Cred.create(gi, wp)
-
-    createSomething(args, "credits", workPath, filter, exec)
-  }
-
-  private def createCreditsTxt(args: List[String], workPath: Path): Unit = {
-    def filter(gi: GaiaImage): Boolean = true
-
-    def exec(gi: GaiaImage, wp: Path): Unit = Cred.createTxt(gi, wp)
-
-    createSomething(args, "text credits", workPath, filter, exec)
-  }
-
   private def createVideo(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = gi.videoConfig.isDefined
 
@@ -722,6 +739,33 @@ object Gaia {
       case VideoConfig.Call(f) => f(gi, wp, true)
       case VideoConfig.Cams(camConfigs) =>
         Cam.mkVideoCameraConfig(gi, camConfigs, workPath, VideoQuality.defaultPreview)
+    }
+
+    createSomething(args, "videos", workPath, filter, exec)
+  }
+
+  private def createCompleteVideo(args: List[String], workPath: Path): Unit = {
+    def hasVideoSniplets(gi: GaiaImage): Boolean = {
+      val idir = Util.fileDirInOutDir(workPath, gi.id)
+      val vdir = idir.resolve("videos")
+      if Files.notExists(vdir) then false
+      else !Files.list(vdir)
+        .toScala(Seq)
+        .filter(p => p.getFileName.toString.endsWith(".mp4"))
+        .isEmpty
+    }
+
+    def timestamp: String = {
+      DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now)
+    }
+
+    def filter(gi: GaiaImage): Boolean = hasVideoSniplets(gi)
+
+    def exec(gi: GaiaImage, wp: Path): Unit = {
+      val idir = Util.fileDirInOutDir(workPath, gi.id)
+      val outDir = Util.fileDirFromDir(idir, "videos-complete")
+      val outFile = outDir.resolve(s"gaia-visual-${gi.id}-$timestamp.mp4")
+      Cam.mkCompleteVideo(gi, outFile, workPath)
     }
 
     createSomething(args, "videos", workPath, filter, exec)

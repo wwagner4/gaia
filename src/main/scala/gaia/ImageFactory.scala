@@ -23,7 +23,7 @@ object ImageFactory {
     val stars = StarCollections.basicStars(workPath)
 
     val ranges = Seq((7.9, 8.1))
-    val colors = Palette.p2c10.colors
+    val colors = PaletteBrew.p2c10.colors
     val baseDirectionVec = Vec(1, 0, 1)
     val starShapes =
       stars.map(toStarPosDir)
@@ -56,7 +56,7 @@ object ImageFactory {
       star.copy(pos = pos1, dir = dir1)
     }
 
-    val colors = Palette.p5c8.colors
+    val colors = PaletteBrew.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
     val starShapables = stars.map(toStarPosDir)
       .filter(filterShells(ranges)(_))
@@ -102,7 +102,7 @@ object ImageFactory {
       star.copy(pos = pos1)
     }
 
-    val colors = Palette.p5c8.colors
+    val colors = PaletteBrew.p5c8.colors
     val baseDirectionVec = Vec(1, -1, 1)
     val starss = stars.map(toStarPosDirGalactic)
       .filter(_ => Random.nextDouble() < 0.3)
@@ -121,7 +121,7 @@ object ImageFactory {
     val stars = StarCollections.nearSunStars(workPath)
     val minDist = 0.0
     val maxDist = 0.03
-    val colors = Palette.p1c10.colors
+    val colors = PaletteBrew.p1c10.colors
     val lengthFactor = 0.00003
     val radius = 0.00007
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, radius)
@@ -131,7 +131,7 @@ object ImageFactory {
     val stars = StarCollections.nearSunStars(workPath)
     val minDist = 0.03
     val maxDist = 0.04
-    val colors = Palette.p1c10.colors
+    val colors = PaletteBrew.p1c10.colors
     val lengthFactor = 2.0
     val baseDirectionVec = Vec(1.0, 1.0, 0.0)
 
@@ -160,7 +160,7 @@ object ImageFactory {
 
     val minDist = 0.04
     val maxDist = 0.05
-    val colors = Palette.p2c10.colors
+    val colors = PaletteBrew.p2c10.colors
     val lengthFactor = 0.00008
     val radius = 0.00006
     nearSunVelo(stars, bc, minDist, maxDist, colors, lengthFactor, radius)
@@ -178,7 +178,7 @@ object ImageFactory {
         .map { s =>
           val br = 1 - (s.pos.length / (maxDist * 1.2))
           val c = Color.orange.brightness(br)
-          Shapable.Cylinder(color = c, position = s.pos, radius = 1.0, direction = s.dir.mul(0.00005))
+          Shapable.Cylinder(color = c, position = s.pos, radius = 0.00005, direction = s.dir.mul(0.00005))
         }
     }
 
@@ -286,7 +286,7 @@ object ImageFactory {
     val stars = StarCollections.basicStars(workPath)
 
     val maxDist = 1.7
-    val cols: Seq[Color] = X3d.Palette.p9c6.colors
+    val cols: Seq[Color] = X3d.PaletteBrew.p9c6.colors
     val cnt = cols.size
     val dens = 1
 
@@ -320,7 +320,7 @@ object ImageFactory {
     val stars = StarCollections.basicStars(workPath)
 
     val maxDist = 3
-    val cols: Seq[Color] = X3d.Palette.p9c6.colors
+    val cols: Seq[Color] = X3d.PaletteBrew.p9c6.colors
     val cnt = cols.size
     val dens = 0.2
 
@@ -334,7 +334,7 @@ object ImageFactory {
     println(s"filtered ${starsFiltered.size} stars")
 
     val baseDirectionVec = Vec(1, -1, 1)
-    val colors = Palette.p5c8.colors
+    val colors = PaletteBrew.p5c8.colors
     val starShapes = starsFiltered.toList.flatMap { s =>
       val d = s.dir.mul(0.0002)
       val e = s.pos.add(d)
@@ -359,7 +359,8 @@ object ImageFactory {
       .filter(s => s.pos.length < maxDist)
       .toSeq
       .map { s =>
-        val col = ImageUtil.colorFromDirection(s.dir.x, s.dir.y)
+        val colors = Seq(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8).map(Color.gray(_))
+        val col = ImageUtil.colorFromDirection(s.dir.x, s.dir.y, palette = X3d.PaletteCustom(colors))
         Shapable.Cone(color = col, position = s.pos, radius = 0.006, direction = s.dir.mul(0.001))
       }
     println(s"created ${shapes.size} shapes")
@@ -398,19 +399,19 @@ object ImageFactory {
         .map { s =>
           val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y)
           Shapable.Cone(color = color, position = s.pos.copy(z = mean),
-            radius = 0.006, direction = s.dir.mul(0.001))
+            radius = 0.006, direction = s.dir.mul(0.0004))
         }
     }
 
     val slices = Seq(
-      (4.0, 4.5),
+      //(4.0, 4.5),
       (3.0, 3.5),
-      (2.0, 2.5),
+      //(2.0, 2.5),
       (1.0, 1.5),
       (-1.0, -1.5),
-      (-2.0, -2.5),
+      //(-2.0, -2.5),
       (-3.0, -3.5),
-      (-4.0, -4.5),
+      //(-4.0, -4.5),
     )
 
     val starSlices: Seq[(Double, Seq[StarPosDir])] = stars
@@ -457,7 +458,7 @@ object ImageFactory {
     def slizeToShapes(mean: Double, stars: Seq[StarPosDir]): Seq[Shapable] = {
       stars
         .map { s =>
-          val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y, palette = Palette.p1c10)
+          val color = ImageUtil.colorFromDirection(s.dir.x, s.dir.y, palette = PaletteBrew.p1c10)
           Shapable.Cone(color = color, position = s.pos.copy(z = mean),
             radius = 0.006, direction = s.dir.mul(0.001))
         }
@@ -488,7 +489,7 @@ object ImageFactory {
   def gc3(workPath: Path, bc: Color): Seq[Shapable] = {
     val stars = StarCollections.basicStars(workPath)
     val maxDist = 1.6
-    val colors = Palette.p5c8.colors
+    val colors = PaletteBrew.p5c8.colors
     val gcstars = stars
       .map(toStarPosDirGalactic)
       .filter(s => s.pos.length < maxDist)
@@ -572,7 +573,7 @@ object ImageFactory {
     starsEqual
       .foreach((s, stars) => println(f"${s}%20s - ${stars.size}%4d"))
 
-    val colors = Palette.p1c10.lazyColors
+    val colors = PaletteBrew.p1c10.lazyColors
     val bc = Color.veryDarkBlue
     val shapablesStars = starsEqual
       .zip(colors)
@@ -593,7 +594,7 @@ object ImageFactory {
       .filter(s => DataUtil.Cylinder("a", maxRadius, 2.0, 3.0).contains(s))
     val starsEqual: Seq[Seq[StarPosDir]] = starsPerSectorEqualized(stars, 10)
 
-    val colors = Palette.p1c10.lazyColors
+    val colors = PaletteBrew.p1c10.lazyColors
     val bc = Color.veryDarkBlue
     val shapablesStars = starsEqual
       .zip(colors)

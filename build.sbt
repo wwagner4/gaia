@@ -8,5 +8,7 @@ lazy val root = project
 
     libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.9",
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
-    libraryDependencies += "net.entelijan" %% "viz" % "0.2-SNAPSHOT"
+    libraryDependencies += "net.entelijan" %% "viz" % "0.2-SNAPSHOT",
+    libraryDependencies += "net.bramp.ffmpeg" % "ffmpeg" % "0.6.2",
+    libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.30",
   )

@@ -1,0 +1,7 @@
+cd project && sbt "\
+;test\
+;run tryout\
+;run tryout\
+;run tryout\
+;test\
+"

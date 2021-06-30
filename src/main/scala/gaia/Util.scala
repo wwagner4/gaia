@@ -4,13 +4,15 @@ import java.io.{BufferedReader, IOException, InputStream, InputStreamReader, Pri
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, Future}
 import java.util.{Locale, stream, Comparator}
-import scala.collection.JavaConverters._
+import scala.jdk.StreamConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 object Util {
 
-  import X3d.{Color}
+  import X3d.Color
   import Vector._
+  import Gaia._
 
 
   def ranOff(factor: Double): Double = (Random.nextDouble() - 0.5) * factor
@@ -41,22 +43,18 @@ object Util {
         pw.println(line)
       }
     } finally {
-      bw.close
+      bw.close()
     }
   }
 
   def fromCsv[T](f: Array[String] => T, filePath: Path): Iterable[T] = {
     val br = Files.newBufferedReader(filePath)
     try {
-      br.lines().iterator.asScala.map(line => f(line.split(","))).to(Iterable)
+      br.lines().toScala(List).map(line => f(line.split(","))).to(Iterable)
     } finally {
       br.close()
     }
   }
-
-  def modelPath: Path = htmlPath.resolve("models")
-
-  def htmlPath: Path = Path.of("src", "main", "html")
 
   private def xValues(cnt: Int): Seq[Double] = {
     require(cnt >= 2, s"cnt:$cnt must be greater equal 2")
@@ -65,14 +63,14 @@ object Util {
       .map(i => i * step)
   }
 
-  private def linearFunction(startValue: Double, endValue: Double): (Double) => Double = {
+  private def linearFunction(startValue: Double, endValue: Double): Double => Double = {
     def lin(a: Double, k: Double)(x: Double): Double = a + k * x
 
     val k = endValue - startValue
     lin(startValue, k)(_)
   }
 
-  private def squaredFunction(startValue: Double, endValue: Double): (Double) => Double = {
+  private def squaredFunction(startValue: Double, endValue: Double): Double => Double = {
     def lin(a: Double, k: Double)(x: Double): Double = a + k * x * x
 
     val k = endValue - startValue
@@ -96,7 +94,7 @@ object Util {
     xValues(cnt).map(f)
   }
 
-  def recursiveCopy(sourceDir: Path, destinationDir: Path) = {
+  def recursiveCopy(sourceDir: Path, destinationDir: Path): Unit = {
     if (Files.notExists(destinationDir)) Files.createDirectories(destinationDir)
     Files.walk(sourceDir).forEach((sourcePath: Path) => {
       def foo(sourcePath: Path) = try {
@@ -104,7 +102,7 @@ object Util {
         printf("Copying %s to %s%n", sourcePath, targetPath)
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
       } catch {
-        case ex: IOException => printf("I/O error: %s%n", ex)
+        case ex: IOException => printf(s"I/O error: $ex \n")
       }
 
       foo(sourcePath)
@@ -116,18 +114,18 @@ object Util {
     val allCnt = cmds.size
 
     class StreamGobbler(val name: String, val inputStream: InputStream) extends Runnable {
-      private def handleInputStream(in: InputStream) = {
+      private def handleInputStream(in: InputStream): Unit = {
 
         def handle(cnt: Int): Unit = {
           val br = new BufferedReader(new InputStreamReader(in))
           try {
             br.lines().forEach { line =>
-              val msg = if cnt > 0 then s"ERROR occurred $cnt ${name} - $line" else s"${name} - $line"
+              val msg = if cnt > 0 then s"ERROR occurred $cnt $name - $line" else s"$name - $line"
               println(msg)
             }
             br.close()
           } catch {
-            case e: Exception => {
+            case e: Exception =>
               try {
                 println(s"ERROR ${cnt} reading process $name stream")
                 e.printStackTrace
@@ -135,7 +133,6 @@ object Util {
               } finally {
                 handle(cnt + 1)
               }
-            }
           }
         }
 
@@ -156,9 +153,9 @@ object Util {
           .command(cmd.asJava)
           .start()
 
-        val inputGobbler = StreamGobbler("in", process.getInputStream())
+        val inputGobbler = StreamGobbler("", process.getInputStream())
         gobbleExec.submit(inputGobbler)
-        val errorGobbler = StreamGobbler("err", process.getErrorStream())
+        val errorGobbler = StreamGobbler("", process.getErrorStream())
         gobbleExec.submit(errorGobbler)
         println(s"started command $cnt of $allCnt - " + cmd.mkString(" "))
         val procResult = process.waitFor()
@@ -175,15 +172,13 @@ object Util {
       var timeMillis = 0
       while (!states.forall(s => s)) {
         Thread.sleep(sleepTimeMillis)
-        val all = states.size
-        val done = states.filter(v => v).size
         states = futures.map(f => f.isDone)
         timeMillis += sleepTimeMillis
       }
       val exits = futures.map(f => f.get())
       println(s"finished all commands. Exit values: ${exits.mkString(",")}")
       val errros = exits.filter(_ != 0)
-      if !errros.isEmpty then throw IllegalStateException("At least one of the processes finiched with error")
+      if errros.nonEmpty then throw IllegalStateException("At least one of the processes finiched with error")
     } finally {
       gobbleExec.shutdownNow()
       procExec.shutdownNow()
@@ -213,27 +208,161 @@ object Util {
     if a3 == 360 then 0 else a3
   }
 
-  def runWithTmpdir(f: (tmpDir: Path) => Unit): Unit = {
-    def deleteDirRecursive(dir: Path): Unit = {
-      Files.walk(dir)
-        .sorted(Comparator.reverseOrder)
-        .forEach(f => Files.delete(f))
-      println(s"deleted dir: $dir")
+  def runWithTmpdir(workDir: Option[Path] = None)(f: (tmpDir: Path) => Unit): Unit = {
+    def runWithTmpdir3(f: (tmpDir: Path) => Unit): Unit = {
+      val tmpWorkDir = Files.createTempDirectory("gaia")
+      println(s"created tmp dir: $tmpWorkDir")
+      try {
+        f(tmpWorkDir)
+      } finally {
+        deleteDirRecursive(tmpWorkDir)
+      }
     }
 
-    val tmpWorkDir = Files.createTempDirectory("gaia")
-    println(s"created tmp dir: $tmpWorkDir")
-    try {
+    def runWithTmpdir1(workDir: Path)(f: (tmpDir: Path) => Unit): Unit = {
+      val tmpWorkDir = fileDirInOutDir(workDir, "tmp")
+      deleteDirContentRecursive(tmpWorkDir)
+      println(s"created tmp dir: $tmpWorkDir")
       f(tmpWorkDir)
-    } finally {
-      deleteDirRecursive(tmpWorkDir)
     }
+
+    workDir.map(wd => runWithTmpdir1(wd)(f)).getOrElse(runWithTmpdir3(f))
+  }
+
+  def deleteDirRecursive(dir: Path): Unit = {
+    Files.walk(dir)
+      .sorted(Comparator.reverseOrder)
+      .forEach(f => Files.delete(f))
+    println(s"deleted dir: $dir")
+  }
+
+  def deleteDirContentRecursive(dir: Path): Unit = {
+    deleteDirRecursive(dir)
+    Files.createDirectories(dir)
+    println(s"deleted contents of dir: $dir")
   }
 
   def inDocker: Boolean = {
     val v = System.getenv("GAIA_IN_DOCKER")
     v != null && v == "YES"
   }
+
+  def fileDirInOutDir(workDir: Path, dirName: String): Path = {
+    val od = fileDirFromDir(workDir, "out")
+    fileDirFromDir(od, dirName)
+  }
+
+  def fileDirFromDir(dir: Path, dirName: String): Path = {
+    val theDir = dir.resolve(dirName)
+    if Files.notExists(theDir) then Files.createDirectories(theDir)
+    theDir
+  }
+
+  def fileCopy(file: Path, dir: Path): Unit = {
+    Files.copy(file, dir.resolve(file.getFileName), StandardCopyOption.REPLACE_EXISTING)
+  }
+
+  def fileImageSize(fileImage: Path): (Int, Int) = {
+    import javax.imageio.ImageIO
+    import java.awt.image.BufferedImage
+    val bimg = ImageIO.read(fileImage.toFile)
+    val width = bimg.getWidth
+    val height = bimg.getHeight
+    (width, height)
+  }
+
+  def createImageFromHtml(outFile: Path, styleContent: String, bodyContent: String, w: Int, h: Int, resources: Seq[Path] = Seq(), workPath: Option[Path] = None): Unit = {
+    def htmlTemplate(styleContent: String, bodyContent: String): String =
+      s"""<!DOCTYPE html>
+         |<html lang="en">
+         |<head>
+         |    <meta charset="UTF-8">
+         |    <meta name="viewport" content="width=device-width, initial-scale=0.7">
+         |    <meta name="theme-color" content="#000">
+         |    <title>Gaia Visual</title>
+         |    <link rel="stylesheet" href="css/gaia.css">
+         |    <style>
+         |$styleContent
+         |    </style>
+         |</head>
+         |<body>
+         |$bodyContent
+         |</body>
+         |</html>
+         |""".stripMargin
+
+
+    Util.runWithTmpdir(workPath) { tmpWorkDir =>
+
+      val resDir = tmpWorkDir.resolve("res")
+      if Files.notExists(resDir) then Files.createDirectories(resDir)
+      resources.foreach(r => Files.copy(r, resDir.resolve(r.getFileName)))
+
+      val openingHtmlFile = tmpWorkDir.resolve(s"imgtxt.html")
+      Util.writeString(openingHtmlFile, htmlTemplate(styleContent, bodyContent))
+
+      Util.recursiveCopy(Path.of("src", "main", "html1", "css"), tmpWorkDir.resolve("css"))
+      val chromiumRenderCmd = Seq("chromium", "--headless", "--no-sandbox", s"-window-size=$w,$h", s"--screenshot=${outFile.toAbsolutePath}", s"${openingHtmlFile.toAbsolutePath}")
+      Util.runAllCommands(Seq(chromiumRenderCmd))
+      println(s"Created image from html $outFile")
+    }
+  }
+
+  case class StillImageGroup(
+                              preview: Path,
+                              full: Path,
+                            )
+
+  def stillImageGroups(gaiaImage: GaiaImage, workDir: Path): Seq[StillImageGroup] = {
+
+    def allFiles(gaiaImage: GaiaImage): Seq[Path] = {
+      val outDir = workDir.resolve("out")
+      if Files.notExists(outDir) then Seq()
+      else {
+        val imgDir = outDir.resolve(gaiaImage.id)
+        if Files.notExists(imgDir) then Seq()
+        else {
+          val stillDir = imgDir.resolve("stills")
+          if Files.notExists(stillDir) then Seq()
+          else {
+            Files.list(stillDir).toScala(Seq)
+          }
+        }
+      }
+    }
+
+    def stillImageGroup(triples: Seq[(String, String, String)]): Option[StillImageGroup] = {
+      def filterImageType(imageType: String): Seq[Path] = {
+        triples.filter((_, t, _) => t == imageType).map { case (a, b, c) => Path.of(s"$a-$b-$c") }
+      }
+
+      val prev = filterImageType("prev").headOption
+      val full = filterImageType("full").headOption
+      if prev.isDefined && full.isDefined then Some(StillImageGroup(prev.get, full.get))
+      else None
+    }
+
+    val pattern = "(.*)-(full|prev)-(.*)".r
+    allFiles(gaiaImage)
+      .flatMap { path =>
+        val fnam = path.toString
+        fnam match {
+          case pattern(a, b, c) => Some(a, b, c)
+          case _ => None
+        }
+      }
+      .groupBy { case (a, _, _) => a }
+      .toSeq
+      .map((_, v) => v)
+      .flatMap(stillImageGroup)
+  }
+
+  def imageResources(imageId: String, extention: String, workPath: Path): Seq[Path] = {
+    val mdir = Util.fileDirInOutDir(workPath, imageId).resolve("models")
+    if Files.notExists(mdir) then throw IllegalStateException(s"Directory 'models' missing for $imageId")
+    Files.list(mdir).toScala(Seq).filter(p => p.getFileName.toString.toLowerCase.endsWith(extention))
+  }
+
 
 }
 

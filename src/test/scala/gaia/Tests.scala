@@ -86,8 +86,6 @@ class Tests extends AnyFunSuite with must.Matchers {
       val va = v.adjust
       val vc = v.toVec
       val v1 = vc.toPolarVec
-      println(s"-- ${f(v)} --> ${f(vc)} --> ${f(v1)}")
-      println(s"-- ${v} --> ${vc} --> ${v1}")
       f(v1) mustBe f(va)
     }
   }

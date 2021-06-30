@@ -18,60 +18,43 @@ object Cred {
     if !gaiaImage.credits.references.isEmpty then {
       gaiaImage.credits.references.foreach(ref => println(ref))
       println()
-    }    
-    println("--------------------------------------------------------------------------------")        
+    }
+    println("--------------------------------------------------------------------------------")
   }
 
-  def create(gaiaImage: GaiaImage, workPath: Path): Unit = {
+  def cssPercent(height: Int)(percent: Int): String = "%.0f".format(height * (percent.toDouble / 100))
 
-    val vq: VideoResolution = gaiaImage.videoQuality.videoResolution
-    val w = vq.width
-    val h = vq.height
+  def createOpeningCredit(gaiaImage: GaiaImage, w: Int, h: Int, outDir: Path, workDir: Option[Path] = None): Path = {
+    def cp = cssPercent(h)
 
-    def hp(percent: Int): String = {
-      "%.0f".format(h * (percent.toDouble / 100))
-    }
-
-    val imgPath = outPath(workPath).resolve(gaiaImage.id)
-    val creditsDir = imgPath.resolve("credits")
-    if Files.notExists(creditsDir) then Files.createDirectories(creditsDir)
-    val tmpWorkDir = Files.createTempDirectory(gaiaImage.id)
-
-
-    val txt = gaiaImage.text
-
-    val openingContent =
-      s"""<!DOCTYPE html>
-         |<html lang="en">
-         |<head>
-         |    <meta charset="UTF-8">
-         |    <meta name="viewport" content="width=device-width, initial-scale=0.7">
-         |    <meta name="theme-color" content="#000">
-         |    <title>Gaia Visual</title>
-         |    <link rel="stylesheet" href="css/gaia.css">
-         |    <style>
-         |        .title {
-         |            font-size: ${hp(10)}px;
+    val styleContent =
+      s"""        .title {
+         |            font-size: ${cp(10)}px;
          |            font-weight: bold;
          |            text-align: center;
-         |            margin-top: ${hp(30)}px;
-         |            margin-bottom: ${hp(10)}px;
+         |            margin-top: ${cp(30)}px;
+         |            margin-bottom: ${cp(10)}px;
          |        }
          |        .subtitle {
-         |            font-size: ${hp(3)}px;
+         |            font-size: ${cp(3)}px;
          |            text-align: center;
          |            margin-left: 100px;
          |            margin-right: 100px;
          |        }
-         |    </style>
-         |</head>
-         |<body>
-         |<div class="title">GAIA VISUAL</div>
-         |<div class="subtitle">$txt</div>
-         |</body>
-         |</html>
          |""".stripMargin
 
+    val bodyContent =
+      s"""<div class="title">GAIA VISUAL</div>
+         |<div class="subtitle">${gaiaImage.text}</div>
+         |""".stripMargin
+
+    val imgFile = outDir.resolve(s"${s"opening_${gaiaImage.id}"}.png")
+    Util.createImageFromHtml(imgFile, styleContent, bodyContent, w, h, workPath = workDir)
+    imgFile
+  }
+
+  def createClosingCredit(gaiaImage: GaiaImage, w: Int, h: Int, outDir: Path): Path = {
+    def cp = cssPercent(h)
     val references: Seq[String] = gaiaImage.credits.references
     val refs = references.map {
       ref =>
@@ -81,56 +64,40 @@ object Cred {
            |""".stripMargin
     }.mkString("\n")
 
-    val closingContent =
-      s"""<!DOCTYPE html>
-         |<html lang="en">
-         |<head>
-         |    <meta charset="UTF-8">
-         |    <meta name="viewport" content="width=device-width, initial-scale=0.7">
-         |    <meta name="theme-color" content="#000">
-         |    <title>Gaia Visual</title>
-         |    <link rel="stylesheet" href="css/gaia.css">
-         |    <style>
-         |        .refs {
-         |            margin-top: ${hp(40)}px;
+    val styleContent =
+      s"""        .refs {
+         |            margin-top: ${cp(40)}px;
          |            margin-left: 100px;
          |            margin-right: 100px;
          |        }
          |        .ref {
-         |            font-size: ${hp(3)}px;
+         |            font-size: ${cp(3)}px;
          |            text-align: center;
          |        }
-         |    </style>
-         |</head>
-         |<body>
-         |<div class="refs">
-         |$refs
-         |</div>
-         |</body>
-         |</html>
          |""".stripMargin
 
-    val openingName = s"opening_${gaiaImage.id}"
-    val closingName = s"closing_${gaiaImage.id}"
+    val bodyContent =
+      s"""<div class="refs">
+         |$refs
+         |</div>
+         |""".stripMargin
 
-    val openingHtmlFile = tmpWorkDir.resolve(s"${openingName}.html")
-    val closingHtmlFile = tmpWorkDir.resolve(s"${closingName}.html")
-
-    val openingImageFile = creditsDir.resolve(s"${openingName}.png")
-    val closingImageFile = creditsDir.resolve(s"${closingName}.png")
-
-    Util.writeString(openingHtmlFile, openingContent)
-    Util.writeString(closingHtmlFile, closingContent)
-
-    Util.recursiveCopy(Path.of("src", "main", "html", "css"), tmpWorkDir.resolve("css"))
-
-    val openingCmd = Seq("google-chrome", "--headless", s"-window-size=$w,$h", s"--screenshot=${openingImageFile.toAbsolutePath}", s"${openingHtmlFile.toAbsolutePath}")
-    val closingCmd = Seq("google-chrome", "--headless", s"-window-size=$w,$h", s"--screenshot=${closingImageFile.toAbsolutePath}", s"${closingHtmlFile.toAbsolutePath}")
-
-    Util.runAllCommands(Seq(openingCmd, closingCmd))
-
-    println(s"Creating credits for ${gaiaImage.id} in ${creditsDir.toAbsolutePath}")
-
+    val imageFile = outDir.resolve(s"${s"closing_${gaiaImage.id}"}.png")
+    Util.createImageFromHtml(imageFile, styleContent, bodyContent, w, h)
+    imageFile
   }
+
+  def create(gaiaImage: GaiaImage, workPath: Path): Unit = {
+    val vq: VideoResolution = gaiaImage.videoQuality.videoResolution
+    val w = vq.width
+    val h = vq.height
+
+    val imgPath = Util.fileDirInOutDir(workPath, gaiaImage.id)
+    val creditsDir = Util.fileDirFromDir(imgPath, "credits")
+
+    createOpeningCredit(gaiaImage, w, h, creditsDir)
+    createClosingCredit(gaiaImage, w, h, creditsDir)
+  }
+
 
 }
