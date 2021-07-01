@@ -21,8 +21,8 @@ From the x3d animated models high resolution images can be created
 
 ## TODO
 - No reaction by clicking on desc image/page
-- Custom big arrows for nonmobiles
-- Arrows always visible for non mobiles  
+- Rename js varibles to camelcase
+- Remove js variables that are constants and only used ones  
 - Add new features to camera create (when needed in the subsequent points).
     - other ranges than 0 - 360, e.g. longer 0 - 400, shorter 0, 180
 

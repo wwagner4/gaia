@@ -173,7 +173,7 @@ object Hp1 {
        |    <div class="container">
        |        <b-table :data="images" :show-header="show_header"  :mobile-cards="mobile_cards">
        |            <b-table-column field="image_name" label="Image" sortable v-slot="props">
-       |                <b-carousel :autoplay="autoplay"  :indicator="indicator" :has-drag="has_drag">
+       |                <b-carousel :autoplay="autoplay"  :indicator="indicator" :has-drag="has_drag" :arrow-hover="arrow_hover">
        |                    <b-carousel-item @click.native="carousel_clicked(carousel, $$event)" v-for="(carousel, i) in props.row.carousels" :key="i">
        |                        <b-image v-if="carousel.entry_type === 'IMAGE'" :src="carousel.image_name" :alt="carousel.entry_type" ratio="16by9"></b-image>
        |                    </b-carousel-item>
@@ -196,6 +196,7 @@ object Hp1 {
        |    let app = new Vue({
        |        data() {
        |            return {
+       |                arrow_hover: isMobile(),
        |                has_drag: isMobile(),
        |                show_header: false,
        |             	  autoplay: false, 
