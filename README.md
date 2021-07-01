@@ -20,11 +20,10 @@ creating videos. for exampes see [my video channel TODO](#)
 From the x3d animated models high resolution images can be created
 
 ## TODO
-- Regenerate the complete video for sund6
-- Make x3d links for the homepage
-- Switch from double to singel klick/tab
 - No reaction by clicking on desc image/page
-- Descide what to do on double click with html carousel entries
+- Detect tablets as mobile
+- Custom big arrows for nonmobiles
+- Arrows always visible for non mobiles  
 - Add new features to camera create (when needed in the subsequent points).
     - other ranges than 0 - 360, e.g. longer 0 - 400, shorter 0, 180
 
