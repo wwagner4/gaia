@@ -116,9 +116,9 @@ object Gaia {
     Action("hp", "create homepage files and snipplets", createHp(copyResources = false)),
     Action("x3d", "create a x3d model", createX3d),
     Action("x3da", "create an animated x3d model", createX3dAnimation),
-    Action("vid", "create video sniplets", createVideo),
-    Action("vidp", "create preview video sniplets", createPreviewVideo),
-    Action("vidc", "create complet video from sniplets", createCompleteVideo),
+    Action("vid", "create video snippets", createVideo),
+    Action("vidp", "create preview video snippets", createPreviewVideo),
+    Action("vidc", "create complet video from snippets", createCompleteVideo),
     Action("still", "create still images", createStill),
     Action("tryout", "Tryout something during development", Tryout.doit),
     Action("dia", "create diagram", createDiagram),
@@ -745,7 +745,7 @@ object Gaia {
   }
 
   private def createCompleteVideo(args: List[String], workPath: Path): Unit = {
-    def hasVideoSniplets(gi: GaiaImage): Boolean = {
+    def hasVideoSnippets(gi: GaiaImage): Boolean = {
       val idir = Util.fileDirInOutDir(workPath, gi.id)
       val vdir = idir.resolve("videos")
       if Files.notExists(vdir) then false
@@ -759,7 +759,7 @@ object Gaia {
       DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now)
     }
 
-    def filter(gi: GaiaImage): Boolean = hasVideoSniplets(gi)
+    def filter(gi: GaiaImage): Boolean = hasVideoSnippets(gi)
 
     def exec(gi: GaiaImage, wp: Path): Unit = {
       val idir = Util.fileDirInOutDir(workPath, gi.id)

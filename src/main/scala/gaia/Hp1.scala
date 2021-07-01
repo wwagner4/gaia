@@ -25,6 +25,8 @@ object Hp1 {
 
   case class FRVideo(videoUrl: String) extends FinalResource
 
+  case object FRNull extends FinalResource
+
   case class CarouselEntry(
                             hpDirectory: Path,
                             previewImage: Path,
@@ -36,14 +38,15 @@ object Hp1 {
       val fnam = previewImage.getFileName.toString
       val imgStr = s"images/$fnam"
       val finalRes = finalResource match {
-        case r: FRImage => s"images/${r.imageFile.getFileName}"
-        case r: FRX3d => s"models/${r.modelFile.getFileName}"
-        case r: FRVideo => s"${r.videoUrl}"
+        case FRImage(imageFile) => s"'images/${imageFile.getFileName}'"
+        case FRX3d(modelFile) => s"'models/${modelFile.getFileName}'"
+        case FRVideo(videoUrl) => s"'${videoUrl}'"
+        case FRNull => "null"
       }
       s"""{
          |  entry_type: '${entryType.toString}',
          |  image_name: '$imgStr',
-         |  image_name_full: '$finalRes'
+         |  image_name_full: $finalRes
          |}
          |""".stripMargin
     }
@@ -67,12 +70,10 @@ object Hp1 {
     }
     val descImageEntry = {
       val outputImage: Path = tmpDir.resolve(s"desc-${gaiaImage.id}.png")
-      val outputImageFull: Path = tmpDir.resolve(s"desc-${gaiaImage.id}-full.png")
       if createResources then {
         descriptionImage(gaiaImage, outputImage, workDir)
-        Files.copy(outputImage, outputImageFull)
       }
-      Seq(CarouselEntry(hpDir, outputImage, FRImage(outputImageFull)))
+      Seq(CarouselEntry(hpDir, outputImage, FRNull))
     }
 
     val videoImageEntries = {
@@ -171,9 +172,9 @@ object Hp1 {
        |        </div>
        |    </section>
        |    <div class="container">
-       |        <b-table :data="images" :show-header="show_header"  :mobile-cards="mobile_cards">
+       |        <b-table :data="images" :show-header="false"  :mobile-cards="false">
        |            <b-table-column field="image_name" label="Image" sortable v-slot="props">
-       |                <b-carousel :autoplay="autoplay"  :indicator="indicator" :has-drag="has_drag">
+       |                <b-carousel :autoplay="false"  :indicator="false" :has-drag="hasDrag" :arrow-hover="arrowHover">
        |                    <b-carousel-item @click.native="carousel_clicked(carousel, $$event)" v-for="(carousel, i) in props.row.carousels" :key="i">
        |                        <b-image v-if="carousel.entry_type === 'IMAGE'" :src="carousel.image_name" :alt="carousel.entry_type" ratio="16by9"></b-image>
        |                    </b-carousel-item>
@@ -181,11 +182,6 @@ object Hp1 {
        |            </b-table-column>
        |        </b-table>
        |    </div>
-       |    <b-modal v-model="is_image_modal_active"  :full-screen="true">
-       |        <p class="image">
-       |            <img :src="image_modal">
-       |        </p>
-       |    </b-modal>
        |</div>
        |
        |
@@ -196,13 +192,8 @@ object Hp1 {
        |    let app = new Vue({
        |        data() {
        |            return {
-       |                has_drag: isMobile(),
-       |                show_header: false,
-       |             	  autoplay: false, 
-       |                indicator: false,
-       |                mobile_cards: false,
-       |                is_image_modal_active: false,
-       |                image_modal: '#',
+       |                arrowHover: isMobile(),
+       |                hasDrag: isMobile(),
        |                images: [
        |$carouselsStr
        |                ]
@@ -210,7 +201,7 @@ object Hp1 {
        |         },
        |         methods: {
        |           carousel_clicked(dats, event) {
-       |               if (event.detail == 1) {
+       |               if (event.detail == 1 && dats.image_name_full !== null) {
        |                  console.log('carousel_clicked image_name: ' + dats.image_name_full)
        |                  window.open(dats.image_name_full, "_self")
        |               }

@@ -7909,14 +7909,14 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
   .carousel-arrow.is-hovered {
     opacity: 0; }
   .carousel-arrow .icon {
-    background: white;
-    color: #000000;
-    cursor: pointer;
-    border: 1px solid white;
+    background: black;
+    color: white;
+    background-color: #8080807d;
+    border: 0px solid white;
     border-radius: 290486px;
     outline: 0; }
     .carousel-arrow .icon:hover {
-      border: 1px solid #000000;
+      border: 0px solid #000000;
       opacity: 1; }
     .carousel-arrow .icon.has-icons-left, .carousel-arrow .icon.has-icons-right {
       position: absolute;
