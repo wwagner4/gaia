@@ -166,8 +166,8 @@ TODO: Make a visualisation of the sun in galactic coordinates. Then calculat x, 
 
 ### TODO
 - Extract the movement of the sun from the movement of stars
-- vid Generate video sniplets in one directory for AUTOMOVE and CAM
-- vid Generate 'references' and 'closing content' and still images in one module and place them next to the video sniplets
+- vid Generate video snippets in one directory for AUTOMOVE and CAM
+- vid Generate 'references' and 'closing content' and still images in one module and place them next to the video snippets
 - vid Start automove using Util.callAllCommands
 
 ### Docker

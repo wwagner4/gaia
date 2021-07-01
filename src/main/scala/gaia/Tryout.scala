@@ -127,7 +127,7 @@ object Tryout {
         f"$id;$dubDirs"
       }
 
-      def infoSniplets(gaiaImage: GaiaImage): String = {
+      def infoSnippets(gaiaImage: GaiaImage): String = {
 
         def snipletInfos(files: Seq[Path]): String = {
           files.map(Hp1.vidInfo)
@@ -177,7 +177,7 @@ object Tryout {
       imagesSorted
         //.map(infoDescr)
         //.map(infoVideoSubdirs)
-        .map(infoSniplets)
+        .map(infoSnippets)
         //.map(infoCompletes)
         .foreach(println)
     }

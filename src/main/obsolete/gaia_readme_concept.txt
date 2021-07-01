@@ -25,8 +25,8 @@ currently gaia-visual provides the following features:
 
 ## create a x3d model
 ## create an animated x3d model
-## create video sniplets
-## create preview video sniplets
+## create video snippets
+## create preview video snippets
 ## create still images
 
 # TODOs
