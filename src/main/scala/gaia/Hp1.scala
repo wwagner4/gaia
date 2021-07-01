@@ -25,6 +25,8 @@ object Hp1 {
 
   case class FRVideo(videoUrl: String) extends FinalResource
 
+  case object FRNull extends FinalResource
+
   case class CarouselEntry(
                             hpDirectory: Path,
                             previewImage: Path,
@@ -36,14 +38,15 @@ object Hp1 {
       val fnam = previewImage.getFileName.toString
       val imgStr = s"images/$fnam"
       val finalRes = finalResource match {
-        case r: FRImage => s"images/${r.imageFile.getFileName}"
-        case r: FRX3d => s"models/${r.modelFile.getFileName}"
-        case r: FRVideo => s"${r.videoUrl}"
+        case FRImage(imageFile) => s"'images/${imageFile.getFileName}'"
+        case FRX3d(modelFile) => s"'models/${modelFile.getFileName}'"
+        case FRVideo(videoUrl) => s"'${videoUrl}'"
+        case FRNull => "null"
       }
       s"""{
          |  entry_type: '${entryType.toString}',
          |  image_name: '$imgStr',
-         |  image_name_full: '$finalRes'
+         |  image_name_full: $finalRes
          |}
          |""".stripMargin
     }
@@ -67,12 +70,10 @@ object Hp1 {
     }
     val descImageEntry = {
       val outputImage: Path = tmpDir.resolve(s"desc-${gaiaImage.id}.png")
-      val outputImageFull: Path = tmpDir.resolve(s"desc-${gaiaImage.id}-full.png")
       if createResources then {
         descriptionImage(gaiaImage, outputImage, workDir)
-        Files.copy(outputImage, outputImageFull)
       }
-      Seq(CarouselEntry(hpDir, outputImage, FRImage(outputImageFull)))
+      Seq(CarouselEntry(hpDir, outputImage, FRNull))
     }
 
     val videoImageEntries = {
@@ -200,7 +201,7 @@ object Hp1 {
        |         },
        |         methods: {
        |           carousel_clicked(dats, event) {
-       |               if (event.detail == 1) {
+       |               if (event.detail == 1 && dats.image_name_full !== null) {
        |                  console.log('carousel_clicked image_name: ' + dats.image_name_full)
        |                  window.open(dats.image_name_full, "_self")
        |               }

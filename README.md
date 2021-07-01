@@ -20,7 +20,6 @@ creating videos. for exampes see [my video channel TODO](https://www.youtube.com
 From the x3d animated models high resolution images can be created
 
 ## TODO
-- No reaction by clicking on desc image/page
 - Add new features to camera create (when needed in the subsequent points).
     - other ranges than 0 - 360, e.g. longer 0 - 400, shorter 0, 180
 
