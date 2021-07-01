@@ -21,7 +21,6 @@ From the x3d animated models high resolution images can be created
 
 ## TODO
 - No reaction by clicking on desc image/page
-- Detect tablets as mobile
 - Custom big arrows for nonmobiles
 - Arrows always visible for non mobiles  
 - Add new features to camera create (when needed in the subsequent points).
