@@ -18,8 +18,13 @@ The actual dataset can be downloaded from
 ```
 https://drive.google.com/file/d/1YvV2LIO_ml4_bokMKW3JLAHYJxBTNp4n/view?usp=sharing
 ```
+or using wget
+```
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1YvV2LIO_ml4_bokMKW3JLAHYJxBTNp4n' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1YvV2LIO_ml4_bokMKW3JLAHYJxBTNp4n" -O gaia1.zip && rm -rf /tmp/cookies.txt
+```
 
-Download unzip and copy the *.gz files to ~/gaia/data/basic
+
+Download unzip and copy the *.gz files to ~/work/gaia/data/basic
 
 ## Download, compile and run
 
@@ -72,10 +77,9 @@ docker run -it  \
 -v <your project dir>/gaia:/home/ugaia/project \
 -v <your work dir>/gaia/out:/home/ugaia/work/gaia/out \
 -u $(id -u):$(id -g)  gaia bash
-
+```
 Make sure '<your work dir>/gaia/out' exists. Otherwise it will be created as 'root'
 
-```
 e.g.
 ```shell
 # wallace
@@ -93,6 +97,11 @@ docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
 # work
 docker run -it  -v /home/itsv.org.sv-services.at/31100428/prj/gaia:/home/ugaia/project \
 -v /home/itsv.org.sv-services.at/31100428/work/gaia/out:/home/ugaia/work/gaia/out \
+-u $(id -u):$(id -g) gaia bash
+```
+# bob
+docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
+-v /home/wwagner4/work/gaia/out:/home/ugaia/work/gaia/out \
 -u $(id -u):$(id -g) gaia bash
 ```
 
