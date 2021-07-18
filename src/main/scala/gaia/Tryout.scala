@@ -35,33 +35,13 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    Development.densRead(workPath)
+    Development.dens(workPath)
   }
 
   object Development {
 
-    def densRead(workPath: Path): Unit = {
-      def dia(name: String, probs: Seq[(Cube, Double)]): Unit = {
-        val probsIndexed = probs.sortBy((_, p) => -p).zipWithIndex
-        val data = for (v <- probsIndexed) yield {
-          val x = v._2.toDouble
-          val y = v._1._2
-          XY(x, y)
-        }
-        LineChartBuilder(f"sis-$name")
-          .title(s"probabillities from $name")
-          .xySeq(data)
-          .xLabel("sector")
-          .yLabel("probabillity")
-          .yRangeMax(1.0)
-          .xRangeMax(2000)
-          .create()
-      }
-
-      Seq(
-        CubeSplit.medium,
-        CubeSplit.rough,
-      ).foreach(cubeSplit => dia(cubeSplit.toString(), probsFromResource(cubeSplit)))
+    def dens(workPath: Path):Unit = {
+      ???
     }
 
   }
@@ -369,6 +349,30 @@ object Tryout {
   }
 
   object Obsolete {
+
+    def densRead(workPath: Path): Unit = {
+      def dia(name: String, probs: Seq[(Cube, Double)]): Unit = {
+        val probsIndexed = probs.sortBy((_, p) => -p).zipWithIndex
+        val data = for (v <- probsIndexed) yield {
+          val x = v._2.toDouble
+          val y = v._1._2
+          XY(x, y)
+        }
+        LineChartBuilder(f"sis-$name")
+          .title(s"probabillities from $name")
+          .xySeq(data)
+          .xLabel("sector")
+          .yLabel("probabillity")
+          .yRangeMax(1.0)
+          .xRangeMax(2000)
+          .create()
+      }
+
+      Seq(
+        CubeSplit.medium,
+        CubeSplit.rough,
+      ).foreach(cubeSplit => dia(cubeSplit.toString(), probsFromResource(cubeSplit)))
+    }
 
     def directionColor(workPath: Path): Unit = {
       val bc = Color.veryDarkBlue
