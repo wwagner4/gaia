@@ -353,6 +353,16 @@ object ImageUtil {
     implicit val rw2: RW[Cube] = macroRW
   }
 
+  def positionToCube(cubeSplit: CubeSplit)(position: Vec): Option[Cube] = {
+    val v2i = Util.valueToIndex(cubeSplit.cubeSize, cubeSplit.cubeCount)
+    val i = v2i(position.x)
+    val j = v2i(position.y)
+    val k = v2i(position.z)
+    if i.isDefined && j.isDefined && k.isDefined
+    then Some(Cube(i.get, j.get, k.get))
+    else None
+  }
+
   def cubeIterator(cubeCount: Int): Seq[Cube] = {
     for (i <- -cubeCount until cubeCount;
          j <- -cubeCount until cubeCount;
@@ -362,11 +372,9 @@ object ImageUtil {
   /**
    * Descide weather a position is inside a cube or not
    */
-  def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, cube: Cube): Boolean = {
-    val ix = math.floor(pos.x * cubeCount / cubeSize).toInt
-    val iy = math.floor(pos.y * cubeCount / cubeSize).toInt
-    val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
-    ix == cube.i && iy == cube.j && iz == cube.k
+  def inCube(cubeSplit: CubeSplit)(pos: Vec, cube: Cube): Boolean = {
+    val c1 = positionToCube(cubeSplit)(pos)
+    c1 == cube
   }
 
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {

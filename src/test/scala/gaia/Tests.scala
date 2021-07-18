@@ -102,7 +102,12 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
-  lazy val ic = ImageUtil.inCube(8, 2) _
+  class CubeSplit82 extends CubeSplit {
+    override def cubeSize: Int = 8
+    override def cubeCount: Int = 2
+  }
+
+  lazy val ic = ImageUtil.inCube(CubeSplit82()) _
 
   val IN_CUBE = Seq(
     (Vec(0.5, 0.5, 0.5), (0, 0, 0), true),
@@ -204,22 +209,6 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
-  def vectorToCube(cubeSplit: CubeSplit)(value: Vec): Option[Cube] = {
-    val v2i = valueToIndex(cubeSplit.cubeSize, cubeSplit.cubeCount)
-    val i = v2i(value.x)
-    val j = v2i(value.y)
-    val k = v2i(value.z)
-    if i.isDefined && j.isDefined && k.isDefined
-    then Some(Cube(i.get, j.get, k.get))
-    else None
-  }
-
-  def valueToIndex(cubeSize: Int, cubeCount: Int)(value: Double): Option[Int] = {
-    val v1 = value / cubeSize
-    if value >= 0 then if v1 >= cubeCount then None else Some(v1.toInt)
-    else if v1 <= -cubeCount then None else Some(v1.toInt - 1)
-  }
-
   /*
    None    -3    -2    -1    0     1     2     None
    -----|-----|-----|-----|-----|-----|-----|-----|-----
@@ -286,7 +275,7 @@ class Tests extends AnyFunSuite with must.Matchers {
     override def cubeCount: Int = 3
   }
 
-  val vectorToCube13 = vectorToCube(CubeSplit13())
+  val vectorToCube13 = positionToCube(CubeSplit13())
   Seq(
     (Vec(-3.0, 0, 0), None),
     (Vec(0, -3.0, 0), None),

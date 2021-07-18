@@ -98,7 +98,7 @@ object Tryout {
         val starsFiltered = stars.map(toStarPosDirGalactic)
           .filter(s => Random.nextDouble() <= 0.1 && s.pos.length < config.cubeSplit.cubeSize)
 
-        val ic: (Vec, Cube) => Boolean = inCube(config.cubeSplit.cubeSize, config.cubeSplit.cubeCount)
+        val ic: (Vec, Cube) => Boolean = inCube(config.cubeSplit)
         val counts: Seq[(Cube, Int)] = (for (c <- cubeIterator(config.cubeSplit.cubeCount)) yield {
           val sc = starsFiltered.map { s => if (ic(s.pos, c)) 1 else 0 }
           (c, sc.sum)
