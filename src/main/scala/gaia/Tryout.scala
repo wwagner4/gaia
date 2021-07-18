@@ -44,11 +44,16 @@ object Tryout {
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
       val stars = StarCollections.basicStars(workPath)
-      val starsGalactic = stars.map(toStarPosDirGalactic)
+      val starsGalactic = stars.map(toStarPosDirGalactic).filter(_ => Random.nextDouble() > 0.95)
       val starsGalacticCnt = starsGalactic.size
       println(s"Read stars galactic. Count:$starsGalacticCnt")
-      val cubeSplit = CubeSplit.rough
-
+      // val cubeSplit = CubeSplit.rough
+      val positions = starsGalactic.map(s => s.pos)
+      val shapables = Seq(Shapable.PointSet(positions = positions))
+      val xml: String = createXml(shapables, title="dens_all", backColor = Color.black)
+      val file = tryoutDir.resolve(s"tryout_dens_all.x3d")
+      gaia.Util.writeString(file, xml)
+      println(s"Wrote x3d to $file")
     }
 
   }
