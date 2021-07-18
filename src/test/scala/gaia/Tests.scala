@@ -103,8 +103,8 @@ class Tests extends AnyFunSuite with must.Matchers {
   }
 
   class CubeSplit82 extends CubeSplit {
-    override def cubeSize: Int = 8
-    override def cubeCount: Int = 2
+    override def cubeSize = 8.0
+    override def cubeCount = 2
   }
 
   lazy val ic = ImageUtil.inCube(CubeSplit82()) _
@@ -271,8 +271,8 @@ class Tests extends AnyFunSuite with must.Matchers {
   }
 
   class CubeSplit13 extends CubeSplit {
-    override def cubeSize: Int = 1
-    override def cubeCount: Int = 3
+    override def cubeSize = 1.0
+    override def cubeCount = 3
   }
 
   val vectorToCube13 = positionToCube(CubeSplit13())

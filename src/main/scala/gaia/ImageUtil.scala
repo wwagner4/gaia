@@ -322,11 +322,11 @@ object ImageUtil {
   }
 
   trait CubeSplit {
-    def cubeSize: Int
+    def cubeSize: Double
     def cubeCount: Int
   }
 
-  enum CubeSplits(val cubeSize: Int, val cubeCount: Int) extends CubeSplit {
+  enum CubeSplits(val cubeSize: Double, val cubeCount: Int) extends CubeSplit {
     // TODO Check cube size and cube count. Currently much too large
     case rough extends CubeSplits(16,16)
     case medium extends CubeSplits(8,32)
