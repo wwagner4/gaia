@@ -41,7 +41,13 @@ object Tryout {
   object Development {
 
     def dens(workPath: Path):Unit = {
-      ???
+      val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
+      println(s"Created tryout dir $tryoutDir")
+      val stars = StarCollections.basicStars(workPath)
+      val starsGalactic = stars.map(toStarPosDirGalactic)
+      val starsGalacticCnt = starsGalactic.size
+      println(s"Read stars galactic. Count:$starsGalacticCnt")
+
     }
 
   }
