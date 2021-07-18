@@ -132,10 +132,7 @@ class Tests extends AnyFunSuite with must.Matchers {
     (4, List(0.0, 90.0, 180.0, 270.0)),
   )
 
-  for (n
-  , l
-  ) <- degStepsTestVals
-  do {
+  for ((n, l) <- degStepsTestVals) {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
@@ -151,10 +148,7 @@ class Tests extends AnyFunSuite with must.Matchers {
     (4, List(360.0, 270.0, 180.0, 90.0)),
   )
 
-  for (n
-  , l
-  ) <- degStepsReverseTestVals
-  do {
+  for ((n, l) <- degStepsReverseTestVals) {
     def f(vals: Iterable[Double]): String = {
       vals.map(v => "%.5f".format(v)).mkString("|")
     }
