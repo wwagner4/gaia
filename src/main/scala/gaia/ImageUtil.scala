@@ -327,6 +327,7 @@ object ImageUtil {
   }
 
   enum CubeSplits(val cubeSize: Int, val cubeCount: Int) extends CubeSplit {
+    // TODO Check cube size and cube count. Currently much too large
     case rough extends CubeSplits(16,16)
     case medium extends CubeSplits(8,32)
     case fine extends CubeSplits(4,64)

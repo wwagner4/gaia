@@ -46,7 +46,7 @@ object Tryout {
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
       val stars = StarCollections.basicStars(workPath)
-      val starsGalactic = stars.map(toStarPosDirGalactic).filter(s => s.pos.length < 10 && Random.nextDouble() < 0.001)
+      val starsGalactic = stars.map(toStarPosDirGalactic).filter(s => Random.nextDouble() < 0.01 && ImageUtil.positionToCube(cubeSplit)(s.pos).isDefined)
       val starsGalacticCnt = starsGalactic.size
       println(s"Read stars galactic. Count:$starsGalacticCnt")
       val positions = starsGalactic.map(s => s.pos)
