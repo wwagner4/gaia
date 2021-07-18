@@ -10,6 +10,7 @@ class Tests extends AnyFunSuite with must.Matchers {
   import Vector._
   import Cam._
   import Util._
+  import ImageUtil._
 
   val delta = 0.000001
 
@@ -121,7 +122,7 @@ class Tests extends AnyFunSuite with must.Matchers {
 
   for ((v, (i, j, k), result) <- IN_CUBE) {
     test(s"in out a cube ${v} $i $j $k") {
-      ic(v, i, j, k) == result
+      ic(v, Cube(i, j, k)) == result
     }
   }
 
@@ -208,5 +209,96 @@ class Tests extends AnyFunSuite with must.Matchers {
       fsec(DataUtil.createSectors(cnt)) mustBe (required)
     }
   }
+
+  def vectorToCube(cubeSize: Int, cubeCount: Int)(value: Vec): Option[Cube] = {
+    val v2i = valueToIndex(cubeSize, cubeCount)
+    val i = v2i(value.x)
+    val j = v2i(value.y)
+    val k = v2i(value.z)
+    if i.isDefined && j.isDefined && k.isDefined
+    then Some(Cube(i.get, j.get, k.get))
+    else None
+  }
+
+  def valueToIndex(cubeSize: Int, cubeCount: Int)(value: Double): Option[Int] = {
+    val v1 = value / cubeSize
+    if value >= 0 then if v1 >= cubeCount then None else Some(v1.toInt)
+    else if v1 <= -cubeCount then None else Some(v1.toInt - 1)
+  }
+
+  /*
+   None    -3    -2    -1    0     1     2     None
+   -----|-----|-----|-----|-----|-----|-----|-----|-----
+       -3    -2    -1     0     1     2     3     4
+   */
+
+  val valueToIndex13 = valueToIndex(1, 3)
+  Seq(
+    (-3.0, None),
+    (-2.99999, Some(-3)),
+    (-2.1, Some(-3)),
+    (-2.0, Some(-3)),
+    (-1.99999, Some(-2)),
+    (-1.5, Some(-2)),
+    (-1.0, Some(-2)),
+    (-0.99999, Some(-1)),
+    (-0.00001, Some(-1)),
+    (0.0, Some(0)),
+    (0.5, Some(0)),
+    (0.9999999999, Some(0)),
+    (1.0, Some(1)),
+    (1.5, Some(1)),
+    (2.0, Some(2)),
+    (2.1, Some(2)),
+    (2.9999999999, Some(2)),
+    (3.0, None),
+    (3.1, None),
+    (10000.0, None),
+  ).foreach { (value: Double, index: Option[Int]) =>
+    test(s"one dimension interval from value cubesize:1 cubecount:3 $value") {
+      valueToIndex13(value).mustBe(index)
+    }
+  }
+
+  /*
+ None    -3    -2    -1    0     1     2     None
+ -----|-----|-----|-----|-----|-----|-----|-----|-----
+     -3    -2    -1     0     1     2     3     4
+ */
+
+  val valueToIndex21 = valueToIndex(2, 1)
+  Seq(
+    (-2.0, None),
+    (-1.99999, Some(-1)),
+    (-1.5, Some(-1)),
+    (-1.0, Some(-1)),
+    (-0.999999, Some(-1)),
+    (-0.000001, Some(-1)),
+    (0.0, Some(0)),
+    (0.5, Some(0)),
+    (0.9999999, Some(0)),
+    (1.0, Some(0)),
+    (1.5, Some(0)),
+    (2.0, None),
+    (10000.0, None),
+  ).foreach { (value: Double, index: Option[Int]) =>
+    test(s"one dimension interval from value cubesize:2 cubecount:1 $value") {
+      valueToIndex21(value).mustBe(index)
+    }
+  }
+
+  val vectorToCube13 = vectorToCube(1, 3)
+  Seq(
+    (Vec(-3.0, 0, 0), None),
+    (Vec(0, -3.0, 0), None),
+    (Vec(0, 0, -3.0), None),
+    (Vec(-2.99999999, 1.5, -0.5), Some(Cube(-3, 1, -1))),
+  ).foreach { (value: Vec, cube: Option[Cube]) =>
+    val vs = s"[${value.x} ${value.y} ${value.z}]"
+    test(s"vector to cube cubesize:1 cubecount:3 $vs") {
+      vectorToCube13(value).mustBe(cube)
+    }
+  }
+
 
 }

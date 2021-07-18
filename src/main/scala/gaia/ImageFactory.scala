@@ -608,23 +608,21 @@ object ImageFactory {
       ++ Seq(Shapable.Line(start = Vec(0, 0, maxRadius), end = Vec(0, 0, -maxRadius), startColor = cn, endColor = cn))
     //++ shapablesCoordinatesColored(len = 10, bgColor = bc)
   }
-
+  
   def dens(workPath: Path, bc: Color): Seq[Shapable] = {
     println("running density")
-    val stars = StarCollections.basicStars(workPath)
-
     val cubeSize = 16
     val cubeCount = 16
+
+    val stars = StarCollections.basicStars(workPath)
 
     val starsFiltered = stars.map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= 0.01 && s.pos.length < cubeSize)
 
-    val ic = inCube(cubeSize, cubeCount) _
-    val counts = for (i <- -cubeCount until cubeCount;
-                      j <- -cubeCount until cubeCount;
-                      k <- -cubeCount until cubeCount) yield {
-      val sc = starsFiltered.map { s => if (ic(s.pos, i, j, k)) 1 else 0 }
-      ((i, j, k), sc.sum)
+    val ic: (Vec, Cube) => Boolean = inCube(cubeSize, cubeCount)
+    val counts = for (c <- cubeIterator(cubeCount)) yield {
+      val sc = starsFiltered.map { s => if (ic(s.pos, c)) 1 else 0 }
+      (c, sc.sum)
     }
     val maxCount = counts.map { case (_, v) => v }.max
     println(s"size max: ${counts.size} $maxCount")

@@ -4,7 +4,7 @@ gaia-visual is a collection of tools to visualize the data delivered by the
 
 
 ## Features
-currently gaia-visual provides the following features:
+Currently gaia-visual provides the following features:
 
 ### Subset of the gaia 
 The data are taken from the [data release 2](https://www.cosmos.esa.int/web/gaia/data-release-2) and prepared
@@ -20,6 +20,15 @@ creating videos. for exampes see [my video channel TODO](https://www.youtube.com
 From the x3d animated models high resolution images can be created
 
 ## TODO
+- Normalisation. Branch norm. 
+  - Analyse the distribution in sectors based on dens1
+    - Refactor Util files. E.g. introduce a Io or File Util
+  - Make a dataset with number of stars are about equal per sector based on the analys
+  - Make one or more datasets not including the region around the sun
+  - Make some images using that dataset
+    - Arund the sun
+    - Around the galactic center
+    - Somewhere else in the galaxy
 - Add new features to camera create (when needed in the subsequent points).
     - other ranges than 0 - 360, e.g. longer 0 - 400, shorter 0, 180
 

@@ -1,8 +1,11 @@
 package gaia
 
+import entelijan.viz.Viz.XY
 import entelijan.viz.{DefaultDirectories, Viz, VizCreator, VizCreators}
+import entelijan.vizb.LineChartBuilder
 import gaia.Gaia.outPath
 import org.apache.commons.lang3.math.Fraction
+import upickle.default.{macroRW, read, write, ReadWriter => RW}
 
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
@@ -12,49 +15,115 @@ import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
 import scala.annotation.tailrec
+import scala.jdk.StreamConverters._
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.Random
-import scala.jdk.StreamConverters._
+import scala.collection.parallel.CollectionConverters._
+
 
 //noinspection ScalaUnusedSymbol
 object Tryout {
 
   import Cam._
   import Data._
+  import DataUtil._
+  import Gaia.{GaiaImage, VideoConfig, workPath}
+  import Hp1._
   import ImageUtil._
   import Vector._
   import X3d._
-  import Gaia.{VideoConfig, workPath, GaiaImage}
-  import DataUtil._
-  import Hp1._
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    Development.x3dResources(workPath)
+    Development.densRead(workPath)
   }
 
   object Development {
 
-    def x3dResources(workPath: Path): Unit = {
-      val id = "sund3"
-      val extention = "x3d"
-      Util.imageResources(id, extention, workPath).foreach(println)
+    def densRead(workPath: Path): Unit = {
+      def dia(name: String, probs: Seq[(Cube, Double)]): Unit = {
+        val probsIndexed = probs.sortBy((_, p) => -p).zipWithIndex
+        val data = for (v <- probsIndexed) yield {
+          val x = v._2.toDouble
+          val y = v._1._2
+          XY(x, y)
+        }
+        LineChartBuilder(f"sis-$name")
+          .title(s"probabillities from $name")
+          .xySeq(data)
+          .xLabel("sector")
+          .yLabel("probabillity")
+          .yRangeMax(1.0)
+          .xRangeMax(2000)
+          .create()
+      }
+
+      Seq(
+        CubeSplit.medium,
+        CubeSplit.rough,
+      ).foreach(cubeSplit => dia(cubeSplit.toString(), probsFromResource(cubeSplit)))
     }
 
-    def createImageWithText(workPath: Path): Unit = {
-      // video info + desc image
-      val gi = Gaia.images.values.filter(gi => gi.id == "gcd4").head
-      val out = Util.fileDirInOutDir(workPath, "tryoutCreateImageWithText")
-      val img = Util.stillImageGroups(gi, workPath).head.preview
-      val (w, h) = Util.fileImageSize(img)
-      val x3dLogo: Path = Path.of("src/main/html1/res/x3d-400.png")
-      val logoOut: Path = out.resolve("x3d-logo.png")
-      println(s"Wrote image to $logoOut")
-    }
   }
 
-
   object Useful {
+
+    case class DensConfig(
+                           id: String,
+                           cubeSplit: CubeSplit,
+                           minCountPerSector: Int,
+                           usageProbability: Double
+                         )
+
+
+    /**
+     * Create and write a new dens file
+     *
+     * @param workPath : Wor path or the current installation
+     */
+    def densWrite(workPath: Path): Unit = {
+
+      val configs = Seq(
+        DensConfig("r100", CubeSplit.rough, 100, 0.1),
+        DensConfig("r050", CubeSplit.rough, 50, 0.1),
+        DensConfig("r020", CubeSplit.rough, 20, 0.1),
+        DensConfig("r010", CubeSplit.rough, 10, 0.1),
+        DensConfig("r005", CubeSplit.rough, 5, 0.1),
+        DensConfig("m100", CubeSplit.medium, 100, 0.1),
+        DensConfig("m050", CubeSplit.medium, 50, 0.1),
+        DensConfig("m020", CubeSplit.medium, 20, 0.1),
+        DensConfig("m010", CubeSplit.medium, 10, 0.1),
+        DensConfig("m005", CubeSplit.medium, 5, 0.1),
+      ).par
+
+      configs.foreach { config =>
+        println(s"Running dens $config")
+
+
+        val stars = StarCollections.basicStars(workPath)
+
+        val starsFiltered = stars.map(toStarPosDirGalactic)
+          .filter(s => Random.nextDouble() <= 0.1 && s.pos.length < config.cubeSplit.cubeSize)
+
+        val ic: (Vec, Cube) => Boolean = inCube(config.cubeSplit.cubeSize, config.cubeSplit.cubeCount)
+        val counts: Seq[(Cube, Int)] = (for (c <- cubeIterator(config.cubeSplit.cubeCount)) yield {
+          val sc = starsFiltered.map { s => if (ic(s.pos, c)) 1 else 0 }
+          (c, sc.sum)
+        }).sortBy((_, d) => -d)
+
+        val probs: Seq[(Cube, Double)] = counts
+          .map((c, cnt) => (c, math.min(1.0, config.minCountPerSector.toDouble / cnt)))
+          .filter((_, prob) => prob < 1.0)
+
+        println(s"size ${probs.size}")
+        probs.foreach(println(_))
+        val outDir = Util.fileDirInOutDir(workPath, "tryout-dens")
+        val probFile = outDir.resolve(s"dens-${config.id}.pkl")
+
+        Util.writeString(probFile, write(probs))
+        println(s"Wrote probabillities to $probFile")
+      }
+    }
 
     def createAllX3d(workPath: Path): Unit = {
       Gaia.images.foreach { gi =>

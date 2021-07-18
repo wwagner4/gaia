@@ -56,6 +56,21 @@ object Util {
     }
   }
 
+  def fromFile(filePath: Path): String = {
+    val br = Files.newBufferedReader(filePath)
+    try {
+      br.lines().toScala(Seq).mkString("")
+    } finally {
+      br.close()
+    }
+  }
+
+  def fromResource(resName: String): String = {
+    val url = this.getClass.getClassLoader.getResource(resName)
+    if url == null then throw IllegalArgumentException(s"Unknown resource '$resName'")
+    scala.io.Source.fromInputStream(url.openStream()).mkString
+  }
+
   private def xValues(cnt: Int): Seq[Double] = {
     require(cnt >= 2, s"cnt:$cnt must be greater equal 2")
     val step = 1.0 / (cnt - 1)

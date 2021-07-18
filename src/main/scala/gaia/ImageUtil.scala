@@ -1,6 +1,8 @@
 package gaia
 
 
+import upickle.default.{macroRW, read, write, ReadWriter => RW}
+
 import java.nio.file.Files._
 import java.nio.file.{Files, Path}
 import scala.util.Random
@@ -319,12 +321,49 @@ object ImageUtil {
     Vec(rotated.z, rotated.y, rotated.x)
   }
 
+  enum CubeSplit(val cubeSize: Int, val cubeCount: Int) {
+    case rough extends CubeSplit(16,16)
+    case medium extends CubeSplit(8,32)
+    case fine extends CubeSplit(4,64)
+  }
 
-  def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, i: Int, j: Int, k: Int): Boolean = {
+  case object CubeSplitRough 
+  
+  case class Cube(i: Int, j: Int, k: Int)
+
+  def probsFromResource(cubeSplit: CubeSplit, minCount: Int = 10): Seq[(Cube, Double)] = {
+    def resName(cubeSplit: CubeSplit, minCount: Int): String = {
+      val cubeSplitCode = cubeSplit match {
+        case CubeSplit.fine => "f"
+        case CubeSplit.medium => "m"
+        case CubeSplit.rough => "r"
+      }
+      val minCountsStr = "%03d".format(minCount)
+      s"dens/dens-$cubeSplitCode$minCountsStr.pkl"
+    }
+
+    val rn = resName(cubeSplit, minCount)
+    read[Seq[(Cube, Double)]](Util.fromResource(rn))
+  }
+
+  object Cube {
+    implicit val rw2: RW[Cube] = macroRW
+  }
+
+  def cubeIterator(cubeCount: Int): Seq[Cube] = {
+    for (i <- -cubeCount until cubeCount;
+         j <- -cubeCount until cubeCount;
+         k <- -cubeCount until cubeCount) yield Cube(i, j, k)
+  }
+
+  /**
+   * Descide weather a position is inside a cube or not
+   */
+  def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, cube: Cube): Boolean = {
     val ix = math.floor(pos.x * cubeCount / cubeSize).toInt
     val iy = math.floor(pos.y * cubeCount / cubeSize).toInt
     val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
-    ix == i && iy == j && iz == k
+    ix == cube.i && iy == cube.j && iz == cube.k
   }
 
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
