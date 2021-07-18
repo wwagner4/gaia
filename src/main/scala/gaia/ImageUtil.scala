@@ -321,20 +321,25 @@ object ImageUtil {
     Vec(rotated.z, rotated.y, rotated.x)
   }
 
-  enum CubeSplit(val cubeSize: Int, val cubeCount: Int) {
-    case rough extends CubeSplit(16,16)
-    case medium extends CubeSplit(8,32)
-    case fine extends CubeSplit(4,64)
+  trait CubeSplit {
+    def cubeSize: Int
+    def cubeCount: Int
+  }
+
+  enum CubeSplits(val cubeSize: Int, val cubeCount: Int) extends CubeSplit {
+    case rough extends CubeSplits(16,16)
+    case medium extends CubeSplits(8,32)
+    case fine extends CubeSplits(4,64)
   }
 
   case class Cube(i: Int, j: Int, k: Int)
 
-  def probsFromResource(cubeSplit: CubeSplit, minCount: Int = 10): Seq[(Cube, Double)] = {
-    def resName(cubeSplit: CubeSplit, minCount: Int): String = {
+  def probsFromResource(cubeSplit: CubeSplits, minCount: Int = 10): Seq[(Cube, Double)] = {
+    def resName(cubeSplit: CubeSplits, minCount: Int): String = {
       val cubeSplitCode = cubeSplit match {
-        case CubeSplit.fine => "f"
-        case CubeSplit.medium => "m"
-        case CubeSplit.rough => "r"
+        case CubeSplits.fine => "f"
+        case CubeSplits.medium => "m"
+        case CubeSplits.rough => "r"
       }
       val minCountsStr = "%03d".format(minCount)
       s"dens/dens-$cubeSplitCode$minCountsStr.pkl"

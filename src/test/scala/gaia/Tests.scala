@@ -204,8 +204,8 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
-  def vectorToCube(cubeSize: Int, cubeCount: Int)(value: Vec): Option[Cube] = {
-    val v2i = valueToIndex(cubeSize, cubeCount)
+  def vectorToCube(cubeSplit: CubeSplit)(value: Vec): Option[Cube] = {
+    val v2i = valueToIndex(cubeSplit.cubeSize, cubeSplit.cubeCount)
     val i = v2i(value.x)
     val j = v2i(value.y)
     val k = v2i(value.z)
@@ -281,7 +281,12 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
-  val vectorToCube13 = vectorToCube(1, 3)
+  class CubeSplit13 extends CubeSplit {
+    override def cubeSize: Int = 1
+    override def cubeCount: Int = 3
+  }
+
+  val vectorToCube13 = vectorToCube(CubeSplit13())
   Seq(
     (Vec(-3.0, 0, 0), None),
     (Vec(0, -3.0, 0), None),

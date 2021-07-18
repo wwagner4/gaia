@@ -41,7 +41,7 @@ object Tryout {
   object Development {
 
     def dens(workPath: Path): Unit = {
-      val cubeSplit = CubeSplit.rough
+      val cubeSplit = CubeSplits.rough
 
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
@@ -63,7 +63,7 @@ object Tryout {
 
     case class DensConfig(
                            id: String,
-                           cubeSplit: CubeSplit,
+                           cubeSplit: CubeSplits,
                            minCountPerSector: Int,
                            usageProbability: Double
                          )
@@ -77,16 +77,16 @@ object Tryout {
     def densWrite(workPath: Path): Unit = {
 
       val configs = Seq(
-        DensConfig("r100", CubeSplit.rough, 100, 0.1),
-        DensConfig("r050", CubeSplit.rough, 50, 0.1),
-        DensConfig("r020", CubeSplit.rough, 20, 0.1),
-        DensConfig("r010", CubeSplit.rough, 10, 0.1),
-        DensConfig("r005", CubeSplit.rough, 5, 0.1),
-        DensConfig("m100", CubeSplit.medium, 100, 0.1),
-        DensConfig("m050", CubeSplit.medium, 50, 0.1),
-        DensConfig("m020", CubeSplit.medium, 20, 0.1),
-        DensConfig("m010", CubeSplit.medium, 10, 0.1),
-        DensConfig("m005", CubeSplit.medium, 5, 0.1),
+        DensConfig("r100", CubeSplits.rough, 100, 0.1),
+        DensConfig("r050", CubeSplits.rough, 50, 0.1),
+        DensConfig("r020", CubeSplits.rough, 20, 0.1),
+        DensConfig("r010", CubeSplits.rough, 10, 0.1),
+        DensConfig("r005", CubeSplits.rough, 5, 0.1),
+        DensConfig("m100", CubeSplits.medium, 100, 0.1),
+        DensConfig("m050", CubeSplits.medium, 50, 0.1),
+        DensConfig("m020", CubeSplits.medium, 20, 0.1),
+        DensConfig("m010", CubeSplits.medium, 10, 0.1),
+        DensConfig("m005", CubeSplits.medium, 5, 0.1),
       ).par
 
       configs.foreach { config =>
@@ -382,8 +382,8 @@ object Tryout {
       }
 
       Seq(
-        CubeSplit.medium,
-        CubeSplit.rough,
+        CubeSplits.medium,
+        CubeSplits.rough,
       ).foreach(cubeSplit => dia(cubeSplit.toString(), probsFromResource(cubeSplit)))
     }
 
