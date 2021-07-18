@@ -327,8 +327,6 @@ object ImageUtil {
     case fine extends CubeSplit(4,64)
   }
 
-  case object CubeSplitRough 
-  
   case class Cube(i: Int, j: Int, k: Int)
 
   def probsFromResource(cubeSplit: CubeSplit, minCount: Int = 10): Seq[(Cube, Double)] = {

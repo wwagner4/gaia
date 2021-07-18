@@ -6,7 +6,6 @@ import entelijan.vizb.LineChartBuilder
 import gaia.Gaia.outPath
 import org.apache.commons.lang3.math.Fraction
 import upickle.default.{macroRW, read, write, ReadWriter => RW}
-
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
@@ -14,6 +13,7 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
+
 import scala.annotation.tailrec
 import scala.jdk.StreamConverters._
 import scala.language.{implicitConversions, postfixOps}
@@ -47,6 +47,7 @@ object Tryout {
       val starsGalactic = stars.map(toStarPosDirGalactic)
       val starsGalacticCnt = starsGalactic.size
       println(s"Read stars galactic. Count:$starsGalacticCnt")
+      val cubeSplit = CubeSplit.rough
 
     }
 
