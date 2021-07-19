@@ -388,7 +388,7 @@ object Tryout {
       Seq(
         CubeSplits.medium,
         CubeSplits.rough,
-      ).foreach(cubeSplit => dia(cubeSplit.toString(), probsFromResource(cubeSplit)))
+      ).foreach(cubeSplit => dia(cubeSplit.toString, probsFromResource(cubeSplit)))
     }
 
     def directionColor(workPath: Path): Unit = {
