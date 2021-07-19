@@ -622,11 +622,13 @@ object ImageFactory {
     val starsFiltered = stars.map(toStarPosDirGalactic)
       .filter(s => Random.nextDouble() <= 0.01 && s.pos.length < cubeSplit.cubeSize)
 
-    val ic: (Vec, Cube) => Boolean = inCube(cubeSplit)
-    val counts = for (c <- cubeIterator(cubeSplit.cubeCount)) yield {
-      val sc = starsFiltered.map { s => if (ic(s.pos, c)) 1 else 0 }
-      (c, sc.sum)
-    }
+    val counts: Seq[(Cube, Int)] = starsFiltered
+      .flatMap(s => ImageUtil.positionToCube(cubeSplit)(s.pos))
+      .groupBy(identity)
+      .toSeq
+      .map((g, l) => (g, l.size))
+      .sortBy(t => -t._2)
+
     val maxCount = counts.map { case (_, v) => v }.max
     println(s"size max: ${counts.size} $maxCount")
 

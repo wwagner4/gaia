@@ -35,7 +35,7 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    Development.dens(workPath)
+    Obsolete.densRead(workPath)
   }
 
   object Development {
@@ -76,17 +76,19 @@ object Tryout {
      */
     def densWrite(workPath: Path): Unit = {
 
+      val uasageProbability = 0.1
+
       val configs = Seq(
-        DensConfig("r100", CubeSplits.rough, 100, 0.1),
-        DensConfig("r050", CubeSplits.rough, 50, 0.1),
-        DensConfig("r020", CubeSplits.rough, 20, 0.1),
-        DensConfig("r010", CubeSplits.rough, 10, 0.1),
-        DensConfig("r005", CubeSplits.rough, 5, 0.1),
-        DensConfig("m100", CubeSplits.medium, 100, 0.1),
-        DensConfig("m050", CubeSplits.medium, 50, 0.1),
-        DensConfig("m020", CubeSplits.medium, 20, 0.1),
-        DensConfig("m010", CubeSplits.medium, 10, 0.1),
-        DensConfig("m005", CubeSplits.medium, 5, 0.1),
+        DensConfig("r100", CubeSplits.rough, 100, uasageProbability),
+        DensConfig("r050", CubeSplits.rough, 50, uasageProbability),
+        DensConfig("r020", CubeSplits.rough, 20, uasageProbability),
+        DensConfig("r010", CubeSplits.rough, 10, uasageProbability),
+        DensConfig("r005", CubeSplits.rough, 5, uasageProbability),
+        DensConfig("m100", CubeSplits.medium, 100, uasageProbability),
+        DensConfig("m050", CubeSplits.medium, 50, uasageProbability),
+        DensConfig("m020", CubeSplits.medium, 20, uasageProbability),
+        DensConfig("m010", CubeSplits.medium, 10, uasageProbability),
+        DensConfig("m005", CubeSplits.medium, 5, uasageProbability),
       ).par
 
       configs.foreach { config =>
@@ -96,25 +98,27 @@ object Tryout {
         val stars = StarCollections.basicStars(workPath)
 
         val starsFiltered = stars.map(toStarPosDirGalactic)
-          .filter(s => Random.nextDouble() <= 0.1 && s.pos.length < config.cubeSplit.cubeSize)
+          .filter(s => Random.nextDouble() <= config.usageProbability && s.pos.length < config.cubeSplit.cubeSize)
+        println(s"${config.id}: Filterde to ${starsFiltered.size}")
 
-        val ic: (Vec, Cube) => Boolean = inCube(config.cubeSplit)
-        val counts: Seq[(Cube, Int)] = (for (c <- cubeIterator(config.cubeSplit.cubeCount)) yield {
-          val sc = starsFiltered.map { s => if (ic(s.pos, c)) 1 else 0 }
-          (c, sc.sum)
-        }).sortBy((_, d) => -d)
+        val counts: Seq[(Cube, Int)] = starsFiltered
+          .flatMap(s => ImageUtil.positionToCube(config.cubeSplit)(s.pos))
+          .groupBy(identity)
+          .toSeq
+          .map((g, l) => (g, l.size))
+          .sortBy(t => -t._2)
 
         val probs: Seq[(Cube, Double)] = counts
           .map((c, cnt) => (c, math.min(1.0, config.minCountPerSector.toDouble / cnt)))
           .filter((_, prob) => prob < 1.0)
 
-        println(s"size ${probs.size}")
         probs.foreach(println(_))
+        println(s"${config.id}: Config: $config Probabilities size ${probs.size}")
         val outDir = Util.fileDirInOutDir(workPath, "tryout-dens")
         val probFile = outDir.resolve(s"dens-${config.id}.pkl")
 
         Util.writeString(probFile, write(probs))
-        println(s"Wrote probabillities to $probFile")
+        println(s"${config.id}: Wrote probabillities to $probFile")
       }
     }
 

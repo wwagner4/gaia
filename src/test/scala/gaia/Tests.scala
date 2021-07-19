@@ -102,35 +102,6 @@ class Tests extends AnyFunSuite with must.Matchers {
     }
   }
 
-  class CubeSplit82 extends CubeSplit {
-    override def cubeSize = 8.0
-    override def cubeCount = 2
-  }
-
-  lazy val ic = ImageUtil.inCube(CubeSplit82()) _
-
-  val IN_CUBE = Seq(
-    (Vec(0.5, 0.5, 0.5), (0, 0, 0), true),
-    (Vec(0.5, 0.5, 0.5), (1, 0, 0), false),
-    (Vec(0.5, 0.5, 0.5), (-1, -1, 0), false),
-    (Vec(0.5, 0.5, 0.5), (-2, -1, 0), false),
-    (Vec(0.5, 0.5, 0.5), (0, -1, 0), false),
-    (Vec(0.5, 0.5, 0.5), (0, -1, -2), false),
-    (Vec(0.5, -0.5, 0.5), (0, -1, 0), true),
-    (Vec(0.5, -0.5, 0.5), (1, -1, 0), false),
-    (Vec(0.5, -0.5, 0.5), (-1, -1, 0), false),
-    (Vec(0.5, -0.5, 0.5), (-2, -1, 0), false),
-    (Vec(0.5, -0.5, 0.5), (0, -1, -1), false),
-    (Vec(0.5, -0.5, 0.5), (0, -1, -2), false),
-  )
-
-
-  for ((v, (i, j, k), result) <- IN_CUBE) {
-    test(s"in out a cube ${v} $i $j $k") {
-      ic(v, Cube(i, j, k)) == result
-    }
-  }
-
   val degStepsTestVals = Seq(
     (2, List(0.0, 180.0)),
     (3, List(0.0, 360.0 / 3, 2.0 * 360.0 / 3)),
@@ -210,13 +181,14 @@ class Tests extends AnyFunSuite with must.Matchers {
   }
 
   /*
-   None    -3    -2    -1    0     1     2     None
+   None |  -3 |  -2 |  -1 |  0  |  1  |  2  |  None
    -----|-----|-----|-----|-----|-----|-----|-----|-----
        -3    -2    -1     0     1     2     3     4
    */
 
-  val valueToIndex13 = valueToIndex(1, 3)
+  val valueToIndex13 = valueToIndex(3, 3)
   Seq(
+    (-4.0, None),
     (-3.0, None),
     (-2.99999, Some(-3)),
     (-2.1, Some(-3)),
@@ -238,18 +210,18 @@ class Tests extends AnyFunSuite with must.Matchers {
     (3.1, None),
     (10000.0, None),
   ).foreach { (value: Double, index: Option[Int]) =>
-    test(s"one dimension interval from value cubesize:1 cubecount:3 $value") {
+    test(s"one dimension interval from value size:3 cubecount:3 $value") {
       valueToIndex13(value).mustBe(index)
     }
   }
 
   /*
- None    -3    -2    -1    0     1     2     None
+     None   |     -1    |     0     |    None         Index
  -----|-----|-----|-----|-----|-----|-----|-----|-----
-     -3    -2    -1     0     1     2     3     4
+     -3    -2    -1     0     1     2     3     4     Value
  */
 
-  val valueToIndex21 = valueToIndex(2, 1)
+  val valueToIndex31 = valueToIndex(2, 1)
   Seq(
     (-2.0, None),
     (-1.99999, Some(-1)),
@@ -265,17 +237,17 @@ class Tests extends AnyFunSuite with must.Matchers {
     (2.0, None),
     (10000.0, None),
   ).foreach { (value: Double, index: Option[Int]) =>
-    test(s"one dimension interval from value cubesize:2 cubecount:1 $value") {
-      valueToIndex21(value).mustBe(index)
+    test(s"one dimension interval from value size:2 cubecount:1 $value") {
+      valueToIndex31(value).mustBe(index)
     }
   }
 
   class CubeSplit13 extends CubeSplit {
-    override def cubeSize = 1.0
+    override def cubeSize = 3.0
     override def cubeCount = 3
   }
 
-  val vectorToCube13 = positionToCube(CubeSplit13())
+  val vectorToCube33 = positionToCube(CubeSplit13())
   Seq(
     (Vec(-3.0, 0, 0), None),
     (Vec(0, -3.0, 0), None),
@@ -283,8 +255,8 @@ class Tests extends AnyFunSuite with must.Matchers {
     (Vec(-2.99999999, 1.5, -0.5), Some(Cube(-3, 1, -1))),
   ).foreach { (value: Vec, cube: Option[Cube]) =>
     val vs = s"[${value.x} ${value.y} ${value.z}]"
-    test(s"vector to cube cubesize:1 cubecount:3 $vs") {
-      vectorToCube13(value).mustBe(cube)
+    test(s"vector to cube cubesize:3 cubecount:3 $vs") {
+      vectorToCube33(value).mustBe(cube)
     }
   }
 

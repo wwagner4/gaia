@@ -116,11 +116,11 @@ object ImageUtil {
 
     if (exists(cache)) {
       val stars = fromCsv()
-      println(s"filtered (cached) basic to ${stars.size} stars")
+      println(s"Filtered (cached) basic to ${stars.size} stars")
       stars
     }
     else {
-      println(s"creating data from base and store in $cache")
+      println(s"Creating data from base and store in $cache")
       val stars = Data.readBasic(workPath)
         .filter(filterStar)
         .toSeq
@@ -327,10 +327,9 @@ object ImageUtil {
   }
 
   enum CubeSplits(val cubeSize: Double, val cubeCount: Int) extends CubeSplit {
-    // TODO Check cube size and cube count. Currently much too large
     case rough extends CubeSplits(16,16)
-    case medium extends CubeSplits(8,32)
-    case fine extends CubeSplits(4,64)
+    case medium extends CubeSplits(16,32)
+    case fine extends CubeSplits(16,64)
   }
 
   case class Cube(i: Int, j: Int, k: Int)
@@ -368,14 +367,6 @@ object ImageUtil {
     for (i <- -cubeCount until cubeCount;
          j <- -cubeCount until cubeCount;
          k <- -cubeCount until cubeCount) yield Cube(i, j, k)
-  }
-
-  /**
-   * Descide weather a position is inside a cube or not
-   */
-  def inCube(cubeSplit: CubeSplit)(pos: Vec, cube: Cube): Boolean = {
-    val c1 = positionToCube(cubeSplit)(pos)
-    c1 == cube
   }
 
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {

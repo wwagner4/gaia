@@ -379,7 +379,8 @@ object Util {
   }
 
   def valueToIndex(size: Double, count: Int)(value: Double): Option[Int] = {
-    val valueRelative = value / size
+    val cubeSize = size.toDouble / count
+    val valueRelative = value / cubeSize
     if value >= 0 then if valueRelative >= count then None else Some(valueRelative.toInt)
     else if valueRelative <= -count then None else Some(valueRelative.toInt - 1)
   }
