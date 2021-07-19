@@ -35,7 +35,7 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    Obsolete.densRead(workPath)
+    Development.dens(workPath)
   }
 
   object Development {
