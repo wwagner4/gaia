@@ -40,21 +40,114 @@ object Tryout {
 
   object Development {
 
+    case class DensConfig(
+                           id: String,
+                           circles: Seq[Shapable] = ImageUtil.circleShapes(8, 10, color = Color.white),
+                           colorStar: Color,
+                           filterStars: StarPosDir => Boolean,
+                         )
+
     def dens(workPath: Path): Unit = {
-      val cubeSplit = CubeSplits.rough
+      
+      enum PosToProbConfig(val cubeSplit: CubeSplits, val minCount: Int) {
+        case m005 extends PosToProbConfig(CubeSplits.medium, 5)
+        case m010 extends PosToProbConfig(CubeSplits.medium, 10)
+        case m020 extends PosToProbConfig(CubeSplits.medium, 20)
+        case m050 extends PosToProbConfig(CubeSplits.medium, 50)
+        case m100 extends PosToProbConfig(CubeSplits.medium, 100)
+        case r005 extends PosToProbConfig(CubeSplits.rough, 5)
+        case r010 extends PosToProbConfig(CubeSplits.rough, 10)
+        case r020 extends PosToProbConfig(CubeSplits.rough, 20)
+        case r050 extends PosToProbConfig(CubeSplits.rough, 50)
+        case r100 extends PosToProbConfig(CubeSplits.rough, 100)
+        
+      }
+
+      def posToProb(posToProbConfig: PosToProbConfig): Vec => Double = {
+        val probsMap: Map[Cube, Double] = ImageUtil.probsFromResource(posToProbConfig.cubeSplit, posToProbConfig.minCount).toMap
+        val posToCube: Vec => Option[Cube] = ImageUtil.positionToCube(posToProbConfig.cubeSplit)
+        (pos: Vec) => posToCube(pos).map(c => probsMap.getOrElse(c, 1.0)).getOrElse(0.0)
+      }
+      val posToProbs: Map[PosToProbConfig, Vec => Double] = PosToProbConfig.values.map(e => (e, posToProb(e))).toMap
+
+      val cubeSplitAll = CubeSplits.rough
 
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
-      val stars = StarCollections.basicStars(workPath)
-      val starsGalactic = stars.map(toStarPosDirGalactic).filter(s => Random.nextDouble() < 0.01 && ImageUtil.positionToCube(cubeSplit)(s.pos).isDefined)
-      val starsGalacticCnt = starsGalactic.size
-      println(s"Read stars galactic. Count:$starsGalacticCnt")
-      val positions = starsGalactic.map(s => s.pos)
-      val shapables = Seq(Shapable.PointSet(positions = positions)) ++ ImageUtil.circleShapes(8, 10, color = Color.white)
-      val xml: String = createXml(shapables, title = "dens_all", backColor = Color.black)
-      val file = tryoutDir.resolve(s"tryout_dens_all.x3d")
-      gaia.Util.writeString(file, xml)
-      println(s"Wrote x3d to $file")
+      val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
+      
+      val dcfgs = Seq(
+        DensConfig(
+          id = "all-medium",
+          colorStar = Color.yellow,
+          filterStars = (s: StarPosDir) => Random.nextDouble() < 0.01 && ImageUtil.positionToCube(cubeSplitAll)(s.pos).isDefined,
+        ),
+        DensConfig(
+          id = "all-many",
+          colorStar = Color.orange,
+          filterStars = (s: StarPosDir) => Random.nextDouble() < 0.1 && ImageUtil.positionToCube(cubeSplitAll)(s.pos).isDefined,
+        ),
+        DensConfig(
+          id = "norm-many-r010",
+          colorStar = Color.white,
+          filterStars = { (s: StarPosDir) =>
+            Random.nextDouble() < 0.1 && {
+              val prob = posToProbs(PosToProbConfig.r010)(s.pos)
+              Random.nextDouble() <= prob
+            }
+          }
+        ),
+        DensConfig(
+          id = "norm-many-r100",
+          colorStar = Color.white,
+          filterStars = { (s: StarPosDir) =>
+            Random.nextDouble() < 0.1 && {
+              val prob = posToProbs(PosToProbConfig.r100)(s.pos)
+              Random.nextDouble() <= prob
+            }
+          }
+        ),
+        DensConfig(
+          id = "norm-many-r005",
+          colorStar = Color.white,
+          filterStars = { (s: StarPosDir) =>
+            Random.nextDouble() < 0.1 && {
+              val prob = posToProbs(PosToProbConfig.r005)(s.pos)
+              Random.nextDouble() <= prob
+            }
+          }
+        ),
+        DensConfig(
+          id = "norm-many-m005",
+          colorStar = Color.white,
+          filterStars = { (s: StarPosDir) =>
+            Random.nextDouble() < 0.1 && {
+              val prob = posToProbs(PosToProbConfig.m005)(s.pos)
+              Random.nextDouble() <= prob
+            }
+          }
+        ),
+        DensConfig(
+          id = "norm-medium-m100",
+          colorStar = Color.white,
+          filterStars = { (s: StarPosDir) =>
+            Random.nextDouble() < 0.01 && {
+              val prob = posToProbs(PosToProbConfig.m100)(s.pos)
+              Random.nextDouble() <= prob
+            }
+          }
+        ),
+      ).par
+
+      dcfgs.foreach { dcfg =>
+        val stars = starsGalactic.filter(dcfg.filterStars)
+        println(s"Stars ${dcfg.id} count:${stars.size}")
+        val shapables = Seq(Shapable.PointSet(positions = stars.map(s => s.pos), color = dcfg.colorStar)) ++ dcfg.circles
+        val xml: String = createXml(shapables, title = s"dens_${dcfg.id}", backColor = Color.black)
+        val file = tryoutDir.resolve(s"tryout-dens-${dcfg.id}.x3d")
+        gaia.Util.writeString(file, xml)
+        println(s"Wrote ${dcfg.id} x3d to $file")
+      }
     }
 
   }
@@ -93,7 +186,6 @@ object Tryout {
 
       configs.foreach { config =>
         println(s"Running dens $config")
-
 
         val stars = StarCollections.basicStars(workPath)
 
