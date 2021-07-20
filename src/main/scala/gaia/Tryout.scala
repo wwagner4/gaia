@@ -40,109 +40,148 @@ object Tryout {
 
   object Development {
 
+    enum CubeToProbs(val cubeSplit: CubeSplits, val minCount: Int) {
+      case m005 extends CubeToProbs(CubeSplits.medium, 5)
+      case m010 extends CubeToProbs(CubeSplits.medium, 10)
+      case m020 extends CubeToProbs(CubeSplits.medium, 20)
+      case m050 extends CubeToProbs(CubeSplits.medium, 50)
+      case m100 extends CubeToProbs(CubeSplits.medium, 100)
+      case r005 extends CubeToProbs(CubeSplits.rough, 5)
+      case r010 extends CubeToProbs(CubeSplits.rough, 10)
+      case r020 extends CubeToProbs(CubeSplits.rough, 20)
+      case r050 extends CubeToProbs(CubeSplits.rough, 50)
+      case r100 extends CubeToProbs(CubeSplits.rough, 100)
+
+      private def posToProb(cubeToProbConfig: CubeToProbs): Cube => Double = {
+        val probsMap: Map[Cube, Double] = ImageUtil.probsFromResource(cubeToProbConfig.cubeSplit, cubeToProbConfig.minCount).toMap
+        (c: Cube) => probsMap.getOrElse(c, 1.0)
+      }
+
+      private lazy val cubeToProbs: Map[CubeToProbs, Cube => Double] = CubeToProbs.values.map(e => (e, posToProb(e))).toMap
+
+      def cubeToProbFunction: Cube => Double = {
+        cubeToProbs(this)
+      }
+
+    }
+
+    case class StarCube(
+                         starPosDir: StarPosDir,
+                         cube: Cube,
+                       )
+
     case class DensConfig(
                            id: String,
-                           circles: Seq[Shapable] = ImageUtil.circleShapes(8, 10, color = Color.white),
-                           colorStar: Color,
-                           filterStars: StarPosDir => Boolean,
+                           cubeToProbs: CubeToProbs,
+                           filterStars: (StarCube, CubeToProbs) => Boolean,
+                           shapables: Iterable[StarCube] => Seq[Shapable] = { (stars: Iterable[StarCube]) =>
+                             Seq(Shapable.PointSet(positions = stars.map(s => s.starPosDir.pos), color = Color.orange))
+                               ++ ImageUtil.circleShapes(8, 10, color = Color.white)
+                             ,
+                           }
                          )
 
     def dens(workPath: Path): Unit = {
-      
-      enum PosToProbConfig(val cubeSplit: CubeSplits, val minCount: Int) {
-        case m005 extends PosToProbConfig(CubeSplits.medium, 5)
-        case m010 extends PosToProbConfig(CubeSplits.medium, 10)
-        case m020 extends PosToProbConfig(CubeSplits.medium, 20)
-        case m050 extends PosToProbConfig(CubeSplits.medium, 50)
-        case m100 extends PosToProbConfig(CubeSplits.medium, 100)
-        case r005 extends PosToProbConfig(CubeSplits.rough, 5)
-        case r010 extends PosToProbConfig(CubeSplits.rough, 10)
-        case r020 extends PosToProbConfig(CubeSplits.rough, 20)
-        case r050 extends PosToProbConfig(CubeSplits.rough, 50)
-        case r100 extends PosToProbConfig(CubeSplits.rough, 100)
-        
-      }
-
-      def posToProb(posToProbConfig: PosToProbConfig): Vec => Double = {
-        val probsMap: Map[Cube, Double] = ImageUtil.probsFromResource(posToProbConfig.cubeSplit, posToProbConfig.minCount).toMap
-        val posToCube: Vec => Option[Cube] = ImageUtil.positionToCube(posToProbConfig.cubeSplit)
-        (pos: Vec) => posToCube(pos).map(c => probsMap.getOrElse(c, 1.0)).getOrElse(0.0)
-      }
-      val posToProbs: Map[PosToProbConfig, Vec => Double] = PosToProbConfig.values.map(e => (e, posToProb(e))).toMap
-
-      val cubeSplitAll = CubeSplits.rough
 
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
-      
+
+
       val dcfgs = Seq(
         DensConfig(
           id = "all-medium",
-          colorStar = Color.yellow,
-          filterStars = (s: StarPosDir) => Random.nextDouble() < 0.01 && ImageUtil.positionToCube(cubeSplitAll)(s.pos).isDefined,
+          cubeToProbs = CubeToProbs.m005,
+          filterStars = { (s: StarCube, _: CubeToProbs) => Random.nextDouble() < 0.01 },
         ),
         DensConfig(
           id = "all-many",
-          colorStar = Color.orange,
-          filterStars = (s: StarPosDir) => Random.nextDouble() < 0.1 && ImageUtil.positionToCube(cubeSplitAll)(s.pos).isDefined,
+          cubeToProbs = CubeToProbs.m005,
+          filterStars = { (s: StarCube, _: CubeToProbs) => Random.nextDouble() < 0.1 }
         ),
         DensConfig(
           id = "norm-many-r010",
-          colorStar = Color.white,
-          filterStars = { (s: StarPosDir) =>
+          cubeToProbs = CubeToProbs.r010,
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
             Random.nextDouble() < 0.1 && {
-              val prob = posToProbs(PosToProbConfig.r010)(s.pos)
+              val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
           }
         ),
         DensConfig(
           id = "norm-many-r100",
-          colorStar = Color.white,
-          filterStars = { (s: StarPosDir) =>
+          cubeToProbs = CubeToProbs.r100,
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
             Random.nextDouble() < 0.1 && {
-              val prob = posToProbs(PosToProbConfig.r100)(s.pos)
+              val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
           }
         ),
         DensConfig(
           id = "norm-many-r005",
-          colorStar = Color.white,
-          filterStars = { (s: StarPosDir) =>
+          cubeToProbs = CubeToProbs.r005,
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
             Random.nextDouble() < 0.1 && {
-              val prob = posToProbs(PosToProbConfig.r005)(s.pos)
+              val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
           }
         ),
         DensConfig(
           id = "norm-many-m005",
-          colorStar = Color.white,
-          filterStars = { (s: StarPosDir) =>
+          cubeToProbs = CubeToProbs.m005,
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
             Random.nextDouble() < 0.1 && {
-              val prob = posToProbs(PosToProbConfig.m005)(s.pos)
+              val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
           }
         ),
         DensConfig(
           id = "norm-medium-m100",
-          colorStar = Color.white,
-          filterStars = { (s: StarPosDir) =>
+          cubeToProbs = CubeToProbs.m100,
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
             Random.nextDouble() < 0.01 && {
-              val prob = posToProbs(PosToProbConfig.m100)(s.pos)
+              val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
           }
         ),
       ).par
 
+      val dcfgs1 = Seq(
+        DensConfig(
+          id = "all-medium",
+          cubeToProbs = CubeToProbs.m005,
+          filterStars = { (s: StarCube, _: CubeToProbs) => Random.nextDouble() < 0.01 }
+        ),
+        DensConfig(
+          id = "norm-medium-m100",
+          cubeToProbs = CubeToProbs.m100,
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
+            Random.nextDouble() < 0.01 && {
+              val prob = cubeToProbs.cubeToProbFunction(s.cube)
+              Random.nextDouble() <= prob
+            }
+          }
+        ),
+      )
+
+      def densShapables(densConfig: DensConfig): Seq[Shapable] = {
+        val stars = starsGalactic
+          .flatMap { s =>
+            ImageUtil.positionToCube(densConfig.cubeToProbs.cubeSplit)(s.pos)
+              .map(c => StarCube(s, c))
+          }
+          .filter(sc => densConfig.filterStars(sc, densConfig.cubeToProbs))
+        println(s"Stars ${densConfig.id} count:${stars.size}")
+        densConfig.shapables(stars)
+      }
+
       dcfgs.foreach { dcfg =>
-        val stars = starsGalactic.filter(dcfg.filterStars)
-        println(s"Stars ${dcfg.id} count:${stars.size}")
-        val shapables = Seq(Shapable.PointSet(positions = stars.map(s => s.pos), color = dcfg.colorStar)) ++ dcfg.circles
+        val shapables = densShapables(dcfg)
         val xml: String = createXml(shapables, title = s"dens_${dcfg.id}", backColor = Color.black)
         val file = tryoutDir.resolve(s"tryout-dens-${dcfg.id}.x3d")
         gaia.Util.writeString(file, xml)
