@@ -15,6 +15,7 @@ import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
 
 import scala.annotation.tailrec
+import scala.collection.immutable
 import scala.jdk.StreamConverters._
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.Random
@@ -83,89 +84,34 @@ object Tryout {
 
     def dens(workPath: Path): Unit = {
 
+      def shapablesRedWhite(stars: Iterable[StarCube]): Seq[Shapable] = {
+        val starsShapables =
+          stars
+            .map { sc => ((sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
+            .groupBy((i, _) => i)
+            .map((_, l) => l.map(t0 => t0._2.starPosDir))
+            .zip(Seq(Color.white, Color.red))
+            .map { (s, c) => Shapable.PointSet(positions = s.map(s => s.pos), color = c)
+            }.toSeq
+
+        starsShapables ++ ImageUtil.circleShapes(8, 10, color = Color.white)
+      }
+
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
 
-
       val dcfgs = Seq(
         DensConfig(
-          id = "all-medium",
-          cubeToProbs = CubeToProbs.m005,
-          filterStars = { (s: StarCube, _: CubeToProbs) => Random.nextDouble() < 0.01 },
-        ),
-        DensConfig(
-          id = "all-many",
-          cubeToProbs = CubeToProbs.m005,
-          filterStars = { (s: StarCube, _: CubeToProbs) => Random.nextDouble() < 0.1 }
-        ),
-        DensConfig(
-          id = "norm-many-r010",
-          cubeToProbs = CubeToProbs.r010,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.1 && {
-              val prob = cubeToProbs.cubeToProbFunction(s.cube)
-              Random.nextDouble() <= prob
-            }
-          }
-        ),
-        DensConfig(
-          id = "norm-many-r100",
+          id = "norm-medium-r100",
           cubeToProbs = CubeToProbs.r100,
           filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.1 && {
-              val prob = cubeToProbs.cubeToProbFunction(s.cube)
-              Random.nextDouble() <= prob
-            }
-          }
-        ),
-        DensConfig(
-          id = "norm-many-r005",
-          cubeToProbs = CubeToProbs.r005,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.1 && {
-              val prob = cubeToProbs.cubeToProbFunction(s.cube)
-              Random.nextDouble() <= prob
-            }
-          }
-        ),
-        DensConfig(
-          id = "norm-many-m005",
-          cubeToProbs = CubeToProbs.m005,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.1 && {
-              val prob = cubeToProbs.cubeToProbFunction(s.cube)
-              Random.nextDouble() <= prob
-            }
-          }
-        ),
-        DensConfig(
-          id = "norm-medium-m100",
-          cubeToProbs = CubeToProbs.m100,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
             Random.nextDouble() < 0.01 && {
               val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
-          }
-        ),
-      ).par
-
-      val dcfgs1 = Seq(
-        DensConfig(
-          id = "all-medium",
-          cubeToProbs = CubeToProbs.m005,
-          filterStars = { (s: StarCube, _: CubeToProbs) => Random.nextDouble() < 0.01 }
-        ),
-        DensConfig(
-          id = "norm-medium-m100",
-          cubeToProbs = CubeToProbs.m100,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.01 && {
-              val prob = cubeToProbs.cubeToProbFunction(s.cube)
-              Random.nextDouble() <= prob
-            }
-          }
+          },
+          shapables = shapablesRedWhite,
         ),
       )
 
