@@ -103,10 +103,10 @@ object Tryout {
 
       val dcfgs = Seq(
         DensConfig(
-          id = "norm-medium-r100",
-          cubeToProbs = CubeToProbs.r100,
+          id = "norm-l1-m005",
+          cubeToProbs = CubeToProbs.m005,
           filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.01 && {
+            Random.nextDouble() < 0.5 && {
               val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
