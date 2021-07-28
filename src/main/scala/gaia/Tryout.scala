@@ -45,7 +45,8 @@ object Tryout {
       case s extends StarDensity(0.001)
       case m extends StarDensity(0.01)
       case l extends StarDensity(0.1)
-      case xl extends StarDensity(0.3)
+      case xl extends StarDensity(0.5)
+      case xxl extends StarDensity(1.0)
     }
 
     enum CubeToProbs(val cubeSplit: CubeSplits, val minCount: Int) {
@@ -67,9 +68,9 @@ object Tryout {
         (c: Cube) => probsMap.getOrElse(c, 1.0)
       }
 
-      private lazy val cubeToProbs: Map[CubeToProbs, Cube => Double] = 
+      private lazy val cubeToProbs: Map[CubeToProbs, Cube => Double] =
         CubeToProbs.values
-          .map{cp => (cp, createCubeToProb(cp))}
+          .map { cp => (cp, createCubeToProb(cp)) }
           .toMap
 
       def cubeToProbFunction: Cube => Double = {
@@ -90,7 +91,7 @@ object Tryout {
                            filterStars: (StarCube, CubeToProbs, StarDensity) => Boolean,
                            shapables: Iterable[StarCube] => Seq[Shapable] = { (stars: Iterable[StarCube]) =>
                              Seq(Shapable.PointSet(positions = stars.map(s => s.starPosDir.pos), color = Color.orange))
-                               ++ ImageUtil.circleShapes(8, 10, color = Color.white)
+                               ++ ImageUtil.circleShapes(8, 10, color = Color.gray(0.7))
                              ,
                            }
                          )
@@ -98,18 +99,18 @@ object Tryout {
     def dens(workPath: Path): Unit = {
 
       def shapablesPointSet
-          (color1: Color, color2: Color, colorCircles: Color)
-          (stars: Iterable[StarCube]): Seq[Shapable] = {
+      (color1: Color, color2: Color, colorCircles: Color)
+      (stars: Iterable[StarCube]): Seq[Shapable] = {
         val starsShapables =
           stars
-            .map { sc => (math.abs((sc.cube.i + sc.cube.j + sc.cube.k)) % 2, sc) }
+            .map { sc => (math.abs(sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
             .groupBy((i, _) => i)
             .map((_, l) => l.map(t0 => t0._2.starPosDir))
-            .zip(Seq(Color.white, Color.red))
+            .zip(Seq(color1, color2))
             .map { (s, c) => Shapable.PointSet(positions = s.map(s => s.pos), color = c)
             }.toSeq
 
-        starsShapables ++ ImageUtil.circleShapes(8, 10, color = Color.white)
+        starsShapables ++ ImageUtil.circleShapes(8, 10, color = colorCircles)
       }
 
       def filterDefault(s: StarCube, cubeToProbs: CubeToProbs, starDensity: StarDensity): Boolean = {
@@ -124,9 +125,9 @@ object Tryout {
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
 
       val dcfgs = for (
-          sd <- Seq(StarDensity.l); 
-          cp <- Seq(CubeToProbs.m005, CubeToProbs.m010)) yield {
-        val id = s"$sd-$cp"  
+        sd <- StarDensity.values;
+        cp <- CubeToProbs.values) yield {
+        val id = s"$sd-$cp"
         val c1 = Color.green
         val c2 = Color.yellow
         val cl = Color.gray(0.7)
@@ -136,7 +137,8 @@ object Tryout {
           cubeToProbs = cp,
           filterStars = filterDefault,
           shapables = shapablesPointSet(c1, c2, cl),
-        ),
+        )
+        ,
       }
 
       def densShapables(densConfig: DensConfig): Seq[Shapable] = {
