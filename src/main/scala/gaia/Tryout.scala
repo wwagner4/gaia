@@ -59,12 +59,17 @@ object Tryout {
       case r050 extends CubeToProbs(CubeSplits.rough, 50)
       case r100 extends CubeToProbs(CubeSplits.rough, 100)
 
-      private def posToProb(cubeToProbConfig: CubeToProbs): Cube => Double = {
-        val probsMap: Map[Cube, Double] = ImageUtil.probsFromResource(cubeToProbConfig.cubeSplit, cubeToProbConfig.minCount).toMap
+      private def createCubeToProb(cubeToProbConfig: CubeToProbs): Cube => Double = {
+        val cs = cubeToProbConfig.cubeSplit
+        val mc = cubeToProbConfig.minCount
+        val probsMap: Map[Cube, Double] = ImageUtil.probsFromResource(cs, mc).toMap
         (c: Cube) => probsMap.getOrElse(c, 1.0)
       }
 
-      private lazy val cubeToProbs: Map[CubeToProbs, Cube => Double] = CubeToProbs.values.map(e => (e, posToProb(e))).toMap
+      private lazy val cubeToProbs: Map[CubeToProbs, Cube => Double] = 
+        CubeToProbs.values
+          .map{cp => (cp, createCubeToProb(cp))}
+          .toMap
 
       def cubeToProbFunction: Cube => Double = {
         cubeToProbs(this)
