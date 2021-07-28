@@ -96,7 +96,9 @@ object Tryout {
 
     def dens(workPath: Path): Unit = {
 
-      def shapablesRedWhite(stars: Iterable[StarCube]): Seq[Shapable] = {
+      def shapablesPointSet
+          (color1: Color, color2: Color, colorCircles: Color)
+          (stars: Iterable[StarCube]): Seq[Shapable] = {
         val starsShapables =
           stars
             .map { sc => ((sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
@@ -124,12 +126,15 @@ object Tryout {
           sd <- Seq(StarDensity.s); 
           cp <- Seq(CubeToProbs.m005, CubeToProbs.m010)) yield {
         val id = s"$sd-$cp"  
+        val c1 = Color.green
+        val c2 = Color.yellow
+        val cl = Color.gray(0.7)
         DensConfig(
           id = id,
           starDensity = sd,
           cubeToProbs = cp,
           filterStars = filterDefault,
-          shapables = shapablesRedWhite,
+          shapables = shapablesPointSet(c1, c2, cl),
         ),
       }
 
