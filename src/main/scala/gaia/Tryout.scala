@@ -115,15 +115,18 @@ object Tryout {
       println(s"Created tryout dir $tryoutDir")
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
 
-      val dcfgs = Seq(
+      val dcfgs = for (
+          sd <- Seq(StarDensity.s); 
+          cp <- Seq(CubeToProbs.m005, CubeToProbs.m010)) yield {
+        val id = s"$sd-$cp"  
         DensConfig(
-          id = "s-m005",
-          starDensity = StarDensity.s,
-          cubeToProbs = CubeToProbs.m005,
+          id = id,
+          starDensity = sd,
+          cubeToProbs = cp,
           filterStars = filterDefault,
           shapables = shapablesRedWhite,
         ),
-      )
+      }
 
       def densShapables(densConfig: DensConfig): Seq[Shapable] = {
         val stars = starsGalactic
