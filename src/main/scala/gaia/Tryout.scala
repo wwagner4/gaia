@@ -45,6 +45,7 @@ object Tryout {
       case s extends StarDensity(0.001)
       case m extends StarDensity(0.01)
       case l extends StarDensity(0.1)
+      case xl extends StarDensity(0.3)
     }
 
     enum CubeToProbs(val cubeSplit: CubeSplits, val minCount: Int) {
@@ -101,7 +102,7 @@ object Tryout {
           (stars: Iterable[StarCube]): Seq[Shapable] = {
         val starsShapables =
           stars
-            .map { sc => ((sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
+            .map { sc => (math.abs((sc.cube.i + sc.cube.j + sc.cube.k)) % 2, sc) }
             .groupBy((i, _) => i)
             .map((_, l) => l.map(t0 => t0._2.starPosDir))
             .zip(Seq(Color.white, Color.red))
@@ -123,7 +124,7 @@ object Tryout {
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
 
       val dcfgs = for (
-          sd <- Seq(StarDensity.s); 
+          sd <- Seq(StarDensity.l); 
           cp <- Seq(CubeToProbs.m005, CubeToProbs.m010)) yield {
         val id = s"$sd-$cp"  
         val c1 = Color.green
