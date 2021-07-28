@@ -41,6 +41,12 @@ object Tryout {
 
   object Development {
 
+    enum StarDensity(val probabillity: Double) {
+      case s extends StarDensity(0.001)
+      case m extends StarDensity(0.01)
+      case l extends StarDensity(0.1)
+    }
+
     enum CubeToProbs(val cubeSplit: CubeSplits, val minCount: Int) {
       case m005 extends CubeToProbs(CubeSplits.medium, 5)
       case m010 extends CubeToProbs(CubeSplits.medium, 10)
@@ -73,8 +79,9 @@ object Tryout {
 
     case class DensConfig(
                            id: String,
+                           starDensity: StarDensity,
                            cubeToProbs: CubeToProbs,
-                           filterStars: (StarCube, CubeToProbs) => Boolean,
+                           filterStars: (StarCube, CubeToProbs, StarDensity) => Boolean,
                            shapables: Iterable[StarCube] => Seq[Shapable] = { (stars: Iterable[StarCube]) =>
                              Seq(Shapable.PointSet(positions = stars.map(s => s.starPosDir.pos), color = Color.orange))
                                ++ ImageUtil.circleShapes(8, 10, color = Color.white)
@@ -104,9 +111,10 @@ object Tryout {
       val dcfgs = Seq(
         DensConfig(
           id = "norm-l1-m005",
+          starDensity = StarDensity.s,
           cubeToProbs = CubeToProbs.m005,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs) =>
-            Random.nextDouble() < 0.5 && {
+          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs, starDensity: StarDensity) =>
+            Random.nextDouble() < starDensity.probabillity && {
               val prob = cubeToProbs.cubeToProbFunction(s.cube)
               Random.nextDouble() <= prob
             }
@@ -121,7 +129,7 @@ object Tryout {
             ImageUtil.positionToCube(densConfig.cubeToProbs.cubeSplit)(s.pos)
               .map(c => StarCube(s, c))
           }
-          .filter(sc => densConfig.filterStars(sc, densConfig.cubeToProbs))
+          .filter(sc => densConfig.filterStars(sc, densConfig.cubeToProbs, densConfig.starDensity))
         println(s"Stars ${densConfig.id} count:${stars.size}")
         densConfig.shapables(stars)
       }
