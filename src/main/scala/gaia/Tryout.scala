@@ -104,21 +104,23 @@ object Tryout {
         starsShapables ++ ImageUtil.circleShapes(8, 10, color = Color.white)
       }
 
+      def filterDefault(s: StarCube, cubeToProbs: CubeToProbs, starDensity: StarDensity): Boolean = {
+        Random.nextDouble() < starDensity.probabillity && {
+          val prob = cubeToProbs.cubeToProbFunction(s.cube)
+          Random.nextDouble() <= prob
+        }
+      }
+
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
 
       val dcfgs = Seq(
         DensConfig(
-          id = "norm-l1-m005",
+          id = "s-m005",
           starDensity = StarDensity.s,
           cubeToProbs = CubeToProbs.m005,
-          filterStars = { (s: StarCube, cubeToProbs: CubeToProbs, starDensity: StarDensity) =>
-            Random.nextDouble() < starDensity.probabillity && {
-              val prob = cubeToProbs.cubeToProbFunction(s.cube)
-              Random.nextDouble() <= prob
-            }
-          },
+          filterStars = filterDefault,
           shapables = shapablesRedWhite,
         ),
       )
