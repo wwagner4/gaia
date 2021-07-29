@@ -113,6 +113,21 @@ object Tryout {
         starsShapables ++ ImageUtil.circleShapes(8, 10, color = colorCircles)
       }
 
+      def shapablesCubes
+      (color1: Color, color2: Color, colorCircles: Color)
+      (stars: Iterable[StarCube]): Seq[Shapable] = {
+        val starsShapables =
+          stars
+            .map { sc => (math.abs(sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
+            .groupBy((i, _) => i)
+            .map((_, l) => l.map(t0 => t0._2.starPosDir))
+            .zip(Seq(color1, color2))
+            .flatMap { (s, c) => s.map(s1 => Shapable.Box(position = s1.pos, color = c, size = Vec(0.1, 0.1, 0.1)))
+            }.toSeq
+
+        starsShapables ++ ImageUtil.circleShapes(8, 10, color = colorCircles)
+      }
+
       def filterDefault(s: StarCube, cubeToProbs: CubeToProbs, starDensity: StarDensity): Boolean = {
         Random.nextDouble() < starDensity.probabillity && {
           val prob = cubeToProbs.cubeToProbFunction(s.cube)
@@ -120,23 +135,34 @@ object Tryout {
         }
       }
 
+      def colorPair: (Color, Color) = {
+        def nextColor: Color = {
+          val r = Random.nextDouble() * 0.5 + 0.5
+          val g = Random.nextDouble() * 0.5 + 0.5
+          val b = Random.nextDouble() * 0.5 + 0.5
+          Color(r, g, b)
+        }
+        (nextColor, nextColor)
+      }
+
       val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
       println(s"Created tryout dir $tryoutDir")
       val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
 
       val dcfgs = for (
-        sd <- StarDensity.values;
+        sd <- Seq(StarDensity.l, StarDensity.xl);
         cp <- CubeToProbs.values) yield {
-        val id = s"$sd-$cp"
-        val c1 = Color.green
-        val c2 = Color.yellow
-        val cl = Color.gray(0.7)
+        val id = s"cubes-$sd-$cp"
+        val colp = colorPair
+        val c1 = colp._1
+        val c2 = colp._2
+        val cl = Color.gray(0.4)
         DensConfig(
           id = id,
           starDensity = sd,
           cubeToProbs = cp,
           filterStars = filterDefault,
-          shapables = shapablesPointSet(c1, c2, cl),
+          shapables = shapablesCubes(c1, c2, cl),
         )
         ,
       }
