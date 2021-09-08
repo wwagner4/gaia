@@ -69,7 +69,7 @@ All these prerequisites are also defined in a docker file
 
 build
 ```shell
-docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t gaia .
+docker build -t gaia .
 ```
 ### For development
 ```shell
@@ -123,10 +123,7 @@ gaia bash project/mrun
 
 ```shell
 # wallace
-docker run --name gaiamrun --rm \
--v /home/wwagner4/prj/gaia:/home/ugaia/project \
--v /home/wwagner4/work/gaia/out:/home/ugaia/work/gaia/out -d -u $(id -u):$(id -g) \
-gaia bash project/mrun
+docker run -v /home/wwagner4/:/home -u 1000:1000 -it gaia bash
 ```
 
 File might look like
