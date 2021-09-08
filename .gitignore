@@ -8,3 +8,4 @@ boot
 src/main/doc/*.swp
 /src/main/doc/.~lock*
 /external-resources/
+external
