@@ -4,7 +4,7 @@ gaia-visual is a collection of tools to visualize the data delivered by the
 
 
 ## Features
-Currently gaia-visual provides the following features:
+Currently, gaia-visual provides the following features:
 
 ### Subset of the gaia 
 The data are taken from the [data release 2](https://www.cosmos.esa.int/web/gaia/data-release-2) and prepared

@@ -378,6 +378,11 @@ object Util {
     Files.list(mdir).toScala(Seq).filter(p => p.getFileName.toString.toLowerCase.endsWith(extention))
   }
 
-
+  def valueToIndex(size: Double, count: Int)(value: Double): Option[Int] = {
+    val cubeSize = size.toDouble / count
+    val valueRelative = value / cubeSize
+    if value >= 0 then if valueRelative >= count then None else Some(valueRelative.toInt)
+    else if valueRelative <= -count then None else Some(valueRelative.toInt - 1)
+  }
 }
 

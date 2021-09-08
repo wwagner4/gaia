@@ -6,7 +6,6 @@ import entelijan.vizb.LineChartBuilder
 import gaia.Gaia.outPath
 import org.apache.commons.lang3.math.Fraction
 import upickle.default.{macroRW, read, write, ReadWriter => RW}
-
 import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.net.URL
 import java.nio.file.{Files, Path}
@@ -14,7 +13,9 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors}
 import java.util.function.Consumer
 import java.util.zip.GZIPInputStream
+
 import scala.annotation.tailrec
+import scala.collection.immutable
 import scala.jdk.StreamConverters._
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.Random
@@ -35,33 +36,155 @@ object Tryout {
 
 
   def doit(args: List[String], workPath: Path): Unit = {
-    Development.densRead(workPath)
+    Development.dens(workPath)
   }
 
   object Development {
 
-    def densRead(workPath: Path): Unit = {
-      def dia(name: String, probs: Seq[(Cube, Double)]): Unit = {
-        val probsIndexed = probs.sortBy((_, p) => -p).zipWithIndex
-        val data = for (v <- probsIndexed) yield {
-          val x = v._2.toDouble
-          val y = v._1._2
-          XY(x, y)
-        }
-        LineChartBuilder(f"sis-$name")
-          .title(s"probabillities from $name")
-          .xySeq(data)
-          .xLabel("sector")
-          .yLabel("probabillity")
-          .yRangeMax(1.0)
-          .xRangeMax(2000)
-          .create()
+    enum StarDensity(val probabillity: Double) {
+      case s extends StarDensity(0.001)
+      case m extends StarDensity(0.01)
+      case l extends StarDensity(0.1)
+      case xl extends StarDensity(0.5)
+      case xxl extends StarDensity(1.0)
+    }
+
+    enum CubeToProbs(val cubeSplit: CubeSplits, val minCount: Int) {
+      case m005 extends CubeToProbs(CubeSplits.medium, 5)
+      case m010 extends CubeToProbs(CubeSplits.medium, 10)
+      case m020 extends CubeToProbs(CubeSplits.medium, 20)
+      case m050 extends CubeToProbs(CubeSplits.medium, 50)
+      case m100 extends CubeToProbs(CubeSplits.medium, 100)
+      case r005 extends CubeToProbs(CubeSplits.rough, 5)
+      case r010 extends CubeToProbs(CubeSplits.rough, 10)
+      case r020 extends CubeToProbs(CubeSplits.rough, 20)
+      case r050 extends CubeToProbs(CubeSplits.rough, 50)
+      case r100 extends CubeToProbs(CubeSplits.rough, 100)
+
+      private def createCubeToProb(cubeToProbConfig: CubeToProbs): Cube => Double = {
+        val cs = cubeToProbConfig.cubeSplit
+        val mc = cubeToProbConfig.minCount
+        val probsMap: Map[Cube, Double] = ImageUtil.probsFromResource(cs, mc).toMap
+        (c: Cube) => probsMap.getOrElse(c, 1.0)
       }
 
-      Seq(
-        CubeSplit.medium,
-        CubeSplit.rough,
-      ).foreach(cubeSplit => dia(cubeSplit.toString(), probsFromResource(cubeSplit)))
+      private lazy val cubeToProbs: Map[CubeToProbs, Cube => Double] =
+        CubeToProbs.values
+          .map { cp => (cp, createCubeToProb(cp)) }
+          .toMap
+
+      def cubeToProbFunction: Cube => Double = {
+        cubeToProbs(this)
+      }
+
+    }
+
+    case class StarCube(
+                         starPosDir: StarPosDir,
+                         cube: Cube,
+                       )
+
+    case class DensConfig(
+                           id: String,
+                           starDensity: StarDensity,
+                           cubeToProbs: CubeToProbs,
+                           filterStars: (StarCube, CubeToProbs, StarDensity) => Boolean,
+                           shapables: Iterable[StarCube] => Seq[Shapable] = { (stars: Iterable[StarCube]) =>
+                             Seq(Shapable.PointSet(positions = stars.map(s => s.starPosDir.pos), color = Color.orange))
+                               ++ ImageUtil.circleShapes(8, 10, color = Color.gray(0.7))
+                             ,
+                           }
+                         )
+
+    def dens(workPath: Path): Unit = {
+
+      def shapablesPointSet
+      (color1: Color, color2: Color, colorCircles: Color)
+      (stars: Iterable[StarCube]): Seq[Shapable] = {
+        val starsShapables =
+          stars
+            .map { sc => (math.abs(sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
+            .groupBy((i, _) => i)
+            .map((_, l) => l.map(t0 => t0._2.starPosDir))
+            .zip(Seq(color1, color2))
+            .map { (s, c) => Shapable.PointSet(positions = s.map(s => s.pos), color = c)
+            }.toSeq
+
+        starsShapables ++ ImageUtil.circleShapes(8, 10, color = colorCircles)
+      }
+
+      def shapablesCubes
+      (color1: Color, color2: Color, colorCircles: Color)
+      (stars: Iterable[StarCube]): Seq[Shapable] = {
+        val starsShapables =
+          stars
+            .map { sc => (math.abs(sc.cube.i + sc.cube.j + sc.cube.k) % 2, sc) }
+            .groupBy((i, _) => i)
+            .map((_, l) => l.map(t0 => t0._2.starPosDir))
+            .zip(Seq(color1, color2))
+            .flatMap { (s, c) => s.map(s1 => Shapable.Box(position = s1.pos, color = c, size = Vec(0.1, 0.1, 0.1)))
+            }.toSeq
+
+        starsShapables ++ ImageUtil.circleShapes(8, 10, color = colorCircles)
+      }
+
+      def filterDefault(s: StarCube, cubeToProbs: CubeToProbs, starDensity: StarDensity): Boolean = {
+        Random.nextDouble() < starDensity.probabillity && {
+          val prob = cubeToProbs.cubeToProbFunction(s.cube)
+          Random.nextDouble() <= prob
+        }
+      }
+
+      def colorPair: (Color, Color) = {
+        def nextColor: Color = {
+          val r = Random.nextDouble() * 0.5 + 0.5
+          val g = Random.nextDouble() * 0.5 + 0.5
+          val b = Random.nextDouble() * 0.5 + 0.5
+          Color(r, g, b)
+        }
+        (nextColor, nextColor)
+      }
+
+      val tryoutDir = Util.fileDirInOutDir(workPath, "tryout")
+      println(s"Created tryout dir $tryoutDir")
+      val starsGalactic = StarCollections.basicStars(workPath).map(toStarPosDirGalactic)
+
+      val dcfgs = for (
+        sd <- Seq(StarDensity.l, StarDensity.xl);
+        cp <- CubeToProbs.values) yield {
+        val id = s"cubes-$sd-$cp"
+        val colp = colorPair
+        val c1 = colp._1
+        val c2 = colp._2
+        val cl = Color.gray(0.4)
+        DensConfig(
+          id = id,
+          starDensity = sd,
+          cubeToProbs = cp,
+          filterStars = filterDefault,
+          shapables = shapablesCubes(c1, c2, cl),
+        )
+        ,
+      }
+
+      def densShapables(densConfig: DensConfig): Seq[Shapable] = {
+        val stars = starsGalactic
+          .flatMap { s =>
+            ImageUtil.positionToCube(densConfig.cubeToProbs.cubeSplit)(s.pos)
+              .map(c => StarCube(s, c))
+          }
+          .filter(sc => densConfig.filterStars(sc, densConfig.cubeToProbs, densConfig.starDensity))
+        println(s"Stars ${densConfig.id} count:${stars.size}")
+        densConfig.shapables(stars)
+      }
+
+      dcfgs.foreach { dcfg =>
+        val shapables = densShapables(dcfg)
+        val xml: String = createXml(shapables, title = s"dens_${dcfg.id}", backColor = Color.black)
+        val file = tryoutDir.resolve(s"tryout-dens-${dcfg.id}.x3d")
+        gaia.Util.writeString(file, xml)
+        println(s"Wrote ${dcfg.id} x3d to $file")
+      }
     }
 
   }
@@ -70,7 +193,7 @@ object Tryout {
 
     case class DensConfig(
                            id: String,
-                           cubeSplit: CubeSplit,
+                           cubeSplit: CubeSplits,
                            minCountPerSector: Int,
                            usageProbability: Double
                          )
@@ -83,45 +206,48 @@ object Tryout {
      */
     def densWrite(workPath: Path): Unit = {
 
+      val uasageProbability = 0.1
+
       val configs = Seq(
-        DensConfig("r100", CubeSplit.rough, 100, 0.1),
-        DensConfig("r050", CubeSplit.rough, 50, 0.1),
-        DensConfig("r020", CubeSplit.rough, 20, 0.1),
-        DensConfig("r010", CubeSplit.rough, 10, 0.1),
-        DensConfig("r005", CubeSplit.rough, 5, 0.1),
-        DensConfig("m100", CubeSplit.medium, 100, 0.1),
-        DensConfig("m050", CubeSplit.medium, 50, 0.1),
-        DensConfig("m020", CubeSplit.medium, 20, 0.1),
-        DensConfig("m010", CubeSplit.medium, 10, 0.1),
-        DensConfig("m005", CubeSplit.medium, 5, 0.1),
+        DensConfig("r100", CubeSplits.rough, 100, uasageProbability),
+        DensConfig("r050", CubeSplits.rough, 50, uasageProbability),
+        DensConfig("r020", CubeSplits.rough, 20, uasageProbability),
+        DensConfig("r010", CubeSplits.rough, 10, uasageProbability),
+        DensConfig("r005", CubeSplits.rough, 5, uasageProbability),
+        DensConfig("m100", CubeSplits.medium, 100, uasageProbability),
+        DensConfig("m050", CubeSplits.medium, 50, uasageProbability),
+        DensConfig("m020", CubeSplits.medium, 20, uasageProbability),
+        DensConfig("m010", CubeSplits.medium, 10, uasageProbability),
+        DensConfig("m005", CubeSplits.medium, 5, uasageProbability),
       ).par
 
       configs.foreach { config =>
         println(s"Running dens $config")
 
-
         val stars = StarCollections.basicStars(workPath)
 
         val starsFiltered = stars.map(toStarPosDirGalactic)
-          .filter(s => Random.nextDouble() <= 0.1 && s.pos.length < config.cubeSplit.cubeSize)
+          .filter(s => Random.nextDouble() <= config.usageProbability && s.pos.length < config.cubeSplit.cubeSize)
+        println(s"${config.id}: Filterde to ${starsFiltered.size}")
 
-        val ic: (Vec, Cube) => Boolean = inCube(config.cubeSplit.cubeSize, config.cubeSplit.cubeCount)
-        val counts: Seq[(Cube, Int)] = (for (c <- cubeIterator(config.cubeSplit.cubeCount)) yield {
-          val sc = starsFiltered.map { s => if (ic(s.pos, c)) 1 else 0 }
-          (c, sc.sum)
-        }).sortBy((_, d) => -d)
+        val counts: Seq[(Cube, Int)] = starsFiltered
+          .flatMap(s => ImageUtil.positionToCube(config.cubeSplit)(s.pos))
+          .groupBy(identity)
+          .toSeq
+          .map((g, l) => (g, l.size))
+          .sortBy(t => -t._2)
 
         val probs: Seq[(Cube, Double)] = counts
           .map((c, cnt) => (c, math.min(1.0, config.minCountPerSector.toDouble / cnt)))
           .filter((_, prob) => prob < 1.0)
 
-        println(s"size ${probs.size}")
         probs.foreach(println(_))
+        println(s"${config.id}: Config: $config Probabilities size ${probs.size}")
         val outDir = Util.fileDirInOutDir(workPath, "tryout-dens")
         val probFile = outDir.resolve(s"dens-${config.id}.pkl")
 
         Util.writeString(probFile, write(probs))
-        println(s"Wrote probabillities to $probFile")
+        println(s"${config.id}: Wrote probabillities to $probFile")
       }
     }
 
@@ -369,6 +495,30 @@ object Tryout {
   }
 
   object Obsolete {
+
+    def densRead(workPath: Path): Unit = {
+      def dia(name: String, probs: Seq[(Cube, Double)]): Unit = {
+        val probsIndexed = probs.sortBy((_, p) => -p).zipWithIndex
+        val data = for (v <- probsIndexed) yield {
+          val x = v._2.toDouble
+          val y = v._1._2
+          XY(x, y)
+        }
+        LineChartBuilder(f"sis-$name")
+          .title(s"probabillities from $name")
+          .xySeq(data)
+          .xLabel("sector")
+          .yLabel("probabillity")
+          .yRangeMax(1.0)
+          .xRangeMax(2000)
+          .create()
+      }
+
+      Seq(
+        CubeSplits.medium,
+        CubeSplits.rough,
+      ).foreach(cubeSplit => dia(cubeSplit.toString, probsFromResource(cubeSplit)))
+    }
 
     def directionColor(workPath: Path): Unit = {
       val bc = Color.veryDarkBlue

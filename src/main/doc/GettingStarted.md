@@ -1,10 +1,9 @@
 # Getting started gaia-visual
-Currently gaia-visual is only avaylable as source code.
+Currently, gaia-visual is avaylable as source code.
 
 ## Prerequisites
-In order to compile and run it you must have a java development kit
-[jdk](https://www.google.com/search?channel=fs&client=ubuntu&q=install+jdk)
-and the build tool [sbt](https://www.scala-sbt.org/1.x/docs/Setup.html) installed on you computer.
+In order to compile and run gaia-visual, you have to have a [java development kit (jdk)](https://www.google.com/search?channel=fs&client=ubuntu&q=install+jdk)
+and the build tool [sbt](https://www.scala-sbt.org/1.x/docs/Setup.html) installe d on you computer.
 
 To download gaia-visual you need [git](https://git-scm.com/downloads) to be installed
 on your computer
@@ -65,7 +64,7 @@ sbt run
 follow the instructions in stdout to run any of the available gaia features
 
 ## Docker
-All these prerequisites are also defined in a docker file
+All prerequisites are defined as docker file
 
 build
 ```shell
@@ -78,7 +77,7 @@ docker run -it  \
 -v <your work dir>/gaia/out:/home/ugaia/work/gaia/out \
 -u $(id -u):$(id -g)  gaia bash
 ```
-Make sure '<your work dir>/gaia/out' exists. Otherwise it will be created as 'root'
+Make sure '<your work dir>/gaia/out' exists. Otherwise, it will be created as 'root'
 
 e.g.
 ```shell

@@ -116,11 +116,11 @@ object ImageUtil {
 
     if (exists(cache)) {
       val stars = fromCsv()
-      println(s"filtered (cached) basic to ${stars.size} stars")
+      println(s"Filtered (cached) basic to ${stars.size} stars")
       stars
     }
     else {
-      println(s"creating data from base and store in $cache")
+      println(s"Creating data from base and store in $cache")
       val stars = Data.readBasic(workPath)
         .filter(filterStar)
         .toSeq
@@ -321,22 +321,25 @@ object ImageUtil {
     Vec(rotated.z, rotated.y, rotated.x)
   }
 
-  enum CubeSplit(val cubeSize: Int, val cubeCount: Int) {
-    case rough extends CubeSplit(16,16)
-    case medium extends CubeSplit(8,32)
-    case fine extends CubeSplit(4,64)
+  trait CubeSplit {
+    def cubeSize: Double
+    def cubeCount: Int
   }
 
-  case object CubeSplitRough 
-  
+  enum CubeSplits(val cubeSize: Double, val cubeCount: Int) extends CubeSplit {
+    case rough extends CubeSplits(16,16)
+    case medium extends CubeSplits(16,32)
+    case fine extends CubeSplits(16,64)
+  }
+
   case class Cube(i: Int, j: Int, k: Int)
 
-  def probsFromResource(cubeSplit: CubeSplit, minCount: Int = 10): Seq[(Cube, Double)] = {
-    def resName(cubeSplit: CubeSplit, minCount: Int): String = {
+  def probsFromResource(cubeSplit: CubeSplits, minCount: Int = 10): Seq[(Cube, Double)] = {
+    def resName(cubeSplit: CubeSplits, minCount: Int): String = {
       val cubeSplitCode = cubeSplit match {
-        case CubeSplit.fine => "f"
-        case CubeSplit.medium => "m"
-        case CubeSplit.rough => "r"
+        case CubeSplits.fine => "f"
+        case CubeSplits.medium => "m"
+        case CubeSplits.rough => "r"
       }
       val minCountsStr = "%03d".format(minCount)
       s"dens/dens-$cubeSplitCode$minCountsStr.pkl"
@@ -350,20 +353,20 @@ object ImageUtil {
     implicit val rw2: RW[Cube] = macroRW
   }
 
+  def positionToCube(cubeSplit: CubeSplit)(position: Vec): Option[Cube] = {
+    val v2i = Util.valueToIndex(cubeSplit.cubeSize, cubeSplit.cubeCount)
+    val i = v2i(position.x)
+    val j = v2i(position.y)
+    val k = v2i(position.z)
+    if i.isDefined && j.isDefined && k.isDefined
+    then Some(Cube(i.get, j.get, k.get))
+    else None
+  }
+
   def cubeIterator(cubeCount: Int): Seq[Cube] = {
     for (i <- -cubeCount until cubeCount;
          j <- -cubeCount until cubeCount;
          k <- -cubeCount until cubeCount) yield Cube(i, j, k)
-  }
-
-  /**
-   * Descide weather a position is inside a cube or not
-   */
-  def inCube(cubeSize: Int, cubeCount: Int)(pos: Vec, cube: Cube): Boolean = {
-    val ix = math.floor(pos.x * cubeCount / cubeSize).toInt
-    val iy = math.floor(pos.y * cubeCount / cubeSize).toInt
-    val iz = math.floor(pos.z * cubeCount / cubeSize).toInt
-    ix == cube.i && iy == cube.j && iz == cube.k
   }
 
   def shapeLine(backColor: Color, endColor: Color)(starPosDir: StarPosDir): Shapable = {
