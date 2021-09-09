@@ -23,6 +23,8 @@ object Hp1 {
 
   case class FRX3d(modelFile: Path) extends FinalResource
 
+  case class FRAnimatedX3d(modelFile: Path) extends FinalResource
+
   case class FRVideo(videoUrl: String) extends FinalResource
 
   case object FRNull extends FinalResource
@@ -40,7 +42,8 @@ object Hp1 {
       val finalRes = finalResource match {
         case FRImage(imageFile) => s"'images/${imageFile.getFileName}'"
         case FRX3d(modelFile) => s"'models/${modelFile.getFileName}'"
-        case FRVideo(videoUrl) => s"'${videoUrl}'"
+        case FRAnimatedX3d(modelFile) => s"'models/${modelFile.getFileName}'"
+        case FRVideo(videoUrl) => s"'$videoUrl'"
         case FRNull => "null"
       }
       s"""{
@@ -54,10 +57,12 @@ object Hp1 {
     def copyResources(): Unit = {
       val imagesDir = Util.fileDirFromDir(hpDirectory, "images")
       val modelsDir = Util.fileDirFromDir(hpDirectory, "models")
+      val animatedModelsDir = Util.fileDirFromDir(hpDirectory, "models")
       Util.fileCopy(previewImage, imagesDir)
       finalResource match {
         case r: FRImage => Util.fileCopy(r.imageFile, imagesDir)
         case r: FRX3d => Util.fileCopy(r.modelFile, modelsDir)
+        case r: FRAnimatedX3d => Util.fileCopy(r.modelFile, animatedModelsDir)
         case _ => // nothing to do
       }
     }
@@ -82,7 +87,7 @@ object Hp1 {
         val logoName = "video-400.png"
         val logoFile = Path.of("src", "main", "html1", "res", logoName)
         if createResources then logoImage(gaiaImage, logoFile, outputImage, workDir)
-        CarouselEntry(hpDir, outputImage, FRVideo(s"http://www.youtube.com/embed/${videoUrl}"))
+        CarouselEntry(hpDir, outputImage, FRVideo(s"http://www.youtube.com/embed/$videoUrl"))
       }.toSeq
     }
 
@@ -90,21 +95,32 @@ object Hp1 {
       def x3dCarouselEntry(x3dResource: Path): CarouselEntry = {
         val fname = x3dResource.getFileName.toString
         val name = fname.substring(0, fname.lastIndexOf('.'))
-        val outImageName = s"x3d-${name}.png"
+        val outImageName = s"x3d-$name.png"
         val outputImage: Path = tmpDir.resolve(outImageName)
         val logoFile = Path.of("src", "main", "html1", "res", "x3d-400.png")
         if createResources then logoImage(gaiaImage, logoFile, outputImage, workDir)
         CarouselEntry(hpDir, outputImage, FRX3d(x3dResource))
       }
 
-      Util.imageResources(gaiaImage.id, "x3d", workDir).map(x3dCarouselEntry)
+      def res(dirName: String): Seq[Path] = {
+        val mdir = Util.fileDirInOutDir(workDir, gaiaImage.id).resolve(dirName)
+        if Files.notExists(mdir) then throw IllegalStateException(s"Directory 'models' missing for ${gaiaImage.id}")
+        Files.list(mdir).toScala(Seq).filter(p => p.getFileName.toString.toLowerCase.endsWith("x3d"))
+      }
+
+      Seq("models", "animated-models")
+        .flatMap(res)
+        .map(x3dCarouselEntry)
     }
 
     descImageEntry ++ videoImageEntries ++ x3dImageEntries ++ Random.shuffle(stillImageEntries)
   }
 
   def createHp(workDir: Path, gaiaImages: Seq[GaiaImage], copyResources: Boolean): Unit = {
-    println("Creating HP")
+    val gaiaIds = gaiaImages.map(i => i.id)
+    println(s"Creating HP for gaia images ${gaiaIds.mkString(",")}")
+
+    ResourceCreator.createAll(gaiaIds, workDir)
 
     val hpDir = Util.fileDirInOutDir(workDir, "hp")
     if copyResources then Util.deleteDirContentRecursive(hpDir)
@@ -358,6 +374,35 @@ object Hp1 {
         val c = concat(a, b)
         vidConcat(c :: rest, id + 1, workDir)
     }
+  }
+
+
+  object ResourceCreator {
+
+    def createAll(ids: Seq[String], workDir: Path): Unit = {
+      println("START Creating resources for HP")
+      ids.foreach(create(_, workDir))
+      println("END Creating resources for HP")
+    }
+
+    def create(id: String, workDir: Path): Unit = {
+      println(s"Creating resources for $id")
+      if !resourceExists(id, workDir, "models", "x3d") then
+        Gaia.createX3d(List(id), workDir)
+      if !resourceExists(id, workDir, "animated-models", "x3d") then
+        Gaia.createX3dAnimation(List(id), workDir)
+      if !resourceExists(id, workDir, "stills", "png") then
+        Gaia.createStill(List(id), workDir)
+    }
+
+    def resourceExists(id: String, workDir: Path, dirName: String, extension: String): Boolean = {
+      val modelDir = Util.fileDirInOutDir(workDir, id).resolve(dirName)
+      if Files.exists(modelDir) then
+        Files.list(modelDir).filter(_.getFileName.toString.toLowerCase.endsWith(extension)).toScala(Iterable).nonEmpty
+      else
+        false
+    }
+
   }
 
 

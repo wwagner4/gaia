@@ -6,6 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN mkdir -p /usr/share/man/man1
 
 RUN apt-get update
+RUN apt-get install -y apt-utils
 RUN apt-get install -y curl
 RUN apt-get install -y unzip
 RUN apt-get install -y zip
@@ -20,7 +21,6 @@ RUN apt-get install -y default-jdk
 RUN apt-get install -y gnuplot-data
 RUN apt-get install -y gnuplot-mode
 RUN apt-get install -y chromium
-RUN apt-get install -y git
 RUN apt-get install -y vim
 
 WORKDIR /tmp
@@ -29,11 +29,8 @@ RUN mv /tmp/sbt /usr/local
 RUN chmod 755 /usr/local/sbt/bin/sbt
 RUN ln -s /usr/local/sbt/bin/sbt /usr/local/bin/
 
-WORKDIR /tmp
-RUN curl -sL "http://entelijan.net/gaia-data-basic.zip" | jar xvf /dev/stdin
-RUN mkdir -p /home/work/gaia/data/basic
-RUN mv /tmp/basic/*.gz /home/work/gaia/data/basic
-
 ENV HOME=/home
 ENV JAVA_OPTS="-Duser.home=/home"
 ENV SBT_OPTS="-Xms2G -Xmx4G -Xss4M --supershell=false"
+
+WORKDIR /home

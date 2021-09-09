@@ -113,7 +113,7 @@ object Gaia {
   }
 
   val actions: Map[String, Action] = identifiableToMap(Seq(
-    Action("hp", "create homepage files and snipplets", createHp(copyResources = false)),
+    Action("hp", "create homepage files and snipplets", createHp(copyResources = true)),
     Action("x3d", "create a x3d model", createX3d),
     Action("x3da", "create an animated x3d model", createX3dAnimation),
     Action("vid", "create video snippets", createVideo),
@@ -688,7 +688,7 @@ object Gaia {
     def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach {
       case VideoConfig.Cams(camConfigs) => {
         println(s"Creating gaia x3d for ID ${gi.id}. ${gi.desc}")
-        val modelsDir = outPath(workPath).resolve(gi.id).resolve("models")
+        val modelsDir = outPath(workPath).resolve(gi.id).resolve("animated-models")
         if Files.notExists(modelsDir) then Files.createDirectories(modelsDir)
         val shapables = gi.fCreateModel(workPath, gi.backColor)
         gi.videoConfig.foreach {
@@ -709,7 +709,7 @@ object Gaia {
     createSomething(args, "x3d animated model", workPath, filter, exec)
   }
 
-  private def createStill(args: List[String], workPath: Path): Unit = {
+  def createStill(args: List[String], workPath: Path): Unit = {
     def filter(gi: GaiaImage): Boolean = gi.videoConfig.map(vc => vc.isInstanceOf[VideoConfig.Cams]).getOrElse(false)
 
     def exec(gi: GaiaImage, wp: Path): Unit = gi.videoConfig.foreach {

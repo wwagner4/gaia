@@ -372,12 +372,6 @@ object Util {
       .flatMap(stillImageGroup)
   }
 
-  def imageResources(imageId: String, extention: String, workPath: Path): Seq[Path] = {
-    val mdir = Util.fileDirInOutDir(workPath, imageId).resolve("models")
-    if Files.notExists(mdir) then throw IllegalStateException(s"Directory 'models' missing for $imageId")
-    Files.list(mdir).toScala(Seq).filter(p => p.getFileName.toString.toLowerCase.endsWith(extention))
-  }
-
   def valueToIndex(size: Double, count: Int)(value: Double): Option[Int] = {
     val cubeSize = size.toDouble / count
     val valueRelative = value / cubeSize

@@ -1,9 +1,10 @@
 # Getting started gaia-visual
-Currently, gaia-visual is avaylable as source code.
+Currently gaia-visual is only avaylable as source code.
 
 ## Prerequisites
-In order to compile and run gaia-visual, you have to have a [java development kit (jdk)](https://www.google.com/search?channel=fs&client=ubuntu&q=install+jdk)
-and the build tool [sbt](https://www.scala-sbt.org/1.x/docs/Setup.html) installe d on you computer.
+In order to compile and run it you must have a java development kit
+[jdk](https://www.google.com/search?channel=fs&client=ubuntu&q=install+jdk)
+and the build tool [sbt](https://www.scala-sbt.org/1.x/docs/Setup.html) installed on you computer.
 
 To download gaia-visual you need [git](https://git-scm.com/downloads) to be installed
 on your computer
@@ -21,9 +22,12 @@ or using wget
 ```
 wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1YvV2LIO_ml4_bokMKW3JLAHYJxBTNp4n' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1YvV2LIO_ml4_bokMKW3JLAHYJxBTNp4n" -O gaia1.zip && rm -rf /tmp/cookies.txt
 ```
+or use entelijan
+```
+wget http://entelijan.net/gaia-data-basic.zip 
+```
 
-
-Download unzip and copy the *.gz files to ~/work/gaia/data/basic
+Download unzip and copy the 'basic' directory to ~/work/gaia/data
 
 ## Download, compile and run
 
@@ -64,65 +68,42 @@ sbt run
 follow the instructions in stdout to run any of the available gaia features
 
 ## Docker
-All prerequisites are defined as docker file
+All these prerequisites are also defined in a docker file
 
 build
 ```shell
 docker build -t gaia .
 ```
 ### For development
-```shell
+```
 docker run -it  \
--v <your project dir>/gaia:/home/ugaia/project \
--v <your work dir>/gaia/out:/home/ugaia/work/gaia/out \
+-v <your home dir>:/home \
 -u $(id -u):$(id -g)  gaia bash
 ```
-Make sure '<your work dir>/gaia/out' exists. Otherwise, it will be created as 'root'
 
-e.g.
-```shell
-# wallace
-docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
--v /home/wwagner4/work/gaia/out:/home/ugaia/work/gaia/out \
--u $(id -u):$(id -g) gaia bash
+#### work
 ```
-```shell
-# ben
-docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
--v /data/work/gaia/out:/home/ugaia/work/gaia/out \
--u $(id -u):$(id -g) gaia bash
-```
-```shell
-# work
-docker run -it  -v /home/itsv.org.sv-services.at/31100428/prj/gaia:/home/ugaia/project \
--v /home/itsv.org.sv-services.at/31100428/work/gaia/out:/home/ugaia/work/gaia/out \
--u $(id -u):$(id -g) gaia bash
-```
-# bob
-docker run -it  -v /home/wwagner4/prj/gaia:/home/ugaia/project \
--v /home/wwagner4/work/gaia/out:/home/ugaia/work/gaia/out \
--u $(id -u):$(id -g) gaia bash
+docker run -v /home/itsv.org.sv-services.at/31100428:/home -u $(id -u):$(id -g) -it gaia bash
 ```
 
-Multirun: 
-Use file 'mrun' in project root
-```shell
-docker run --name gaiamrun --rm \
--v /home/itsv.org.sv-services.at/31100428/prj/gaia:/home/ugaia/project \
--v /home/itsv.org.sv-services.at/31100428/work/gaia/out:/home/ugaia/work/gaia/out -d -u $(id -u):$(id -g) \
-gaia bash project/mrun
+#### bob
 ```
-```shell
-# ben
-docker run --name gaiamrun --rm \
--v /home/wwagner4/prj/gaia:/home/ugaia/project \
--v /data/work/gaia/out:/home/ugaia/work/gaia/out -d -u $(id -u):$(id -g) \
-gaia bash project/mrun
+docker run -v /home/wwagner4/:/home -u 1000:1000 -it -e SBT_OPTS="-Xmx20G" gaia bash
 ```
 
-```shell
-# wallace
+#### wallace
+```
 docker run -v /home/wwagner4/:/home -u 1000:1000 -it gaia bash
+```
+
+### Multirun: 
+
+Use file 'mrun' in project root
+```
+docker run --name gaiamrun --rm \
+-v /home/wwagner5:/home \
+-d -u $(id -u):$(id -g) \
+gaia bash /home/prj/gaia/mrun
 ```
 
 File might look like
@@ -135,19 +116,3 @@ cd project && sbt "\
 ;test\
 "
 ```
-
-
-
-
-* cd /home/ugaia/project
-* sbt
-
-### For just running
-```shell
-docker run -it  \
--v <your project dir>/gaia:/home/ugaia/project \
--v <your work dir>:/home/ugaia/work \
--u $(id -u):$(id -g)  gaia bash
-```
-* cd /home/ugaia/app/gaia
-* sbt
