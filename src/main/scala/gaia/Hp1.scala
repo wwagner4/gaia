@@ -42,7 +42,7 @@ object Hp1 {
       val finalRes = finalResource match {
         case FRImage(imageFile) => s"'images/${imageFile.getFileName}'"
         case FRX3d(modelFile) => s"'models/${modelFile.getFileName}'"
-        case FRAnimatedX3d(modelFile) => s"'animated-models/${modelFile.getFileName}'"
+        case FRAnimatedX3d(modelFile) => s"'models/${modelFile.getFileName}'"
         case FRVideo(videoUrl) => s"'$videoUrl'"
         case FRNull => "null"
       }
@@ -57,7 +57,7 @@ object Hp1 {
     def copyResources(): Unit = {
       val imagesDir = Util.fileDirFromDir(hpDirectory, "images")
       val modelsDir = Util.fileDirFromDir(hpDirectory, "models")
-      val animatedModelsDir = Util.fileDirFromDir(hpDirectory, "animated-models")
+      val animatedModelsDir = Util.fileDirFromDir(hpDirectory, "models")
       Util.fileCopy(previewImage, imagesDir)
       finalResource match {
         case r: FRImage => Util.fileCopy(r.imageFile, imagesDir)

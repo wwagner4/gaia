@@ -88,7 +88,7 @@ docker run -v /home/itsv.org.sv-services.at/31100428:/home -u $(id -u):$(id -g) 
 
 #### bob
 ```
-docker run -v /home/wwagner4/:/home -u 1000:1000 -it gaia bash
+docker run -v /home/wwagner4/:/home -u 1000:1000 -it -e SBT_OPTS="-Xmx20G" gaia bash
 ```
 
 #### wallace

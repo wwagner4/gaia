@@ -113,7 +113,7 @@ object Gaia {
   }
 
   val actions: Map[String, Action] = identifiableToMap(Seq(
-    Action("hp", "create homepage files and snipplets", createHp(copyResources = false)),
+    Action("hp", "create homepage files and snipplets", createHp(copyResources = true)),
     Action("x3d", "create a x3d model", createX3d),
     Action("x3da", "create an animated x3d model", createX3dAnimation),
     Action("vid", "create video snippets", createVideo),
