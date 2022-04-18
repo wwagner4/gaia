@@ -126,7 +126,7 @@ object Hp1 {
     if copyResources then Util.deleteDirContentRecursive(hpDir)
 
     def copyHtmlFiles(): Unit = {
-      val names = Seq("gaia.css", "gaia.js", "Orbitron-VariableFont_wght.ttf")
+      val names = Seq("gaia.css", "gaia.js", "vue-min.js", "Orbitron-VariableFont_wght.ttf")
       names.map(n => Path.of("src", "main", "html1", n))
         .foreach(p => Util.fileCopy(p, hpDir))
     }
@@ -201,7 +201,7 @@ object Hp1 {
        |</div>
        |
        |
-       |<script src="https://unpkg.com/vue"></script>
+       |<script src="vue-min.js"></script>
        |<script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
        |<script src="gaia.js"></script>
        |<script>

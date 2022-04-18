@@ -352,12 +352,11 @@ object Util {
       }
 
       val prev = filterImageType("prev").headOption
-      val full = filterImageType("full").headOption
-      if prev.isDefined && full.isDefined then Some(StillImageGroup(prev.get, full.get))
+      if prev.isDefined then Some(StillImageGroup(prev.get, prev.get))
       else None
     }
 
-    val pattern = "(.*)-(full|prev)-(.*)".r
+    val pattern = "(.*)-(prev)-(.*)".r
     allFiles(gaiaImage)
       .flatMap { path =>
         val fnam = path.toString

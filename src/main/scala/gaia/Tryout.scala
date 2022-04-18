@@ -92,7 +92,6 @@ object Tryout {
                            shapables: Iterable[StarCube] => Seq[Shapable] = { (stars: Iterable[StarCube]) =>
                              Seq(Shapable.PointSet(positions = stars.map(s => s.starPosDir.pos), color = Color.orange))
                                ++ ImageUtil.circleShapes(8, 10, color = Color.gray(0.7))
-                             ,
                            }
                          )
 
@@ -164,7 +163,6 @@ object Tryout {
           filterStars = filterDefault,
           shapables = shapablesCubes(c1, c2, cl),
         )
-        ,
       }
 
       def densShapables(densConfig: DensConfig): Seq[Shapable] = {
