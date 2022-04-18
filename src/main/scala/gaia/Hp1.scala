@@ -23,8 +23,6 @@ object Hp1 {
 
   case class FRX3d(modelFile: Path) extends FinalResource
 
-  case class FRAnimatedX3d(modelFile: Path) extends FinalResource
-
   case class FRVideo(videoUrl: String) extends FinalResource
 
   case object FRNull extends FinalResource
@@ -42,7 +40,6 @@ object Hp1 {
       val finalRes = finalResource match {
         case FRImage(imageFile) => s"'images/${imageFile.getFileName}'"
         case FRX3d(modelFile) => s"'models/${modelFile.getFileName}'"
-        case FRAnimatedX3d(modelFile) => s"'models/${modelFile.getFileName}'"
         case FRVideo(videoUrl) => s"'$videoUrl'"
         case FRNull => "null"
       }
@@ -57,12 +54,10 @@ object Hp1 {
     def copyResources(): Unit = {
       val imagesDir = Util.fileDirFromDir(hpDirectory, "images")
       val modelsDir = Util.fileDirFromDir(hpDirectory, "models")
-      val animatedModelsDir = Util.fileDirFromDir(hpDirectory, "models")
       Util.fileCopy(previewImage, imagesDir)
       finalResource match {
         case r: FRImage => Util.fileCopy(r.imageFile, imagesDir)
         case r: FRX3d => Util.fileCopy(r.modelFile, modelsDir)
-        case r: FRAnimatedX3d => Util.fileCopy(r.modelFile, animatedModelsDir)
         case _ => // nothing to do
       }
     }
@@ -108,7 +103,7 @@ object Hp1 {
         Files.list(mdir).toScala(Seq).filter(p => p.getFileName.toString.toLowerCase.endsWith("x3d"))
       }
 
-      Seq("models", "animated-models")
+      Seq("models")
         .flatMap(res)
         .map(x3dCarouselEntry)
     }
@@ -389,8 +384,6 @@ object Hp1 {
       println(s"Creating resources for $id")
       if !resourceExists(id, workDir, "models", "x3d") then
         Gaia.createX3d(List(id), workDir)
-      if !resourceExists(id, workDir, "animated-models", "x3d") then
-        Gaia.createX3dAnimation(List(id), workDir)
       if !resourceExists(id, workDir, "stills", "png") then
         Gaia.createStill(List(id), workDir)
     }
